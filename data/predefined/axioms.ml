@@ -1,27 +1,31 @@
-(* let[@axiom] ax1 = *)
-(*  fun ((v [@forall]) : int tree) -> *)
-(*   fun ((n [@forall]) : int) -> *)
-(*    implies (n >= 0) (fun ((tr [@exists]) : int tree) -> *)
-(*        treeNumNode tr == n && fun ((x [@exists]) : int) -> *)
-(*        fun ((lt [@exists]) : int tree) -> *)
-(*         fun ((rt [@exists]) : int tree) -> *)
-(*          root tr x && lch tr lt && rch tr rt *)
-(*          && fun ((x_0 [@exists]) : int) -> *)
-(*          x_0 == treeNumNode lt && implies (treeNumNode v == x_0) (v == lt)) *)
+let[@axiom] ax1 =
+ fun (n : int) ->
+  implies (n >= 0) (fun (v : int tree) ->
+      implies
+        (n - 1 == treeNumNode v)
+        (fun ((tr [@exists]) : int tree) ->
+          n == treeNumNode tr && fun ((x [@exists]) : int) ->
+          fun ((lt [@exists]) : int tree) -> root tr x && lch tr lt && rch tr v))
 
 let[@axiom] ax2 =
- fun ((v [@forall]) : int tree) ->
-  fun ((n [@forall]) : int) ->
-   implies (n >= 0) (fun ((dummy_16 [@exists]) : int tree) ->
-       fun ((tr [@exists]) : int tree) ->
-        treeNumNode tr == n && fun ((x [@exists]) : int) ->
-        fun ((lt [@exists]) : int tree) ->
-         fun ((rt [@exists]) : int tree) ->
-          root tr x && lch tr lt && rch tr rt
-          && fun ((x_0 [@exists]) : int) ->
-          x_0 == treeNumNode lt && fun ((l1 [@exists]) : int list) ->
-          implies (treeNumNode dummy_16 == x_0) (dummy_16 == lt)
-          && x_0 < n && x_0 >= 0
-          && listLen l1 == x_0
-          && fun ((x_2 [@exists]) : int) ->
-          x_2 == treeNumNode rt && implies (treeNumNode v == x_2) (v == rt))
+ fun (n : int) ->
+  implies (n >= 0) (fun (v : int list) ->
+      implies
+        (listLen v == n)
+        (fun ((tr [@exists]) : int tree) ->
+          n == treeNumNode tr
+          && ( (leaf tr && emp v) || fun ((x [@exists]) : int) ->
+               fun ((lt [@exists]) : int tree) ->
+                fun ((rt [@exists]) : int tree) ->
+                 root tr x && lch tr lt && rch tr rt
+                 && fun ((x_0 [@exists]) : int) ->
+                 x_0 == n - 1 && fun ((l2 [@exists]) : int list) ->
+                 x_0 < n && x_0 >= 0 && listLen l2 == x_0 && hd v x && tl v l2
+             )))
+
+let[@axiom] ax3 =
+ fun (v : int list) ->
+  fun ((tr [@exists]) : int tree) ->
+   treeNumNode tr == listLen v && listLen v >= 0
+
+let[@axiom] ax4 = fun (tr : int tree) -> treeNumNode tr >= 0
