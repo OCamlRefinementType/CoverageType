@@ -109,7 +109,7 @@ let sub_cty ou builtin_ctx ctx cty1 cty2 =
          (StrList.to_string dom))
       (is_close_cty dom cty2)
   in
-  let nty = Nt._type_unify [%here] cty1.nty cty2.nty in
+  let nty = if Nt.equal_nt cty1.nty cty2.nty then cty1.nty else _die [%here] in
   let overctx = (default_v, mk_top_cty nty) :: overctx in
   let query =
     match ou with

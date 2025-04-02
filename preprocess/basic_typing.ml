@@ -2,263 +2,200 @@ open Language
 open Zutils
 open PropTypecheck
 open Typectx
+open Zdatatype
 
 type t = Nt.t
 
 let _log = Myconfig._log_preprocess
 
-let __force_typed loc = function
-  | { ty = Nt.Ty_unknown; _ } -> _die loc
-  | x -> x
-
-let bi_typed_cty_check (ctx : t ctx) (cty : t cty) : t cty =
+let cty_type_check (ctx : t ctx) (poly_vars : string list)
+    ({ phi; nty } : t cty) : t cty =
   let () =
     _log @@ fun _ ->
     pprint_ctx Nt.layout ctx;
     print_newline ();
-    Printf.printf "cty: %s\n" (layout_cty cty)
+    Printf.printf "cty: %s\n" (layout_cty { phi; nty })
   in
-  match cty with
-  | { phi; nty } ->
-      let phi = bi_typed_prop_check (add_to_right ctx default_v#:nty) phi in
-      { phi; nty }
+  { phi = prop_type_check (add_to_right ctx default_v#:nty) poly_vars phi; nty }
 
-let bi_typed_rty_check (ctx : t ctx) (rty : t rty) : t rty =
+let rty_type_check (ctx : t ctx) (poly_vars : string list) (rty : t rty) : t rty
+    =
   let () = check_wf_rty rty in
-  let rec aux ctx = function
-    | RtyBase { ou; cty } -> RtyBase { ou; cty = bi_typed_cty_check ctx cty }
-    | RtyArr { arr_type; argrty; arg; retty } ->
-        let argrty = aux ctx argrty in
-        let ctx' = add_to_right ctx arg#:(erase_rty argrty) in
-        let retty = aux ctx' retty in
-        RtyArr { arr_type; argrty; arg; retty }
-    | RtyProd (r1, r2) -> RtyProd (aux ctx r1, aux ctx r2)
-  in
-  aux ctx rty
-
-let rec bi_typed_term_infer (ctx : t ctx) (x : (t, t raw_term) typed) :
-    (t, t raw_term) typed =
-  match x.ty with
-  | Nt.Ty_unknown -> bi_term_infer ctx x.x
-  | _ -> bi_term_check ctx x.x x.ty
-
-and bi_typed_term_check (ctx : t ctx) (x : (t, t raw_term) typed) (ty : t) :
-    (t, t raw_term) typed =
-  match x.ty with
-  | Nt.Ty_unknown -> bi_term_check ctx x.x ty
-  | _ ->
-      let sndty = Nt._type_unify [%here] x.ty ty in
-      bi_term_check ctx x.x sndty
-
-and bi_term_check (ctx : t ctx) (x : t raw_term) (ty : t) :
-    (t, t raw_term) typed =
   let () =
-    _log @@ pprint_basic_typing (fun () -> pprint_ctx Nt.layout ctx) (x, ty)
+    _log @@ fun _ ->
+    pprint_ctx Nt.layout ctx;
+    print_newline ();
+    Pp.printf "@{<bold>rty task@}: %s\n" (layout_rty rty)
   in
-  match (x, ty) with
-  | Err, _ -> Err#:ty
-  | Const _, _ | Var _, _ ->
-      let x = bi_term_infer ctx x in
-      x.x#:(Nt._type_unify [%here] x.ty ty)
-  | Tuple es, Ty_tuple tys ->
-      let estys = _safe_combine [%here] es tys in
-      let es = List.map (fun (e, ty) -> bi_typed_term_check ctx e ty) estys in
-      (Tuple es)#:ty
-  | Lam { lamarg; lambody }, Ty_arrow (t1, _) ->
-      let lamarg = bi_typed_id_check ctx lamarg t1 in
-      let ty = Nt._type_unify [%here] (Ty_arrow (lamarg.ty, Nt.Ty_any)) ty in
-      let lambody =
-        bi_typed_term_check (add_to_right ctx lamarg) lambody
-        @@ Nt.get_arr_rhs ty
-      in
-      (Lam { lamarg; lambody })#:ty
-  | AppOp (op, args), ty ->
-      let op' = bi_typed_op_infer ctx op in
-      let args' = List.map (bi_typed_term_infer ctx) args in
-      let fty =
-        Nt._type_unify [%here] op'.ty
-          (Nt.construct_arr_tp (List.map _get_ty args', ty))
-      in
-      let op = bi_typed_op_check ctx op fty in
-      let argsty =
-        Zdatatype.List.sublist
-          (fst @@ Nt.destruct_arr_tp fty)
-          ~start_included:0 ~end_excluded:(List.length args)
-      in
-      let args =
-        List.map (fun (x, ty) -> bi_typed_term_check ctx x ty)
-        @@ List.combine args argsty
-      in
-      (AppOp (op, args))#:ty
-  | App (f, args), ty ->
-      let f' = bi_typed_term_infer ctx f in
-      let args' = List.map (bi_typed_term_infer ctx) args in
-      let fty =
-        Nt._type_unify [%here]
-          (Nt.construct_arr_tp (List.map _get_ty args', ty))
-          f'.ty
-      in
-      let f = bi_typed_term_check ctx f fty in
-      let argsty =
-        Zdatatype.List.sublist
-          (fst @@ Nt.destruct_arr_tp fty)
-          ~start_included:0 ~end_excluded:(List.length args)
-      in
-      let args =
-        List.map (fun (x, ty) -> bi_typed_term_check ctx x ty)
-        @@ List.combine args argsty
-      in
-      (App (f, args))#:ty
-  | Let { if_rec; rhs; lhs; letbody }, ty ->
-      let _ =
-        List.iter
-          (fun x ->
-            match x.ty with
-            | Nt.Ty_unknown ->
-                _die_with [%here]
-                  (spf "the let LHS (%s) of binding expression must be typed"
-                     x.x)
-            | _ -> ())
-          lhs
-      in
-      let rhsty = Nt.Ty_tuple (List.map _get_ty lhs) in
-      let rhs = bi_typed_term_check ctx rhs rhsty in
-      let ctx' = add_to_rights ctx lhs in
-      let ctx' =
-        if if_rec then _failatwith [%here] "todo??"
-          (* Typectx.add_to_right ctx ("f", construct_arr_tp (List.map xsty, ty)) *)
-        else ctx'
-      in
-      let letbody = bi_typed_term_check ctx' letbody ty in
-      (Let { if_rec; rhs; lhs; letbody })#:ty
-  | Ifte (e1, e2, e3), _ ->
-      let e1 = bi_typed_term_check ctx e1 Nt.bool_ty in
-      let e2 = bi_typed_term_check ctx e2 ty in
-      let e3 = bi_typed_term_check ctx e3 ty in
-      (Ifte (e1, e2, e3))#:ty
-  | Match { match_cases = []; _ }, _ ->
-      _failatwith [%here] "bi_term_infer: pattern matching branch is empty"
-  | Match { matched; match_cases }, _ ->
-      let matched = bi_typed_term_infer ctx matched in
-      let handle_case = function
-        | Matchcase { constructor; args; exp } ->
-            let constructor_ty =
-              Nt.construct_arr_tp
-                (List.map (fun _ -> Nt.Ty_any) args, matched.ty)
-            in
-            let constructor =
-              bi_typed_id_check ctx constructor constructor_ty
-            in
-            let argsty, _ = Nt.destruct_arr_tp constructor.ty in
-            let args =
-              List.map (fun (x, ty) -> x.x#:ty)
-              @@ _safe_combine [%here] args argsty
-            in
-            let ctx' = add_to_rights ctx args in
-            let exp = bi_typed_term_check ctx' exp ty in
-            Matchcase { constructor; args; exp }
-      in
-      let match_cases = List.map handle_case match_cases in
-      (Match { matched; match_cases })#:ty
-  | e, ty ->
-      _failatwith [%here]
-        (spf "bi_term_check: inconsistent term (%s) and type (%s)"
-           (layout_raw_term e) (Nt.layout ty))
+  let rec aux ctx poly_vars rty =
+    let () = _log @@ fun _ -> Printf.printf "rty: %s\n" (layout_rty rty) in
+    match rty with
+    | RtyBase { ou; cty } ->
+        RtyBase { ou; cty = cty_type_check ctx poly_vars cty }
+    | RtyArr { argrty; arg; retty } ->
+        let argrty = aux ctx poly_vars argrty in
+        let argnty = erase_rty argrty in
+        let ctx' =
+          if Nt.is_base_tp argnty then add_to_right ctx arg#:argnty else ctx
+        in
+        let retty = aux ctx' poly_vars retty in
+        RtyArr { argrty; arg; retty }
+    | RtyPolyType { pt; rty } ->
+        if List.exists (String.equal pt) poly_vars then
+          _die_with [%here] (spf "same poly var: %s" pt)
+        else
+          let rty = aux ctx (pt :: poly_vars) rty in
+          RtyPolyType { pt; rty }
+    | RtyPolyPred { pred; rty } ->
+        let ctx' = add_to_right ctx pred in
+        let rty = aux ctx' poly_vars rty in
+        RtyPolyPred { pred; rty }
+  in
+  aux ctx poly_vars rty
 
-and bi_term_infer (ctx : t ctx) (x : t raw_term) : (t, t raw_term) typed =
-  match x with
+module BC = Normalty.BoundConstraints
+
+let rec constraint_term_type_infer (ctx : t ctx) (bc : BC.bc) (e : t raw_term) =
+  match e with
   | Err ->
-      failwith
-        "Cannot infer the type of the exception, should provide the return type"
-  | Const c -> (Const c)#:(constant_to_nt c)
+      let bc, t = BC.fresh bc in
+      (* let () = Printf.printf "mk t: %s\n" (Nt.layout t) in *)
+      (bc, Err#:t)
+  | Const c -> (bc, (Const c)#:(constant_to_nt c))
   | Var id ->
-      (* let _ = Printf.printf "id: %s\n" id.x in *)
-      let id = bi_typed_id_infer ctx id in
-      (Var id)#:id.ty
+      let bc, id = constraint_id_type_check ctx bc id in
+      let () = Printf.printf "id: %s : %s\n" id.x (Nt.layout id.ty) in
+      (bc, (Var id)#:id.ty)
   | Tuple es ->
-      let es = List.map (bi_typed_term_infer ctx) es in
-      let ty = Nt.Ty_tuple (List.map _get_ty es) in
-      (Tuple es)#:ty
+      let bc, es = constraint_terms_type_check ctx bc es in
+      (bc, (Tuple es)#:(Nt.Ty_tuple (List.map _get_ty es)))
   | Lam { lamarg; lambody } ->
-      let lamarg = __force_typed [%here] lamarg in
-      let lambody = bi_typed_term_infer (add_to_right ctx lamarg) lambody in
+      let lamarg = Nt.__force_typed [%here] lamarg in
+      let bc, lambody =
+        constraint_term_type_check (add_to_right ctx lamarg) bc lambody
+      in
       let ty = Nt.construct_arr_tp ([ lamarg.ty ], lambody.ty) in
-      (Lam { lamarg; lambody })#:ty
+      (bc, (Lam { lamarg; lambody })#:ty)
   | AppOp (op, args) ->
-      let args = List.map (bi_typed_term_infer ctx) args in
-      let op =
-        bi_typed_op_check ctx op
-          (Nt.construct_arr_tp (List.map _get_ty args, Nt.Ty_any))
+      let bc, op = constraint_op_type_check ctx bc op in
+      (* let bc, op' = constraint_op_type_infer ctx op.x in *)
+      (* let () = *)
+      (*   Printf.printf "op': %s : %s\n" (Prop.layout_op op'.x) (Nt.layout op'.ty) *)
+      (* in *)
+      (* let mk_constraint ty (bc, x') = *)
+      (*   if Nt.is_unkown ty then (bc, x') *)
+      (*   else *)
+      (*     let bc, (ty, _) = BC.add bc (ty, x'.ty) in *)
+      (*     (bc, x'.x#:ty) *)
+      (* in *)
+      (* let bc, op = mk_constraint op.ty (bc, op') in *)
+      let () =
+        Printf.printf "op: %s : %s\n" (Prop.layout_op op.x) (Nt.layout op.ty)
       in
-      (AppOp (op, args))#:(snd @@ Nt.destruct_arr_tp op.ty)
+      let bc, args = constraint_terms_type_check ctx bc args in
+      let bc, retty = BC.fresh bc in
+      let op_ty = Nt.construct_arr_tp (List.map _get_ty args, retty) in
+      let bc, _ = BC.add bc (op_ty, op.ty) in
+      (bc, (AppOp (op, args))#:retty)
   | App (f, args) ->
-      let f = bi_typed_term_infer ctx f in
-      let argsty, ty = Nt.destruct_arr_tp f.ty in
-      let args =
-        List.map (fun (x, ty) -> bi_typed_term_check ctx x ty)
-        @@ _safe_combine [%here] args argsty
-      in
-      (App (f, args))#:ty
+      let bc, f = constraint_term_type_check ctx bc f in
+      let bc, args = constraint_terms_type_check ctx bc args in
+      let bc, retty = BC.fresh bc in
+      let f_ty = Nt.construct_arr_tp (List.map _get_ty args, retty) in
+      let bc, _ = BC.add bc (f_ty, f.ty) in
+      (bc, (App (f, args))#:retty)
   | Let { if_rec = true; _ } ->
       _failatwith [%here] "cannot infer ret type of recursive function"
   | Let { if_rec; rhs; lhs; letbody } ->
-      let lhs = List.map (__force_typed [%here]) lhs in
-      let rhsty = Nt.Ty_tuple (List.map _get_ty lhs) in
-      let rhs = bi_typed_term_check ctx rhs rhsty in
-      let ctx' = add_to_rights ctx lhs in
+      let lhs = List.map (Nt.__force_typed [%here]) lhs in
+      let bc, rhs = constraint_term_type_check ctx bc rhs in
       let ctx' =
         if if_rec then _failatwith [%here] "todo??"
-          (* Typectx.add_to_right ctx ("f", construct_arr_tp (List.map xsty, ty)) *)
-        else ctx'
+        (* Typectx.add_to_right ctx ("f", construct_arr_tp (List.map xsty, ty)) *)
+          else add_to_rights ctx lhs
       in
-      let letbody = bi_typed_term_infer ctx' letbody in
-      (Let { if_rec; rhs; lhs; letbody })#:letbody.ty
+      let bc, letbody = constraint_term_type_check ctx' bc letbody in
+      let bc, _ = BC.add bc (Nt.Ty_tuple (List.map _get_ty lhs), rhs.ty) in
+      (bc, (Let { if_rec; rhs; lhs; letbody })#:letbody.ty)
   | Ifte (e1, e2, e3) ->
-      let e1 = bi_typed_term_check ctx e1 Nt.bool_ty in
-      let e2 = bi_typed_term_infer ctx e2 in
-      let e3 = bi_typed_term_check ctx e3 e2.ty in
-      (Ifte (e1, e2, e3))#:e2.ty
-  | Match { matched; match_cases } ->
-      let matched = bi_typed_term_infer ctx matched in
-      let handle_case = function
+      let bc, e1 = constraint_term_type_check ctx bc e1 in
+      let bc, e2 = constraint_term_type_check ctx bc e2 in
+      let bc, e3 = constraint_term_type_check ctx bc e3 in
+      let bc, _ = BC.add bc (Nt.bool_ty, e1.ty) in
+      let bc, (ty, _) = BC.add bc (e2.ty, e3.ty) in
+      (bc, (Ifte (e1, e2, e3))#:ty)
+  | Match { matched; match_cases } -> (
+      let bc, matched = constraint_term_type_check ctx bc matched in
+      let handle_case bc = function
         | Matchcase { constructor; args; exp } ->
+            let bc, args =
+              List.fold_right
+                (fun x (bc, args) ->
+                  let bc, t = BC.fresh bc in
+                  (bc, (x.x#:t) :: args))
+                args (bc, [])
+            in
+            let bc, constructor =
+              constraint_id_type_infer ctx bc constructor.x
+            in
+            let bc, exp =
+              constraint_term_type_check (add_to_rights ctx args) bc exp
+            in
             let constructor_ty =
-              Nt.construct_arr_tp
-                (List.map (fun _ -> Nt.Ty_unknown) args, matched.ty)
+              Nt.construct_arr_tp (List.map _get_ty args, matched.ty)
             in
-            let constructor =
-              bi_typed_id_check ctx constructor constructor_ty
-            in
-            let argsty, _ = Nt.destruct_arr_tp constructor.ty in
-            let args =
-              List.map (fun (x, ty) -> x.x#:ty)
-              @@ _safe_combine [%here] args argsty
-            in
-            let ctx' = add_to_rights ctx args in
-            let exp = bi_typed_term_infer ctx' exp in
-            Matchcase { constructor; args; exp }
+            let bc, _ = BC.add bc (constructor_ty, constructor.ty) in
+            (bc, (Matchcase { constructor; args; exp })#:exp.ty)
       in
-      let match_cases = List.map handle_case match_cases in
-      let ty =
-        match match_cases with
-        | [] ->
-            _failatwith [%here]
-              "bi_term_infer: pattern matching branch is empty"
-        | Matchcase { exp; _ } :: match_cases ->
-            let ty = exp.ty in
-            if
-              List.for_all
-                (function Matchcase { exp; _ } -> Nt.equal_nt exp.ty ty)
-                match_cases
-            then ty
-            else
-              _failatwith [%here]
-                "bi_term_infer: pattern matching branchs have different types"
+      let bc, cases =
+        List.fold_right
+          (fun case (bc, cases) ->
+            let bc, case = handle_case bc case in
+            (bc, case :: cases))
+          match_cases (bc, [])
       in
-      (Match { matched; match_cases })#:ty
+      match cases with
+      | [] ->
+          _die_with [%here] "bi_term_infer: pattern matching branch is empty"
+      | case :: l ->
+          let cases, tys =
+            List.split @@ List.map (function { x; ty } -> (x, ty)) l
+          in
+          let bc =
+            List.fold_right (fun ty bc -> fst @@ BC.add bc (case.ty, ty)) tys bc
+          in
+          (bc, (Match { matched; match_cases = case.x :: cases })#:case.ty))
 
-let typed_term_infer = bi_typed_term_infer
-let typed_term_check = bi_typed_term_check
+and constraint_terms_type_check (ctx : t ctx) (bc : BC.bc)
+    (lits : (t, t raw_term) typed list) =
+  match lits with
+  | [] -> (bc, [])
+  | lit :: lits ->
+      let bc, lits = constraint_terms_type_check ctx bc lits in
+      let bc, lit = constraint_term_type_check ctx bc lit in
+      (bc, lit :: lits)
+
+and constraint_term_type_check (ctx : t ctx) (bc : BC.bc)
+    (e : (t, t raw_term) typed) =
+  mk_constraint e.ty (constraint_term_type_infer ctx bc e.x)
+
+let raw_term_type_check ctx polyvars term =
+  let bc, term = constraint_term_type_check ctx (BC.empty polyvars) term in
+  let solution = Normalty.type_unification StrMap.empty bc.cs in
+  match solution with
+  | None -> _die_with [%here] "raw term normal type errpr"
+  | Some sol ->
+      let res = typed_map_raw_term (Normalty.msubst_nt sol) term in
+      Pp.printf "@{<bold>Before subst:@}\n%s\n" (layout_typed_raw_term term);
+      Pp.printf "@{<bold>Solution:@}\n%s\n"
+        (List.split_by_comma (fun (x, ty) -> spf "%s -> %s" x (Nt.layout ty))
+        @@ StrMap.to_kv_list sol);
+      Pp.printf "@{<bold>After subst:@}\n%s\n"
+        (show_raw_term
+           (fun format t ->
+             OcamlParser.Pprintast.core_type format (Nt.t_to_core_type t))
+           res.x);
+      res
 
 let constructor_declaration_mk_ (retty, { constr_name; argsty }) =
   constr_name#:(Nt.construct_arr_tp (argsty, retty))
@@ -274,8 +211,8 @@ let item_mk_ctx (e : t item) =
         List.map (fun c -> constructor_declaration_mk_ (retty, c)) type_decls
       in
       xs
-  | MValDecl x -> [ __force_typed [%here] x ]
-  | MMethodPred mp -> [ __force_typed [%here] mp ]
+  | MValDecl x -> [ Nt.__force_typed [%here] x ]
+  | MMethodPred mp -> [ Nt.__force_typed [%here] mp ]
   | MAxiom _ -> []
   | MRty _ -> []
   | MFuncImpRaw _ | MFuncImp _ -> _failatwith [%here] "not predefine"
@@ -298,42 +235,36 @@ let item_check ctx (e : t item) : t ctx * t item =
       in
       (add_to_rights ctx xs, res)
   | MValDecl x ->
-      let x = __force_typed [%here] x in
+      let x = Nt.__force_typed [%here] x in
       let res = MValDecl x in
       (add_to_right ctx x, res)
   | MMethodPred x ->
-      let x = __force_typed [%here] x in
+      let x = Nt.__force_typed [%here] x in
       let res = MMethodPred x in
       (add_to_right ctx x, res)
   | MAxiom { name; prop } ->
-      (ctx, MAxiom { name; prop = bi_typed_prop_check ctx prop })
+      (ctx, MAxiom { name; prop = prop_type_check ctx [] prop })
   | MRty { is_assumption; name; rty } ->
-      let rty = bi_typed_rty_check ctx rty in
+      let rty = rty_type_check ctx [] rty in
       let item = MRty { is_assumption; name; rty } in
       let ctx =
         if is_assumption then
           match get_opt ctx name with
-          | Some rty' ->
-              (* let () = *)
-              (*   Printf.printf "%s =? %s ==> %b\n" (Nt.show_nt rty') *)
-              (*     (Nt.show_nt (erase_rty rty)) *)
-              (*     (Nt.equal_nt rty' (erase_rty rty)) *)
-              (* in *)
-              let _ = Nt._type_unify [%here] rty' (erase_rty rty) in
-              ctx
+          | Some _ -> ctx
           | None -> add_to_right ctx name#:(erase_rty rty)
         else ctx
       in
       (ctx, item)
   | MFuncImpRaw { name; if_rec = false; body } ->
-      let body = bi_typed_term_infer ctx body in
-      let name = name.x#:body.ty in
+      let pt, t = Nt.lift_poly_tp body.ty in
+      let body = raw_term_type_check ctx pt body.x#:t in
+      let body = body.x#:(Nt.construct_poly_nt (pt, t)) in
       (add_to_right ctx name, MFuncImpRaw { name; if_rec = false; body })
   | MFuncImpRaw { name; if_rec = true; body } ->
-      let name_ty = __get_lam_term_ty [%here] body.x in
-      let name = name.x#:name_ty in
       let ctx' = add_to_right ctx name in
-      let body = bi_typed_term_check ctx' body name.ty in
+      let pt, t = Nt.lift_poly_tp body.ty in
+      let body = raw_term_type_check ctx' pt body.x#:t in
+      let body = body.x#:(Nt.construct_poly_nt (pt, t)) in
       (ctx', MFuncImpRaw { name; if_rec = true; body })
   | MFuncImp _ -> _failatwith [%here] "die"
 

@@ -14,9 +14,13 @@ let mk_self_wf_dec x =
   else _failatwith [%here] "unimp"
 
 module Rctx = struct
-  type rctx = Nt.t rty ctx
+  type rctx = {
+    tyvar_ctx : string list;
+    pred_ctx : Nt.t ctx;
+    rty_ctx : Nt.t rty ctx;
+  }
 
-  let emp = Typectx.emp
+  let emp tyvar_ctx = { tyvar_ctx; pred_ctx = emp; rty_ctx = emp }
 
   (* let to_ctx_g_v_pair ctx = *)
   (*   let rec aux (gctx, ctx) l = *)
@@ -30,11 +34,22 @@ module Rctx = struct
   (*   in *)
   (*   Typectx.(aux (emp, emp) ctx) *)
 
-  let to_ctx ctx = ctx
+  let to_ctx { rty_ctx; _ } = rty_ctx
   (* let gctx, ctx = to_ctx_g_v_pair (Typectx.ctx_to_list ctx) in *)
   (* Typectx.concat gctx ctx *)
 
-  let add_var ctx x = add_to_right ctx x
+  let add_tvar { tyvar_ctx; pred_ctx; rty_ctx } x =
+    _assert [%here] "die" (not (List.exists (String.equal x) tyvar_ctx));
+    { tyvar_ctx = tyvar_ctx @ [ x ]; pred_ctx; rty_ctx }
+
+  let add_pred { tyvar_ctx; pred_ctx; rty_ctx } x =
+    { tyvar_ctx; pred_ctx = add_to_right pred_ctx x; rty_ctx }
+
+  let add_preds res l = List.fold_left add_pred res l
+
+  let add_var { tyvar_ctx; pred_ctx; rty_ctx } x =
+    { tyvar_ctx; pred_ctx; rty_ctx = add_to_right rty_ctx x }
+
   let add_vars res l = List.fold_left add_var res l
 
   (* let diff_exists_rty_opt ctx1 ctx2 rty = *)
@@ -47,8 +62,18 @@ module Rctx = struct
   (*   in *)
   (*   Some (construct_grty gvars @@ exists_rtys vars rty) *)
 
-  let diff_exists_rty_opt ctx1 ctx2 rty =
-    let* vars = subtract_opt (equal_rty Nt.equal_nt) ctx1 ctx2 in
+  let diff_exists_rty_opt rctx1 rctx2 rty =
+    _assert [%here] "die"
+      (List.equal String.equal rctx1.tyvar_ctx rctx2.tyvar_ctx);
+    let _ =
+      _log @@ fun () ->
+      Pp.printf "%s\n - \n%s\n"
+        (Typectx.layout_ctx layout_rty rctx1.rty_ctx)
+        (Typectx.layout_ctx layout_rty rctx2.rty_ctx)
+    in
+    let* vars =
+      subtract_opt (equal_rty Nt.equal_nt) rctx1.rty_ctx rctx2.rty_ctx
+    in
     let _ =
       _log @@ fun () ->
       Pp.printf "exists [%s] into %s\n" (layout_rtyed_vars vars)
@@ -61,8 +86,13 @@ module Rctx = struct
     | None -> _die loc
     | Some rty -> rty
 
-  let pprint ctx () =
-    Typectx.pprint_ctx layout_rty ctx;
+  open Zdatatype
+
+  let pprint { tyvar_ctx; pred_ctx; rty_ctx } () =
+    Pp.printf "@{<bold>Poly Vars:@} %s\n" (StrList.to_string tyvar_ctx);
+    Pp.printf "@{<bold>Poly Preds:@} %s\n"
+      (Typectx.layout_ctx Nt.layout pred_ctx);
+    Typectx.pprint_ctx layout_rty rty_ctx;
     print_newline ()
 end
 
@@ -102,9 +132,11 @@ let pprint_typing_check_value rctx (e, ty) =
 let pprint_typing_infer_value_before rctx e =
   _log @@ pprint_typing_infer (pprint rctx) (layout_typed_value e, "??")
 
-let pprint_typing_infer_value_after rctx (e, ty) =
+let pprint_typing_infer_value_after rctx (e, res) =
   _log
-  @@ pprint_typing_infer (pprint rctx) (layout_typed_value e, layout_rty_opt ty)
+  @@ pprint_typing_infer (pprint rctx)
+       ( layout_typed_value e,
+         match res with Some res -> layout_rty res.ty | None -> "None" )
 
 let pprint_typing_infer_match_case rctx e constr ty =
   (_log @@ fun _ -> Pp.printf "@{<bold>Infer from match case %s:@}\n" constr.x);

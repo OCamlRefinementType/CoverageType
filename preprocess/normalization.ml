@@ -25,7 +25,12 @@ let decurry (f, args) =
   res
 
 let rec normalize_term (tm : ('t, 't raw_term) typed) : ('t, 't term) typed =
-  normalize_get_comp (fun x -> x) tm
+  let res = normalize_get_comp (fun x -> x) tm in
+  let () =
+    Printf.printf "[normalize]\n%s\n\n%s\n" (layout_typed_raw_term tm)
+      (layout_typed_term res)
+  in
+  res
 
 and normalize_get_value (k : 't vcont) (expr : ('t, 't raw_term) typed) :
     ('t, 't term) typed =

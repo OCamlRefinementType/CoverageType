@@ -18,7 +18,7 @@ let rec subst_value (string_x : string) f (value_e : 't value) =
       VTuple (List.map (typed_subst_value string_x f) _t__tvaluetypedlist0)
 
 and typed_subst_value (string_x : string) f (value_e : ('t, 't value) typed) =
-  value_e #-> (subst_value string_x f)
+  value_e#->(subst_value string_x f)
 
 and subst_term (string_x : string) f (term_e : 't term) =
   match term_e with
@@ -62,7 +62,7 @@ and subst_term (string_x : string) f (term_e : 't term) =
         }
 
 and typed_subst_term (string_x : string) f (term_e : ('t, 't term) typed) =
-  term_e #-> (subst_term string_x f)
+  term_e#->(subst_term string_x f)
 
 and subst_match_case (string_x : string) f (match_case_e : 't match_case) =
   match match_case_e with
@@ -74,7 +74,7 @@ and subst_match_case (string_x : string) f (match_case_e : 't match_case) =
 
 and typed_subst_match_case (string_x : string) f
     (match_case_e : ('t, 't match_case) typed) =
-  match_case_e #-> (subst_match_case string_x f)
+  match_case_e#->(subst_match_case string_x f)
 
 let rec subst_raw_term (string_x : string) f (raw_term_e : 't raw_term) =
   match raw_term_e with
@@ -121,7 +121,7 @@ let rec subst_raw_term (string_x : string) f (raw_term_e : 't raw_term) =
 
 and typed_subst_raw_term (string_x : string) f
     (raw_term_e : ('t, 't raw_term) typed) =
-  raw_term_e #-> (subst_raw_term string_x f)
+  raw_term_e#->(subst_raw_term string_x f)
 
 and subst_raw_match_case (string_x : string) f
     (raw_match_case_e : 't raw_match_case) =
@@ -135,7 +135,7 @@ and subst_raw_match_case (string_x : string) f
 
 and typed_subst_raw_match_case (string_x : string) f
     (raw_match_case_e : ('t, 't raw_match_case) typed) =
-  raw_match_case_e #-> (subst_raw_match_case string_x f)
+  raw_match_case_e#->(subst_raw_match_case string_x f)
 
 open Prop
 
@@ -143,17 +143,19 @@ let rec subst_cty (string_x : string) f (cty_e : 't cty) =
   match cty_e with { nty; phi } -> { nty; phi = subst_prop string_x f phi }
 
 and typed_subst_cty (string_x : string) f (cty_e : ('t, 't cty) typed) =
-  cty_e #-> (subst_cty string_x f)
+  cty_e#->(subst_cty string_x f)
 
 let rec subst_rty (string_x : string) f (rty_e : 't rty) =
   match rty_e with
   | RtyBase { ou; cty } -> RtyBase { ou; cty = subst_cty string_x f cty }
-  | RtyArr { arr_type; argrty; arg; retty } ->
+  | RtyArr { argrty; arg; retty } ->
       let argrty = subst_rty string_x f argrty in
-      if String.equal arg string_x then RtyArr { arr_type; argrty; arg; retty }
-      else RtyArr { arr_type; argrty; arg; retty = subst_rty string_x f retty }
-  | RtyProd (r1, r2) ->
-      RtyProd (subst_rty string_x f r1, subst_rty string_x f r2)
+      if String.equal arg string_x then RtyArr { argrty; arg; retty }
+      else RtyArr { argrty; arg; retty = subst_rty string_x f retty }
+  | RtyPolyType { pt; rty } ->
+      RtyPolyType { pt; rty = subst_rty string_x f rty }
+  | RtyPolyPred { pred; rty } ->
+      RtyPolyPred { pred; rty = subst_rty string_x f rty }
 
 and typed_subst_rty (string_x : string) f (rty_e : ('t, 't rty) typed) =
-  rty_e #-> (subst_rty string_x f)
+  rty_e#->(subst_rty string_x f)

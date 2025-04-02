@@ -20,9 +20,9 @@ let exists_rty (x : string) (xrty : 't rty) (rty : 't rty) : 't rty =
         | RtyBase { ou = Over; _ } -> rty
         | RtyBase { ou = Under; cty } ->
             RtyBase { ou = Under; cty = exists_cty x xcty cty }
-        | RtyArr { arr_type; argrty; arg; retty } ->
-            RtyArr { arr_type; argrty = aux argrty; arg; retty = aux retty }
-        | RtyProd _ -> _die_with [%here] "unimp"
+        | RtyArr { argrty; arg; retty } ->
+            RtyArr { argrty = aux argrty; arg; retty = aux retty }
+        | RtyPolyPred _ | RtyPolyType _ -> _die [%here]
       in
       let rty = aux rty in
       let () =

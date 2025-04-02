@@ -26,11 +26,23 @@ let pprint = function
       else if Nt.equal_nt Nt.unit_ty nty then layout_prop phi
       else spf "%s:%s | %s" default_v (Nt.layout nty) (layout_prop phi)
 
+let layout_ou_bracket ou x =
+  match ou with Over -> spf "{%s}" x | Under -> spf "[%s]" x
+
 let layout_cty = pprint
+
+let layout_ou_cty ou = function
+  | { nty; phi } ->
+      if is_true phi then layout_ou_bracket ou @@ Nt.layout nty
+      else if Nt.equal_nt Nt.unit_ty nty then
+        layout_ou_bracket ou (layout_prop phi)
+      else
+        layout_ou_bracket ou
+        @@ spf "%s:%s | %s" default_v (Nt.layout nty) (layout_prop phi)
 
 let get_self ct =
   match ct.ptyp_desc with
-  | Ptyp_extension (name, PTyp ty) -> name.txt #: (Nt.core_type_to_t ty)
+  | Ptyp_extension (name, PTyp ty) -> name.txt#:(Nt.core_type_to_t ty)
   | _ ->
       Printf.printf "\nct: %s\n" (layout_ct ct);
       _die [%here]

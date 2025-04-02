@@ -36,13 +36,13 @@ type stlc_tyctx = Stlc_tyctx_nil | Stlc_tyctx_cons of stlc_ty * stlc_tyctx
 
 (** Monad *)
 
-val bind : (unit -> 'a) -> ('a -> unit -> 'b) -> unit -> 'b
-val fmap : ('a -> 'b) -> (unit -> 'a) -> unit -> 'b
+(* val bind : (unit -> 'a) -> ('a -> unit -> 'b) -> unit -> 'b *)
+(* val fmap : ('a -> 'b) -> (unit -> 'a) -> unit -> 'b *)
 
 (** Arithmatic operators *)
 
-val ( == ) : 'a -> 'a -> bool
-val ( != ) : 'a -> 'a -> bool
+val ( == ) : 'a. 'a -> 'a -> bool
+val ( != ) : 'a. 'a -> 'a -> bool
 val ( < ) : int -> int -> bool
 val ( <= ) : int -> int -> bool
 val ( > ) : int -> int -> bool
@@ -79,7 +79,7 @@ val len : 'a list -> int -> bool
 val emp : 'a list -> bool
 val hd : 'a list -> 'a -> bool
 val tl : 'a list -> 'a list -> bool
-val list_mem : 'a list -> 'a -> bool
+val list_mem : 'a. 'a list -> 'a -> bool
 val sorted : 'a list -> bool
 val uniq : 'a list -> bool
 val listLen : 'a list -> int
