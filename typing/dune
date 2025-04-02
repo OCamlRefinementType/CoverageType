@@ -5,6 +5,7 @@
  (libraries core zutils language auxtyping)
  (modules
    common
+   handlePred
    bidirect
    itemcheck
    typing

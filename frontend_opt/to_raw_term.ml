@@ -79,7 +79,7 @@ type 't term_or_op =
 
 let constructor_to_term_or_op c =
   match c with
-  | "Err" | "Exn" -> C_is_term Err#:Nt.Ty_any
+  | "Err" | "Exn" -> C_is_term Err#:Nt.Ty_unknown
   | "true" | "false" | "()" ->
       C_is_term { x = Const (string_to_constant c); ty = Nt.Ty_unknown }
   | name -> (
@@ -93,7 +93,10 @@ let to_typed_ids x =
     match x.x with
     | Var y -> l @ [ { ty = x.ty; x = y.x } ]
     | Tuple xs -> List.fold_left aux l xs
-    | _ -> failwith "not a pattern"
+    | _ ->
+        _die_with [%here]
+        @@ spf "%s not a pattern"
+             (Pprintast.string_of_expression @@ raw_term_to_expr x.x)
   in
   aux [] x
 
@@ -132,7 +135,16 @@ let rec typed_raw_term_of_pattern pattern =
 let typed_ids_of_pattern pattern =
   to_typed_ids @@ typed_raw_term_of_pattern pattern
 
-let monadic_operator = [ _bind; _fmap; _return ]
+let typed_id_of_pattern pattern =
+  match typed_ids_of_pattern pattern with
+  | [ id ] -> id
+  | ids ->
+      _die_with [%here]
+        (spf "unexpected multiple variables: %s"
+           (List.split_by_comma _get_x ids))
+
+(* let monadic_operator = [ _bind; _fmap; _return ] *)
+let monadic_operator = []
 
 let typed_raw_term_of_expr expr =
   let rec aux expr =
@@ -229,6 +241,12 @@ let typed_raw_term_of_expr expr =
         let rhs = aux e1 in
         let letbody = aux e2 in
         (Let { if_rec = false; lhs; rhs; letbody })#:Nt.Ty_unknown
+    | Pexp_newtype (pt, _) ->
+        raise @@ failwith (Sugar.spf "poly type:%s" pt.txt)
+    | Pexp_poly (_, Some pt) ->
+        raise
+        @@ failwith
+             (Sugar.spf "poly type:%s" @@ Nt.layout (Nt.core_type_to_t pt))
     | _ ->
         raise
         @@ failwith

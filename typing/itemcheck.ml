@@ -22,11 +22,9 @@ let mk_imp_m bctx items =
   List.fold_left
     (fun (bctx, imp_m) item ->
       match item with
-      | MFuncImp { name; body; _ } ->
-          let body = term_to_value body in
-          (bctx, StrMap.add name.x body imp_m)
+      | MFuncImp { name; body; _ } -> (bctx, StrMap.add name.x body imp_m)
       | MRty { is_assumption = true; name; rty } ->
-          (rty_add_to_right bctx name #: rty, imp_m)
+          (rty_add_to_right bctx name#:rty, imp_m)
       | _ -> (bctx, imp_m))
     (bctx, StrMap.empty) items
 
@@ -45,12 +43,13 @@ let item_check bctx imp_m (name, rty) =
       (spf "The source code of given refinement type '%s' is missing." name)
       imp_m name
   in
-  _assert [%here] "basic type" (Nt.equal_nt imp.ty (erase_rty rty));
+  let () = Pp.printf "@{<bold>imp_m(%s)@}\n%s\n" name (layout_typed_term imp) in
+  let rty = instantiate_rty_by_nty [%here] rty imp.ty in
   _task_info name rty;
-  match value_type_check bctx (imp, rty) with
+  match term_type_check bctx (imp, rty) with
   | Some _ ->
       _task_succ name;
-      Suc (rty_add_to_right bctx name #: rty)
+      Suc (rty_add_to_right bctx name#:rty)
   | None ->
       _task_fail name;
       Fai name

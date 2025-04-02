@@ -118,7 +118,8 @@ let rec fv_rty (rty_e : 't rty) =
           res
       in
       res @ fv_rty argrty
-  | RtyProd (r1, r2) -> [] @ List.concat (List.map fv_rty [ r1; r2 ])
+  | RtyPolyType { rty; _ } -> fv_rty rty
+  | RtyPolyPred { rty; _ } -> fv_rty rty
 
 and typed_fv_rty (rty_e : ('t, 't rty) typed) = fv_rty rty_e.x
 

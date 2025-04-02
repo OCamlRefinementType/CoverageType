@@ -94,17 +94,14 @@ let check_wf_rty (tau : 't rty) =
   let rec aux tau =
     match tau with
     | RtyBase _ -> ()
-    | RtyArr { arr_type; argrty; arg; retty } -> (
-        match (arr_type, argrty) with
-        (* | GhostOverBaseArr, RtyBase { ou = Over; _ } -> () *)
-        (* | GhostOverBaseArr, _ -> _die_with [%here] "Rty is not well-fromed" *)
-        | NormalArr, RtyBase { ou = Over; _ } -> ()
-        | NormalArr, _ ->
+    | RtyArr { argrty; arg; retty } -> (
+        match argrty with
+        | RtyBase { ou = Over; _ } -> ()
+        | _ ->
             if is_free_rty arg retty then
               _die_with [%here] "Rty is not well-fromed")
-    | RtyProd (tau1, tau2) ->
-        aux tau1;
-        aux tau2
+    | RtyPolyType { rty; _ } -> aux rty
+    | RtyPolyPred { rty; _ } -> aux rty
   in
   aux tau
 
@@ -118,9 +115,9 @@ let map_rty_retty f rty =
   let rec aux rty =
     match rty with
     | RtyBase _ -> f rty
-    | RtyArr { arr_type; argrty; arg; retty } ->
-        RtyArr { arr_type; argrty; arg; retty = f retty }
-    | RtyProd (r1, r2) -> RtyProd (aux r1, aux r2)
+    | RtyArr { argrty; arg; retty } -> RtyArr { argrty; arg; retty = f retty }
+    | RtyPolyType { pt; rty } -> RtyPolyType { pt; rty = aux rty }
+    | RtyPolyPred { pred; rty } -> RtyPolyPred { pred; rty = aux rty }
   in
   aux rty
 
@@ -158,39 +155,93 @@ let rec __get_lam_term_ty loc = function
       | _ -> Nt.mk_arr t1 lambody.ty)
   | _ -> _failatwith loc "__get_lam_term_ty"
 
+let rec lift_poly_rty = function
+  | RtyPolyType { pt; rty } ->
+      let pts, rty = lift_poly_rty rty in
+      (pts @ [ pt ], rty)
+  | _ as rty -> ([], rty)
+
+let rec lift_poly_pred_rty = function
+  | RtyPolyType _ -> _die [%here]
+  | RtyPolyPred { pred; rty } ->
+      let pds, rty = lift_poly_pred_rty rty in
+      (pds @ [ pred ], rty)
+  | _ as rty -> ([], rty)
+
+let gather_poly_preds_rty =
+  let rec aux = function
+    | RtyBase { cty; _ } -> Prop.gather_poly_preds_from_prop cty.phi
+    | RtyArr { argrty; retty; _ } -> aux argrty @ aux retty
+    | RtyPolyType { rty; _ } -> aux rty
+    | RtyPolyPred { pred; rty } ->
+        List.filter (fun p -> not (String.equal p.x pred.x)) @@ aux rty
+  in
+  aux
+
+let construct_poly_rty (pts, rty) =
+  List.fold_right (fun pt rty -> RtyPolyType { pt; rty }) pts rty
+
+let construct_poly_pred_rty (pds, rty) =
+  List.fold_right (fun pred rty -> RtyPolyPred { pred; rty }) pds rty
+
+let rec construct_rty (args, rty) =
+  match args with
+  | [] -> rty
+  | x :: args ->
+      RtyArr { arg = x.x; argrty = x.ty; retty = construct_rty (args, rty) }
+
+let remove_redundant_poly_pred rty =
+  let pts, rty = lift_poly_rty rty in
+  let preds, rty = lift_poly_pred_rty rty in
+  let fpreds = gather_poly_preds_rty rty in
+  let preds =
+    List.filter
+      (fun p -> List.exists (fun p' -> String.equal p.x p'.x) fpreds)
+      preds
+  in
+  construct_poly_rty (pts, construct_poly_pred_rty (preds, rty))
+
 let erase_cty = function { nty; _ } -> nty
 
 let rec erase_rty = function
   | RtyBase { cty; _ } -> erase_cty cty
   | RtyArr { argrty; retty; _ } ->
       Nt.mk_arr (erase_rty argrty) (erase_rty retty)
-  | RtyProd (r1, r2) -> Nt.Ty_tuple [ erase_rty r1; erase_rty r2 ]
+  | RtyPolyType { pt; rty } -> Nt.Ty_poly (pt, erase_rty rty)
+  | RtyPolyPred { rty; _ } -> erase_rty rty
 
-let is_base_rty = function RtyBase _ -> true | _ -> false
+let rec get_ou_rty = function
+  | RtyBase { ou; _ } -> Some ou
+  | RtyPolyType { rty; _ } -> get_ou_rty rty
+  | RtyPolyPred { rty; _ } -> get_ou_rty rty
+  | RtyArr _ -> None
+
+let is_base_rty rty = match get_ou_rty rty with Some _ -> true | _ -> false
+
+let is_over_base_rty rty =
+  match get_ou_rty rty with Some Over -> true | _ -> false
+
+let is_under_base_rty rty =
+  match get_ou_rty rty with Some Under -> true | _ -> false
 
 let destruct_base_rty = function
   | RtyBase { ou; cty } -> (ou, cty)
   | _ -> failwith "assume_base_rty"
 
 let destruct_arr_rty loc = function
-  | RtyArr { arr_type; argrty; arg; retty } -> (arr_type, argrty, arg, retty)
+  | RtyArr { argrty; arg; retty } -> (argrty, arg, retty)
   | _ -> _die loc
 
 let is_over_arr_rty = function
-  | RtyArr
-      { arr_type = NormalArr; argrty = RtyBase { ou = Over; _ }; arg; retty } ->
-      true
+  | RtyArr { argrty = RtyBase { ou = Over; _ }; arg; retty } -> true
   | _ -> false
 
 let is_under_arr_rty = function
-  | RtyArr
-      { arr_type = NormalArr; argrty = RtyBase { ou = Under; _ }; arg; retty }
-    ->
-      true
+  | RtyArr { argrty = RtyBase { ou = Under; _ }; arg; retty } -> true
   | _ -> false
 
 let is_arr_arr_rty = function
-  | RtyArr { arr_type = NormalArr; argrty = RtyArr _; arg; retty } -> true
+  | RtyArr { argrty = RtyArr _; arg; retty } -> true
   | _ -> false
 
 let ou_to_qt = function Over -> Nt.Fa | Under -> Nt.Ex
@@ -206,11 +257,6 @@ let get_rty_by_name (item_e : 't item list) (x : string) =
       item_e
   in
   match res with [] -> _die [%here] | [ x ] -> x | _ -> _die [%here]
-
-let rec mk_rty_tuple = function
-  | [] -> _die [%here]
-  | [ x ] -> x
-  | hd :: tl -> RtyProd (hd, mk_rty_tuple tl)
 
 let mk_top_cty nty = { nty; phi = Prop.mk_true }
 let mk_bot_cty nty = { nty; phi = Prop.mk_false }
@@ -243,32 +289,11 @@ let mk_eq_tvar_underrty x = RtyBase { ou = Under; cty = mk_eq_tvar_cty x }
 let mk_eq_c_overrty x = RtyBase { ou = Over; cty = mk_eq_c_cty x }
 let mk_eq_c_underrty x = RtyBase { ou = Under; cty = mk_eq_c_cty x }
 
-(* let destruct_grty = *)
-(*   let rec aux rty = *)
-(*     match rty with *)
-(*     | RtyBase _ | RtyProd _ | RtyArr { arr_type = NormalArr; _ } -> ([], rty) *)
-(*     | RtyArr { arr_type = GhostOverBaseArr; argrty; arg; retty } -> *)
-(*         let arg' = Rename.unique arg in *)
-(*         let retty = *)
-(*           subst_rty_instance arg (AVar arg'#:(erase_rty argrty)) retty *)
-(*         in *)
-(*         let gvars, res = aux retty in *)
-(*         ((arg'#:argrty) :: gvars, res) *)
-(*   in *)
-(*   aux *)
-
-(* let construct_grty gvars rty = *)
-(*   List.fold_right *)
-(*     (fun x retty -> *)
-(*       RtyArr { arr_type = GhostOverBaseArr; argrty = x.ty; arg = x.x; retty }) *)
-(*     gvars rty *)
-
-let rec flip_rty rty =
+let flip_rty rty =
   match rty with
   | RtyBase { ou = Over; cty } -> RtyBase { ou = Under; cty }
   | RtyBase { ou = Under; cty } -> RtyBase { ou = Over; cty }
-  | RtyProd (r1, r2) -> RtyProd (flip_rty r1, flip_rty r2)
-  | RtyArr _ -> rty
+  | _ -> rty
 
 (** Denormalize *)
 
@@ -357,20 +382,13 @@ let bctx_to_axioms bctx = List.map _get_ty @@ ctx_to_list bctx.axioms
 
 let mk_return_rty retty =
   RtyArr
-    {
-      arr_type = NormalArr;
-      retty;
-      arg = Rename.unique "dummy";
-      argrty = mk_top_overrty Nt.unit_ty;
-    }
+    { retty; arg = Rename.unique "dummy"; argrty = mk_top_overrty Nt.unit_ty }
 
-let ret_ty loc = function
-  | RtyArr { arr_type = NormalArr; retty; _ } -> retty
-  | _ -> _die loc
+let ret_ty loc = function RtyArr { retty; _ } -> retty | _ -> _die loc
 
 let mk_nfv_arr argrty retty =
   let dummy = Rename.unique "dummy" in
-  RtyArr { arr_type = NormalArr; argrty; retty; arg = dummy }
+  RtyArr { argrty; retty; arg = dummy }
 
 let get_raw_function_name x = match x.x with Var x -> Some x.x | _ -> None
 
@@ -399,12 +417,22 @@ let is_monadic_fmap x =
 let rec fresh_name_rty rty =
   match rty with
   | RtyBase _ -> rty
-  | RtyProd (rty1, rty2) -> RtyProd (fresh_name_rty rty1, fresh_name_rty rty2)
-  | RtyArr { arr_type; argrty; arg; retty } ->
+  | RtyArr { argrty; arg; retty } ->
       let argrty = fresh_name_rty argrty in
       let arg' = Rename.unique arg in
       let retty =
         subst_rty_instance arg (AVar arg'#:(erase_rty argrty)) retty
       in
       let retty = fresh_name_rty retty in
-      RtyArr { arr_type; argrty; arg = arg'; retty }
+      RtyArr { argrty; arg = arg'; retty }
+  | RtyPolyType { pt; rty } -> RtyPolyType { pt; rty = fresh_name_rty rty }
+  | RtyPolyPred { pred; rty } -> RtyPolyPred { pred; rty = fresh_name_rty rty }
+
+let mk_tmp () = Rename.unique "tmp"
+
+let return_rty rty =
+  match rty with
+  | RtyBase { ou = Under; _ } ->
+      RtyArr
+        { argrty = mk_top_overrty Nt.unit_ty; arg = mk_tmp (); retty = rty }
+  | _ -> _die_with [%here] "monad should be in a base type"

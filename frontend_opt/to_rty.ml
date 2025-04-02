@@ -8,22 +8,18 @@ open Sugar
 open To_cty
 
 let rec layout_rty = function
-  | RtyBase { ou; cty } -> (
-      match ou with
-      | Over -> spf "{%s}" (layout_cty cty)
-      | Under -> spf "[%s]" (layout_cty cty))
-  | RtyArr { arr_type; argrty; arg; retty } ->
+  | RtyBase { ou; cty } -> layout_ou_bracket ou @@ layout_cty cty
+  | RtyArr { argrty; arg; retty } ->
       let argrty = layout_rty_bracket argrty in
-      let arr =
-        (* match arr_type with NormalArr -> "→" | GhostOverBaseArr -> "⇢" *)
-        match arr_type with
-        | NormalArr -> "→"
-      in
+      let arr = "→" in
       if List.exists (String.equal arg) @@ fv_rty_id retty then
         spf "%s:%s %s %s" arg argrty arr (layout_rty retty)
       else spf "%s %s %s" argrty arr (layout_rty retty)
-  | RtyProd (r1, r2) ->
-      spf "%s × %s" (layout_rty_bracket r1) (layout_rty_bracket r2)
+  | RtyPolyType { pt; rty } ->
+      spf "%s%s.%s" (Nt.qt_pretty_layout Fa) pt (layout_rty rty)
+  | RtyPolyPred { pred; rty } ->
+      spf "%s(%s: %s).%s" (Nt.qt_pretty_layout Fa) pred.x (Nt.layout_nt pred.ty)
+        (layout_rty rty)
 
 and layout_rty_bracket rty =
   match rty with
@@ -35,28 +31,31 @@ let get_ou expr =
   | l when List.exists (fun x -> String.equal x.attr_name.txt "over") l -> Over
   | _ -> Under
 
-let get_arr_type expr =
-  match expr.pexp_attributes with
-  | l when List.exists (fun x -> String.equal x.attr_name.txt "ghost") l ->
-      failwith "ghost variable is disallowed" (* GhostOverBaseArr *)
-  | _ -> NormalArr
+let poly_type = Nt._constructor_ty_0 "poly"
+let _monad = "M"
 
 let rec rty_of_expr expr =
   match expr.pexp_desc with
   | Pexp_constraint _ -> RtyBase { ou = get_ou expr; cty = cty_of_expr expr }
+  | Pexp_fun (Asttypes.Nolabel, None, pattern, body) ->
+      let param = To_raw_term.typed_id_of_pattern pattern in
+      if Nt.equal_nt poly_type param.ty then
+        RtyPolyType { pt = param.x; rty = rty_of_expr body }
+      else RtyPolyPred { pred = param; rty = rty_of_expr body }
   | Pexp_fun (_, Some rtyexpr, pattern, body) ->
       let retty = rty_of_expr body in
       let arg = id_of_pattern pattern in
-      let arr_type = get_arr_type rtyexpr in
+      (* let arr_type = get_arr_type rtyexpr in *)
       let argrty = rty_of_expr rtyexpr in
-      RtyArr { arr_type; argrty; arg; retty }
+      RtyArr { argrty; arg; retty }
   | Pexp_let (_, [ vb ], body) ->
       let retty = rty_of_expr body in
       let arg = id_of_pattern vb.pvb_pat in
-      let arr_type = get_arr_type vb.pvb_expr in
+      (* let arr_type = get_arr_type vb.pvb_expr in *)
       let argrty = rty_of_expr vb.pvb_expr in
-      RtyArr { arr_type; argrty; arg; retty }
-  | Pexp_tuple es -> mk_rty_tuple (List.map rty_of_expr es)
+      RtyArr { argrty; arg; retty }
+  | Pexp_construct (c, Some expr) when String.equal _monad (longid_to_id c) ->
+      return_rty (rty_of_expr expr)
   | _ ->
       _failatwith [%here]
         (spf "wrong refinement type: %s" (Pprintast.string_of_expression expr))

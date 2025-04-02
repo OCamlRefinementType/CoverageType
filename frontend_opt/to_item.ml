@@ -12,19 +12,21 @@ open To_raw_term
 let ocaml_structure_item_to_item structure =
   match structure.pstr_desc with
   | Pstr_primitive { pval_name; pval_type; pval_prim; pval_attributes; _ } ->
+      let t = Nt.close_poly_nt [%here] (Nt.core_type_to_t pval_type) in
       Some
         (if String.equal pval_name.txt "method_predicates" then
            let mp = List.nth pval_prim 0 in
-           MMethodPred mp #: (Nt.core_type_to_t pval_type)
+           MMethodPred mp#:t
          else
            match pval_attributes with
            | [ x ] when String.equal x.attr_name.txt "method_pred" ->
-               MMethodPred pval_name.txt #: (Nt.core_type_to_t pval_type)
-           | _ -> MValDecl pval_name.txt #: (Nt.core_type_to_t pval_type))
+               MMethodPred pval_name.txt#:t
+           | _ -> MValDecl pval_name.txt#:t)
   | Pstr_type (_, [ type_dec ]) -> Some (To_type_dec.of_ocamltypedec type_dec)
   | Pstr_value (flag, [ value_binding ]) ->
       Some
-        (let name = id_of_pattern value_binding.pvb_pat in
+        (let name = Prop.typed_id_of_pattern value_binding.pvb_pat in
+         let name, ty = (name.x, name.ty) in
          match value_binding.pvb_attributes with
          | [ x ] -> (
              match x.attr_name.txt with
@@ -52,12 +54,13 @@ let ocaml_structure_item_to_item structure =
              let body = typed_raw_term_of_expr value_binding.pvb_expr in
              (* let () = Printf.printf "if_rec: %b\n" (get_if_rec flag) in *)
              (* let () = failwith "end" in *)
+             let ty =
+               if Nt.is_unkown ty then
+                 Nt.close_poly_nt [%here] @@ __get_lam_term_ty [%here] body.x
+               else ty
+             in
              MFuncImpRaw
-               {
-                 name = name #: (__get_lam_term_ty [%here] body.x);
-                 if_rec = get_if_rec flag;
-                 body;
-               }
+               { name = name#:ty; if_rec = get_if_rec flag; body = body.x#:ty }
          | _ -> _failatwith [%here] "wrong syntax")
   | Pstr_attribute _ -> None
   | _ ->
