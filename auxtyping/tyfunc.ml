@@ -62,7 +62,7 @@ let rec union_rtys = function
   | [] -> _die [%here]
   | rty :: _ as rtys -> (
       match erase_rty rty with
-      | Nt.Ty_constructor _ ->
+      | Nt.Ty_constructor _ | Nt.Ty_var _ ->
           let ctys =
             List.map
               (function
@@ -74,4 +74,6 @@ let rec union_rtys = function
           let rtys = List.map (ret_ty [%here]) rtys in
           let rty = union_rtys rtys in
           mk_nfv_arr (mk_top_overrty Nt.unit_ty) rty
-      | _ -> _die [%here])
+      | _ ->
+          let () = Printf.printf "%s\n" (layout_rty rty) in
+          _die [%here])

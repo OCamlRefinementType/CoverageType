@@ -32,7 +32,8 @@ let build_wf_ctx (ctx : ('t rty, string) typed list) =
 
 let instantiate_rty_by_nty loc rty nty =
   let open Nt in
-  Printf.printf "try instantiate %s by %s\n" (layout_rty rty) (layout_nt nty);
+  Printf.printf "try instantiate\n%s\nwith\n%s\n" (layout_rty rty)
+    (layout_nt nty);
   let pt, nty = Nt.lift_poly_tp nty in
   let pt', rty = lift_poly_rty rty in
   let bc, (_, _) =
@@ -44,4 +45,10 @@ let instantiate_rty_by_nty loc rty nty =
       Printf.printf "cannot instantiate %s by %s\n" (layout_rty rty)
         (layout_nt nty);
       _die loc
-  | Some sol -> construct_poly_rty (pt, map_rty (msubst_nt sol) rty)
+  | Some sol ->
+      Printf.printf "solution\n%s\n"
+        (List.split_by_comma (fun (x, ty) -> spf "%s := %s" x (layout_nt ty))
+        @@ StrMap.to_kv_list sol);
+      let res = map_rty (msubst_nt sol) rty in
+      Printf.printf "instantiated %s\n" (layout_rty res);
+      construct_poly_rty (pt, res)

@@ -36,4 +36,5 @@ let load_bctx () = snd @@ load_ctxs ()
 
 let preproress source_file =
   let _, code = struct_check (load_basic_ctx ()) @@ parse source_file in
+  (* let () = Pp.printf "@{<bold>result:@} %s\n" (layout_structure code) in *)
   normalize_structure code

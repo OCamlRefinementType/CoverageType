@@ -381,15 +381,10 @@ let bctx_to_axioms bctx = List.map _get_ty @@ ctx_to_list bctx.axioms
 (** Monad *)
 
 let mk_return_rty retty =
-  RtyArr
-    { retty; arg = Rename.unique "dummy"; argrty = mk_top_overrty Nt.unit_ty }
+  RtyArr { retty; arg = Rename.dummy (); argrty = mk_top_overrty Nt.unit_ty }
 
 let ret_ty loc = function RtyArr { retty; _ } -> retty | _ -> _die loc
-
-let mk_nfv_arr argrty retty =
-  let dummy = Rename.unique "dummy" in
-  RtyArr { argrty; retty; arg = dummy }
-
+let mk_nfv_arr argrty retty = RtyArr { argrty; retty; arg = Rename.dummy () }
 let get_raw_function_name x = match x.x with Var x -> Some x.x | _ -> None
 
 let is_raw_monadic_bind x =
@@ -436,3 +431,22 @@ let return_rty rty =
       RtyArr
         { argrty = mk_top_overrty Nt.unit_ty; arg = mk_tmp (); retty = rty }
   | _ -> _die_with [%here] "monad should be in a base type"
+
+(** Poly *)
+
+let rename_pred_cty oldname newname { nty; phi } =
+  { nty; phi = rename_pred_prop oldname newname phi }
+
+let rec rename_pred_rty oldname newname rty =
+  match rty with
+  | RtyBase { ou; cty } ->
+      RtyBase { ou; cty = rename_pred_cty oldname newname cty }
+  | RtyArr { argrty; arg; retty } ->
+      let argrty = rename_pred_rty oldname newname argrty in
+      let retty = rename_pred_rty oldname newname retty in
+      RtyArr { argrty; arg; retty }
+  | RtyPolyType { pt; rty } ->
+      RtyPolyType { pt; rty = rename_pred_rty oldname newname rty }
+  | RtyPolyPred { pred; rty } ->
+      if String.equal oldname pred.x then RtyPolyPred { pred; rty }
+      else RtyPolyPred { pred; rty = rename_pred_rty oldname newname rty }

@@ -68,6 +68,7 @@ and normalize_get_comp (k : 't cont) (expr : ('t, 't raw_term) typed) :
       kv (VLam { lamarg; body = normalize_term lambody })#:expr.ty
   | Let { if_rec; lhs; rhs; letbody } -> (
       match (if_rec, lhs) with
+      | _, [] -> _die [%here]
       | true, fixname :: fixarg :: args ->
           normalize_get_comp
             (fun rhs ->
@@ -79,8 +80,17 @@ and normalize_get_comp (k : 't cont) (expr : ('t, 't raw_term) typed) :
               let rhs = value_to_term @@ mk_fix fixname fixarg fixbody in
               construct_lete fixname rhs (normalize_get_comp k letbody))
             rhs
-      | true, _ -> _die [%here]
-      | false, [] -> _die [%here]
+      | true, [ fixname ] ->
+          normalize_get_comp
+            (fun rhs ->
+              let rhs =
+                match (term_to_value rhs).x with
+                | VLam { lamarg; body } ->
+                    value_to_term @@ mk_fix fixname lamarg body
+                | _ -> _die [%here]
+              in
+              construct_lete fixname rhs (normalize_get_comp k letbody))
+            rhs
       | false, [ lhs ] ->
           normalize_get_comp
             (fun rhs -> construct_lete lhs rhs (normalize_get_comp k letbody))

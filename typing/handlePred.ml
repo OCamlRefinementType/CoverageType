@@ -163,6 +163,7 @@ let instantiate_poly_pred_rty_aux pds frty xrty =
     | _ -> _die [%here]
   in
   let* pds, m = unification_rtys pds [ (xrty, argrty) ] in
+  let () = Printf.printf "solution:\n%s\n" (layaout_solutions m) in
   let argrty = minstantiate_rty m argrty in
   (* let retty = *)
   (*   if Nt.is_base_tp (erase_rty argrty) then *)
@@ -174,15 +175,35 @@ let instantiate_poly_pred_rty_aux pds frty xrty =
   let () = Printf.printf "instantiated rty: %s\n" (layout_rty rty) in
   let xrty = minstantiate_rty m xrty in
   let () = Printf.printf "instantiated xrty: %s\n" (layout_rty xrty) in
+  let () = Printf.printf "pds: %s\n" (List.split_by_comma _get_x pds) in
   Some (pds, rty, xrty)
 
-let instantiate_poly_pred_rty frty xty =
+let instantiate_poly_pred_rty predctx frty xty =
   let pds, frty = lift_poly_pred_rty frty in
   let xpds, xrty = lift_poly_pred_rty xty in
+  let pds = pds @ xpds in
   let () =
     _assert [%here] "poly predicates are unique"
-      (List.length (pds @ xpds) == List.length (unique_pds (pds @ xpds)))
+      (List.length pds == List.length (unique_pds pds))
   in
-  match instantiate_poly_pred_rty_aux (pds @ xpds) frty xrty with
-  | None -> (pds @ xpds, frty, xty)
+  let m =
+    List.fold_left
+      (fun m pred ->
+        match Typectx.get_opt predctx pred.x with
+        | None -> m
+        | Some _ -> (pred.x, Rename.unique pred.x) :: m)
+      [] pds
+  in
+  let pds =
+    List.map
+      (fun p ->
+        msubst
+          (fun x x' pd -> if String.equal x pd.x then x'#:pd.ty else pd)
+          m p)
+      pds
+  in
+  let frty = msubst rename_pred_rty m frty in
+  let xrty = msubst rename_pred_rty m xrty in
+  match instantiate_poly_pred_rty_aux pds frty xrty with
+  | None -> (pds, frty, xty)
   | Some (pds, rty, xrty) -> (pds, rty, xrty)

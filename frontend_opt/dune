@@ -4,6 +4,7 @@
  (wrapped true)
  (libraries ast core zutils)
  (modules
+  common
   to_raw_term
   to_cty
   to_rty
