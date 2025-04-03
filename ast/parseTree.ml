@@ -98,6 +98,13 @@ type 't rty =
   | RtyPolyPred of { pred : ('t, string) typed; rty : 't rty }
 [@@deriving eq, ord, show, sexp]
 
+type captured = {
+  captured_ts : string list;
+  captured_preds : string list;
+  captured_vars : string list;
+}
+[@@deriving eq, ord, show, sexp]
+
 type 't item =
   | MTyDecl of {
       type_name : string;
@@ -118,6 +125,12 @@ type 't item =
       body : ('t, 't term) typed;
     }
   | MRty of { is_assumption : bool; name : string; rty : 't rty }
+  | MLocalRty of {
+      host_name : string;
+      captured : captured;
+      name : string;
+      rty : 't rty;
+    }
 [@@deriving eq, ord, show, sexp]
 
 open Typectx

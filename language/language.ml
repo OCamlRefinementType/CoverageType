@@ -32,8 +32,30 @@ let build_wf_ctx (ctx : ('t rty, string) typed list) =
 
 let instantiate_rty_by_nty loc rty nty =
   let open Nt in
-  Printf.printf "try instantiate\n%s\nwith\n%s\n" (layout_rty rty)
-    (layout_nt nty);
+  (* Printf.printf "try instantiate\n%s\nwith\n%s\n" (layout_rty rty) *)
+  (*   (layout_nt nty); *)
+  let subst_nt (id, t') t =
+    let rec aux t =
+      (* Printf.printf "subst [%s -> %s] in %s\n" id (layout_nt t') (show_nt t); *)
+      match t with
+      | Ty_unknown | Ty_any | Ty_uninter _ | Ty_enum _ -> t
+      | Ty_var x ->
+          (* Printf.printf "%s = %s --> %b\n" x id (streq x id); *)
+          if streq x id then t' else t
+      | Ty_poly (y, nt) ->
+          if String.equal id y then Ty_poly (y, nt) else Ty_poly (y, aux nt)
+      | Ty_arrow (t1, t2) -> Ty_arrow (aux t1, aux t2)
+      | Ty_tuple xs -> Ty_tuple (List.map aux xs)
+      | Ty_constructor (id, args) -> Ty_constructor (id, List.map aux args)
+      | Ty_record l -> Ty_record (List.map (fun x -> x#=>aux) l)
+    in
+    aux t
+  in
+  let msubst_nt (m : t StrMap.t) =
+    StrMap.fold (fun x ty -> subst_nt (x, ty)) m
+  in
+  (* let () = Printf.printf "erase rty: %s\n" (show_nt (erase_rty rty)) in *)
+  (* let () = Printf.printf "erase rty: %s\n" (layout_nt (erase_rty rty)) in *)
   let pt, nty = Nt.lift_poly_tp nty in
   let pt', rty = lift_poly_rty rty in
   let bc, (_, _) =
@@ -51,4 +73,4 @@ let instantiate_rty_by_nty loc rty nty =
         @@ StrMap.to_kv_list sol);
       let res = map_rty (msubst_nt sol) rty in
       Printf.printf "instantiated %s\n" (layout_rty res);
-      construct_poly_rty (pt, res)
+      (sol, construct_poly_rty (pt, res))
