@@ -6,6 +6,7 @@ open Parsetree
 open Zdatatype
 open Ast
 open Sugar
+open Common
 
 let pprint_phi (phi : 't prop) =
   let res =
@@ -42,7 +43,7 @@ let layout_ou_cty ou = function
 
 let get_self ct =
   match ct.ptyp_desc with
-  | Ptyp_extension (name, PTyp ty) -> name.txt#:(Nt.core_type_to_t ty)
+  | Ptyp_extension (name, PTyp ty) -> name.txt#:(core_type_to_t ty)
   | _ ->
       Printf.printf "\nct: %s\n" (layout_ct ct);
       _die [%here]

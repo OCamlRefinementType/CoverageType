@@ -104,19 +104,25 @@ let rec constraint_term_type_infer (ctx : t ctx) (bc : BC.bc) (e : t raw_term) =
       let f_ty = Nt.construct_arr_tp (List.map _get_ty args, retty) in
       let bc, _ = BC.add bc (f_ty, f.ty) in
       (bc, (App (f, args))#:retty)
-  | Let { if_rec = true; _ } ->
-      _failatwith [%here] "cannot infer ret type of recursive function"
-  | Let { if_rec; rhs; lhs; letbody } ->
+  | Let { if_rec = false; rhs; lhs; letbody } ->
       let lhs = List.map (Nt.__force_typed [%here]) lhs in
       let bc, rhs = constraint_term_type_check ctx bc rhs in
-      let ctx' =
-        if if_rec then _failatwith [%here] "todo??"
-        (* Typectx.add_to_right ctx ("f", construct_arr_tp (List.map xsty, ty)) *)
-          else add_to_rights ctx lhs
+      let bc, letbody =
+        constraint_term_type_check (add_to_rights ctx lhs) bc letbody
       in
-      let bc, letbody = constraint_term_type_check ctx' bc letbody in
       let bc, _ = BC.add bc (Nt.Ty_tuple (List.map _get_ty lhs), rhs.ty) in
-      (bc, (Let { if_rec; rhs; lhs; letbody })#:letbody.ty)
+      (bc, (Let { if_rec = false; rhs; lhs; letbody })#:letbody.ty)
+  | Let { if_rec = true; rhs; lhs = [ recf ]; letbody } ->
+      _assert [%here] "recursive function doesn't typed"
+        (Nt.equal_nt recf.ty Nt.Ty_unknown);
+      let recf = recf.x#:(__get_lam_term_ty [%here] rhs.x) in
+      let recf = Nt.__force_typed [%here] recf in
+      let ctx' = add_to_right ctx recf in
+      let bc, rhs = constraint_term_type_check ctx' bc rhs in
+      let bc, letbody = constraint_term_type_check ctx' bc letbody in
+      let bc, _ = BC.add bc (recf.ty, rhs.ty) in
+      (bc, (Let { if_rec = true; rhs; lhs = [ recf ]; letbody })#:letbody.ty)
+  | Let { if_rec = true; _ } -> _die [%here]
   | Ifte (e1, e2, e3) ->
       let bc, e1 = constraint_term_type_check ctx bc e1 in
       let bc, e2 = constraint_term_type_check ctx bc e2 in

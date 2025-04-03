@@ -138,9 +138,9 @@ let pprint_typing_infer_value_after rctx (e, res) =
        ( layout_typed_value e,
          match res with Some res -> layout_rty res.ty | None -> "None" )
 
-let pprint_typing_infer_match_case rctx e constr ty =
+let pprint_typing_infer_match_case rctx constr (e, rty) =
   (_log @@ fun _ -> Pp.printf "@{<bold>Infer from match case %s:@}\n" constr.x);
-  _log @@ pprint_typing_infer (pprint rctx) (layout_typed_value e, layout_rty ty)
+  _log @@ pprint_typing_infer (pprint rctx) (layout_typed_term e, layout_rty rty)
 
 let rec lookup_ctxs ctxs id =
   match ctxs with

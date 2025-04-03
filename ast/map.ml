@@ -136,7 +136,8 @@ let rec map_rty (f : 't -> 's) (rty_e : 't rty) =
   | RtyArr { argrty; arg; retty } ->
       RtyArr { argrty = map_rty f argrty; arg; retty = map_rty f retty }
   | RtyPolyType { pt; rty } -> RtyPolyType { pt; rty = map_rty f rty }
-  | RtyPolyPred { pred; rty } -> RtyPolyPred { pred; rty = map_rty f rty }
+  | RtyPolyPred { pred; rty } ->
+      RtyPolyPred { pred = pred#=>f; rty = map_rty f rty }
 
 and typed_map_rty (f : 't -> 's) (rty_e : ('t, 't rty) typed) =
   rty_e#=>f#->(map_rty f)

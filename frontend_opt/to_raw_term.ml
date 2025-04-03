@@ -6,6 +6,7 @@ open Parsetree
 open Zdatatype
 open Ast
 open Sugar
+open Common
 
 let typed_to_expr f expr =
   match expr.ty with
@@ -114,7 +115,7 @@ let rec typed_raw_term_of_pattern pattern =
   | Ppat_var ident -> (Var ident.txt#:Nt.Ty_unknown)#:Nt.Ty_unknown
   | Ppat_constraint (ident, tp) ->
       let term = typed_raw_term_of_pattern ident in
-      term.x#:(Nt.core_type_to_t tp)
+      term.x#:(core_type_to_t tp)
   | Ppat_construct (c, args) -> (
       let c = longid_to_id c in
       match constructor_to_term_or_op c with
@@ -152,7 +153,7 @@ let typed_raw_term_of_expr expr =
     | Pexp_tuple es -> (Tuple (List.map aux es))#:Nt.Ty_unknown
     | Pexp_constraint (expr, ty) ->
         (* let () = Printf.printf "Pexp_constraint: %s\n" (layout_ct ty) in *)
-        update_ty (aux expr) (Nt.core_type_to_t ty)
+        update_ty (aux expr) (core_type_to_t ty)
     | Pexp_ident id -> (Var (longid_to_id id)#:Nt.Ty_unknown)#:Nt.Ty_unknown
     | Pexp_construct (c, args) -> (
         let args =
@@ -219,6 +220,12 @@ let typed_raw_term_of_expr expr =
         (Match { matched = aux matched; match_cases })#:Nt.Ty_unknown
     | Pexp_fun (_, _, arg0, expr) ->
         let arg = typed_raw_term_of_pattern arg0 in
+        (* fun () -> is equal to fun (dummy_unit: unit) -> *)
+        let arg =
+          match arg.x with
+          | Const U -> (Var (Rename.dummy ())#:Nt.unit_ty)#:Nt.unit_ty
+          | _ -> arg
+        in
         let () =
           match arg.ty with
           | Nt.Ty_unknown ->

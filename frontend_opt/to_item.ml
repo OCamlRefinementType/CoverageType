@@ -8,11 +8,12 @@ open Ast
 open Sugar
 open To_rty
 open To_raw_term
+open Common
 
 let ocaml_structure_item_to_item structure =
   match structure.pstr_desc with
   | Pstr_primitive { pval_name; pval_type; pval_prim; pval_attributes; _ } ->
-      let t = Nt.close_poly_nt [%here] (Nt.core_type_to_t pval_type) in
+      let t = Nt.close_poly_nt [%here] (core_type_to_t pval_type) in
       Some
         (if String.equal pval_name.txt "method_predicates" then
            let mp = List.nth pval_prim 0 in
@@ -22,7 +23,7 @@ let ocaml_structure_item_to_item structure =
            | [ x ] when String.equal x.attr_name.txt "method_pred" ->
                MMethodPred pval_name.txt#:t
            | _ -> MValDecl pval_name.txt#:t)
-  | Pstr_type (_, [ type_dec ]) -> Some (To_type_dec.of_ocamltypedec type_dec)
+  | Pstr_type (_, [ type_dec ]) -> To_type_dec.of_ocamltypedec type_dec
   | Pstr_value (flag, [ value_binding ]) ->
       Some
         (let name = Prop.typed_id_of_pattern value_binding.pvb_pat in

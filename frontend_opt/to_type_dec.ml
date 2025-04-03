@@ -5,11 +5,12 @@ open Parsetree
 open Zdatatype
 open Ast
 open Sugar
+open Common
 
 let constructor_declaration_of_ocaml { pcd_name; pcd_args; _ } =
   let argsty =
     match pcd_args with
-    | Pcstr_tuple cts -> List.map Nt.core_type_to_t cts
+    | Pcstr_tuple cts -> List.map core_type_to_t cts
     | _ -> failwith "unimp complex type decl"
   in
   { constr_name = pcd_name.txt; argsty }
@@ -26,23 +27,28 @@ let constructor_declaration_to_ocaml { constr_name; argsty } =
 
 let of_ocamltypedec { ptype_name; ptype_params; ptype_kind; ptype_manifest; _ }
     =
-  match (ptype_params, ptype_kind, ptype_manifest) with
-  | params, Ptype_variant cds, None ->
-      let type_params =
-        List.map
-          (fun (ct, (_, _)) ->
-            match Nt.core_type_to_t ct with
-            | Nt.Ty_var name -> name
-            | _ -> _die [%here])
-          params
-      in
-      MTyDecl
-        {
-          type_name = ptype_name.txt;
-          type_params;
-          type_decls = List.map constructor_declaration_of_ocaml cds;
-        }
-  | _ -> failwith "unimp complex type decl"
+  if String.equal ptype_name.txt "cm" then
+    (* Coverage Monad Definition *)
+    None
+  else
+    match (ptype_params, ptype_kind, ptype_manifest) with
+    | params, Ptype_variant cds, None ->
+        let type_params =
+          List.map
+            (fun (ct, (_, _)) ->
+              match core_type_to_t ct with
+              | Nt.Ty_var name -> name
+              | _ -> _die [%here])
+            params
+        in
+        Some
+          (MTyDecl
+             {
+               type_name = ptype_name.txt;
+               type_params;
+               type_decls = List.map constructor_declaration_of_ocaml cds;
+             })
+    | _ -> failwith "unimp complex type decl"
 
 let to_ocamltypedec = function
   | MTyDecl { type_name; type_params; type_decls } ->

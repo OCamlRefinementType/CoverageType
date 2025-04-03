@@ -164,7 +164,7 @@ let type_check_group (bctx : built_in_ctx) =
           _warinning_typing_error [%here] (layout_lit arglit, argrty);
           None)
         else
-          let retty = exists_rty (Rename.unique "dummy")#:tmp_rty retty in
+          let retty = exists_rty (Rename.dummy ())#:tmp_rty retty in
           Some retty
     | _ -> _die [%here]
   and arrow_arrow_type_apply (rctx : rctx) appf_rty
@@ -220,7 +220,7 @@ let type_check_group (bctx : built_in_ctx) =
           let* appf = value_type_infer rctx appf in
           let* apparg' = value_type_infer rctx apparg in
           let poly_preds, appf_ty, apparg_rty =
-            instantiate_poly_pred_rty appf.ty apparg'.ty
+            instantiate_poly_pred_rty rctx.pred_ctx appf.ty apparg'.ty
           in
           let rctx' = Rctx.add_preds rctx poly_preds in
           let* retty =
@@ -344,17 +344,15 @@ let type_check_group (bctx : built_in_ctx) =
               RtyBase { ou = Under; cty = { nty = Nt.unit_ty; phi } }
           | _ -> _die [%here]
         in
-        let rctx' =
-          Rctx.add_vars rctx (args @ [ (Rename.unique "dummy")#:retty ])
-        in
-        let* exp = term_type_infer rctx' exp in
-        let exp = exp.x#:(Rctx.diff_exists_rty [%here] rctx' rctx exp.ty) in
+        let rctx' = Rctx.add_vars rctx (args @ [ (Rename.dummy ())#:retty ]) in
+        let* exp' = term_type_infer rctx' exp in
+        let exp' = exp'#=>(Rctx.diff_exists_rty [%here] rctx' rctx) in
         let () =
-          pprint_typing_infer_match_case rctx matched constructor exp.ty
+          pprint_typing_infer_match_case rctx constructor (exp, exp'.ty)
         in
         Some
           (CMatchcase
-             { constructor = constructor.x#:constructor_rty; args; exp })
+             { constructor = constructor.x#:constructor_rty; args; exp = exp' })
   in
   (value_type_check, term_type_check)
 
