@@ -132,5 +132,10 @@ let rec fv_item (item_e : 't item) =
   | MFuncImpRaw { body; _ } -> [] @ typed_fv_raw_term body
   | MFuncImp { body; _ } -> [] @ typed_fv_term body
   | MRty { rty; _ } -> [] @ fv_rty rty
+  | MLocalRty { rty; captured; _ } ->
+      let fvs = fv_rty rty in
+      List.filter
+        (fun x -> not (List.exists (String.equal x.x) captured.captured_vars))
+        fvs
 
 and typed_fv_item (item_e : ('t, 't item) typed) = fv_item item_e.x

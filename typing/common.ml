@@ -18,9 +18,11 @@ module Rctx = struct
     tyvar_ctx : string list;
     pred_ctx : Nt.t ctx;
     rty_ctx : Nt.t rty ctx;
+    inv_ctx : Nt.nt rty ctx;
   }
 
-  let emp tyvar_ctx = { tyvar_ctx; pred_ctx = emp; rty_ctx = emp }
+  let emp tyvar_ctx invs =
+    { tyvar_ctx; pred_ctx = emp; rty_ctx = emp; inv_ctx = ctx_from_list invs }
 
   (* let to_ctx_g_v_pair ctx = *)
   (*   let rec aux (gctx, ctx) l = *)
@@ -38,18 +40,13 @@ module Rctx = struct
   (* let gctx, ctx = to_ctx_g_v_pair (Typectx.ctx_to_list ctx) in *)
   (* Typectx.concat gctx ctx *)
 
-  let add_tvar { tyvar_ctx; pred_ctx; rty_ctx } x =
-    _assert [%here] "die" (not (List.exists (String.equal x) tyvar_ctx));
-    { tyvar_ctx = tyvar_ctx @ [ x ]; pred_ctx; rty_ctx }
+  let add_tvar rctx x =
+    _assert [%here] "die" (not (List.exists (String.equal x) rctx.tyvar_ctx));
+    { rctx with tyvar_ctx = rctx.tyvar_ctx @ [ x ] }
 
-  let add_pred { tyvar_ctx; pred_ctx; rty_ctx } x =
-    { tyvar_ctx; pred_ctx = add_to_right pred_ctx x; rty_ctx }
-
+  let add_pred rctx x = { rctx with pred_ctx = add_to_right rctx.pred_ctx x }
   let add_preds res l = List.fold_left add_pred res l
-
-  let add_var { tyvar_ctx; pred_ctx; rty_ctx } x =
-    { tyvar_ctx; pred_ctx; rty_ctx = add_to_right rty_ctx x }
-
+  let add_var rctx x = { rctx with rty_ctx = add_to_right rctx.rty_ctx x }
   let add_vars res l = List.fold_left add_var res l
 
   (* let diff_exists_rty_opt ctx1 ctx2 rty = *)
@@ -88,10 +85,13 @@ module Rctx = struct
 
   open Zdatatype
 
-  let pprint { tyvar_ctx; pred_ctx; rty_ctx } () =
+  let pprint { tyvar_ctx; pred_ctx; rty_ctx; inv_ctx } () =
     Pp.printf "@{<bold>Poly Vars:@} %s\n" (StrList.to_string tyvar_ctx);
     Pp.printf "@{<bold>Poly Preds:@} %s\n"
       (Typectx.layout_ctx Nt.layout pred_ctx);
+    Pp.printf "@{<bold>Invariants:@}\n";
+    Typectx.pprint_ctx layout_rty inv_ctx;
+    Pp.printf "\n@{<bold>Refinement Type Ctx:@}\n";
     Typectx.pprint_ctx layout_rty rty_ctx;
     print_newline ()
 end
@@ -137,6 +137,9 @@ let pprint_typing_infer_value_after rctx (e, res) =
   @@ pprint_typing_infer (pprint rctx)
        ( layout_typed_value e,
          match res with Some res -> layout_rty res.ty | None -> "None" )
+
+let pprint_typing_subtyping rctx (rty1, rty2) =
+  _log @@ pprint_subtyping (pprint rctx) (rty1, rty2)
 
 let pprint_typing_infer_match_case rctx constr (e, rty) =
   (_log @@ fun _ -> Pp.printf "@{<bold>Infer from match case %s:@}\n" constr.x);

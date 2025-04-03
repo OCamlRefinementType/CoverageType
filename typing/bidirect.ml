@@ -15,13 +15,17 @@ let type_check_group (bctx : built_in_ctx) =
     let res = lookup_ctxs [ Rctx.to_ctx rctx; bctx.builtin_ctx ] id in
     match res with
     | Some res -> res
-    | None -> _failatwith loc (spf "cannot find %s in type context" id)
+    | None -> _die_with loc (spf "cannot find %s in type context" id)
   in
   let _id_type_infer loc (rctx : rctx) (id : (Nt.t, string) typed) : Nt.t rty =
     let rty = _find_in_ctx loc rctx id.x in
-    let rty = instantiate_rty_by_nty [%here] rty id.ty in
+    let _, rty = instantiate_rty_by_nty [%here] rty id.ty in
     (* NOTE: both over and under type will induce under type *)
     if is_base_rty rty then mk_eq_tvar_underrty id.x#:(erase_rty rty) else rty
+  in
+  let subtyping rctx (rty1, rty2) =
+    pprint_typing_subtyping rctx (rty1, rty2);
+    sub_rty bctx (Rctx.to_ctx rctx) (rty1, rty2)
   in
   let rec value_type_infer (rctx : rctx) (v : (Nt.t, Nt.t value) typed) :
       (Nt.t rty, Nt.t rty value) typed option =
@@ -46,7 +50,7 @@ let type_check_group (bctx : built_in_ctx) =
                     in
                     let phi = subst_prop_instance default_v y.x phi in
                     phi
-                | _ -> _failatwith [%here] "unimp")
+                | _ -> _die_with [%here] "unimp")
               vs
           in
           let rty =
@@ -82,8 +86,15 @@ let type_check_group (bctx : built_in_ctx) =
                 let* body = term_type_infer (Rctx.add_var rctx lamarg) body in
                 let frty = construct_rty ([ lamarg ], body.ty) in
                 Some (VLam { lamarg; body })#:frty
-          else _failatwith [%here] "unimp"
-      | VFix _ -> _failatwith [%here] "unimp"
+          else _die_with [%here] "unimp"
+      | VFix { fixname; _ } -> (
+          match Typectx.get_opt rctx.inv_ctx fixname.x with
+          | None ->
+              _die_with [%here]
+                (spf "inductive invaraint of %s is missing" fixname.x)
+          | Some rty ->
+              let () = Pp.printf "@{<bold>inv:@} %s\n" (layout_rty rty) in
+              value_type_check rctx v rty)
     in
     pprint_typing_infer_value_after rctx (v, res);
     res
@@ -97,7 +108,7 @@ let type_check_group (bctx : built_in_ctx) =
         value_type_check (Rctx.add_pred rctx pred) v rty
     | VConst _, _ | VVar _, _ | VTuple _, _ ->
         let* e = value_type_infer rctx v in
-        if sub_rty bctx (Rctx.to_ctx rctx) (e.ty, rty) then Some e
+        if subtyping rctx (e.ty, rty) then Some e
         else (
           _warinning_subtyping_error [%here] (e.ty, rty);
           _warinning_typing_error [%here] (layout_typed_value v, rty);
@@ -116,7 +127,7 @@ let type_check_group (bctx : built_in_ctx) =
           match argrty with
           | RtyBase { ou = Over; cty } -> cty
           | _ ->
-              _failatwith [%here]
+              _die_with [%here]
                 "the first parameter of recursive function must be a \
                  decreasing base type"
         in
@@ -128,17 +139,20 @@ let type_check_group (bctx : built_in_ctx) =
           Nt.unify_two_types [%here] [] (t, measure_cty.nty))
         in
         (* NOTE: make sure the name of paramater of refinement type is different from the one in the implementation. *)
+        let () = Printf.printf "fix retty %s\n" (layout_rty retty) in
         let arg, retty =
           if String.equal arg fixarg.x then
             let arg' = Rename.unique arg in
-            (arg', subst_rty_instance arg (AVar arg'#:fixname.ty) retty)
+            (arg', subst_rty_instance arg (AVar arg'#:fixarg.ty) retty)
           else (arg, retty)
         in
+        let () = Printf.printf "fix retty %s\n" (layout_rty retty) in
         let rty' =
           let phi = smart_add_to (mk_self_wf_dec fixarg) measure_cty.phi in
           let argrty = cty_to_overrty { nty = fixarg.ty; phi } in
           RtyArr { argrty; arg; retty }
         in
+        let () = Printf.printf "fix rty' %s\n" (layout_rty rty') in
         let retty = subst_rty_instance arg (AVar fixarg) retty in
         let rctx' = Rctx.add_vars rctx [ fixarg.x#:argrty; fixname.x#:rty' ] in
         let* body = term_type_check rctx' body retty in
@@ -176,7 +190,7 @@ let type_check_group (bctx : built_in_ctx) =
     in
     match argrty with
     | RtyArr _ ->
-        if not (sub_rty bctx (Rctx.to_ctx rctx) (apparg.ty, argrty)) then (
+        if not (subtyping rctx (apparg.ty, argrty)) then (
           _warinning_subtyping_error [%here] (apparg.ty, argrty);
           _warinning_typing_error [%here]
             (layout_typed_value @@ (apparg#=>erase_rty), argrty);
@@ -315,7 +329,7 @@ let type_check_group (bctx : built_in_ctx) =
           match lookup_ctxs [ bctx.builtin_ctx ] constructor.x with
           | Some rty -> rty
           | None ->
-              _failatwith [%here]
+              _die_with [%here]
               @@ spf "cannot find rty of constructor %s from builtin context"
                    constructor.x
         in
@@ -356,8 +370,8 @@ let type_check_group (bctx : built_in_ctx) =
   in
   (value_type_check, term_type_check)
 
-let value_type_check bctx (value, rty) =
-  (fst @@ type_check_group bctx) (Rctx.emp []) value rty
+let value_type_check bctx ctx (value, rty) =
+  (fst @@ type_check_group bctx) ctx value rty
 
-let term_type_check bctx (value, rty) =
-  (snd @@ type_check_group bctx) (Rctx.emp []) value rty
+let term_type_check bctx ctx (value, rty) =
+  (snd @@ type_check_group bctx) ctx value rty

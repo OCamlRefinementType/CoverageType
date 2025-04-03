@@ -33,20 +33,29 @@ let ocaml_structure_item_to_item structure =
              match x.attr_name.txt with
              | "axiom" ->
                  MAxiom { name; prop = prop_of_expr value_binding.pvb_expr }
-             | "assert" ->
-                 MRty
-                   {
-                     is_assumption = false;
-                     name;
-                     rty = rty_of_expr value_binding.pvb_expr;
-                   }
+             | "assert" -> (
+                 let rty = rty_of_expr value_binding.pvb_expr in
+                 match x.attr_payload with
+                 | PStr [] -> MRty { is_assumption = false; name; rty }
+                 | PPat (pat, Some e) ->
+                     let host_name = id_of_pattern pat in
+                     let e = typed_raw_term_of_expr e in
+                     let captured =
+                       match raw_term_to_tuple raw_term_to_str_list e with
+                       | [] -> mk_capture [] [] []
+                       | [ a ] -> mk_capture a [] []
+                       | [ a; b ] -> mk_capture a b []
+                       | [ a; b; c ] -> mk_capture a b c
+                       | _ -> _die [%here]
+                     in
+                     MLocalRty { host_name; name; captured; rty }
+                 | PStr _ -> _die_with [%here] "Pstr"
+                 | PSig _ -> _die_with [%here] "Psig"
+                 | PTyp _ -> _die_with [%here] "PTyp"
+                 | PPat _ -> _die_with [%here] "PPat")
              | "library" | "assume" ->
-                 MRty
-                   {
-                     is_assumption = true;
-                     name;
-                     rty = rty_of_expr value_binding.pvb_expr;
-                   }
+                 let rty = rty_of_expr value_binding.pvb_expr in
+                 MRty { is_assumption = true; name; rty }
              | _ ->
                  _failatwith [%here]
                    "syntax error: non known rty kind, not axiom | assert | \
@@ -92,5 +101,7 @@ let layout_item = function
       spf "let[@assert] %s = %s" name (layout_rty rty)
   | MRty { is_assumption = true; name; rty } ->
       spf "let[@library] %s = %s" name (layout_rty rty)
+  | MLocalRty { name; rty; _ } ->
+      spf "let[@assert] %s = %s" name (layout_rty rty)
 
 let layout_structure l = spf "%s\n" (List.split_by "\n" layout_item l)

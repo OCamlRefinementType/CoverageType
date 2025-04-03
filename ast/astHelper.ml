@@ -450,3 +450,26 @@ let rec rename_pred_rty oldname newname rty =
   | RtyPolyPred { pred; rty } ->
       if String.equal oldname pred.x then RtyPolyPred { pred; rty }
       else RtyPolyPred { pred; rty = rename_pred_rty oldname newname rty }
+
+let raw_term_to_list (to_elem : ('t, 't raw_term) typed -> 'a) =
+  let rec aux e =
+    match e.x with
+    | AppOp (op, args) -> (
+        match (op.x, args) with
+        | DtConstructor "[]", [] -> []
+        | DtConstructor "::", [ hd; tl ] -> to_elem hd :: aux tl
+        | _ -> _die [%here])
+    | _ -> _die [%here]
+  in
+  aux
+
+let raw_term_to_tuple (to_elem : ('t, 't raw_term) typed -> 'a) e =
+  match e.x with Tuple l -> List.map to_elem l | _ -> _die [%here]
+
+let raw_term_to_str_list e =
+  raw_term_to_list
+    (fun e -> match e.x with Var x -> x.x | _ -> _die [%here])
+    e
+
+let mk_capture captured_ts captured_preds captured_vars =
+  { captured_ts; captured_preds; captured_vars }

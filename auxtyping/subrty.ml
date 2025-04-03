@@ -3,7 +3,14 @@ open Zutils
 open Subcty
 (* open Myconfig *)
 
+let _log = Myconfig._log_typing
+
 let rec sub_rty bctx rctx (rty1, rty2) =
+  pprint_subtyping
+    (fun () ->
+      Typectx.pprint_ctx layout_rty rctx;
+      print_newline ())
+    (rty1, rty2) ();
   let aux rctx (rty1, rty2) =
     match (rty1, rty2) with
     | RtyBase { ou = Over; cty = cty1 }, RtyBase { ou = Over; cty = cty2 } ->

@@ -221,6 +221,7 @@ let item_mk_ctx (e : t item) =
   | MMethodPred mp -> [ Nt.__force_typed [%here] mp ]
   | MAxiom _ -> []
   | MRty _ -> []
+  | MLocalRty _ -> []
   | MFuncImpRaw _ | MFuncImp _ -> _failatwith [%here] "not predefine"
 
 let item_erase (e : 'a item) =
@@ -228,7 +229,7 @@ let item_erase (e : 'a item) =
   | MRty { name; rty; _ } -> MValDecl name#:(Some (erase_rty rty))
   | _ -> e
 
-let item_check ctx (e : t item) : t ctx * t item =
+let item_check (checked : t item list) ctx (e : t item) : t ctx * t item =
   match e with
   | MTyDecl { type_name; type_params; type_decls } ->
       let res = MTyDecl { type_name; type_params; type_decls } in
@@ -250,6 +251,22 @@ let item_check ctx (e : t item) : t ctx * t item =
       (add_to_right ctx x, res)
   | MAxiom { name; prop } ->
       (ctx, MAxiom { name; prop = prop_type_check ctx [] prop })
+  | MLocalRty { host_name; name; rty; captured } ->
+      let host_rty =
+        List.filter_map
+          (function
+            | MRty { name; rty; _ } ->
+                if String.equal name host_name then Some rty else None
+            | _ -> None)
+          checked
+      in
+      let host_rty = match host_rty with [ rty ] -> rty | _ -> _die [%here] in
+      let poly_vars, host_rty = lift_poly_rty host_rty in
+      let preds, _ = lift_poly_pred_rty host_rty in
+      let ctx' = add_to_rights ctx preds in
+      let rty = rty_type_check ctx' poly_vars rty in
+      let item = MLocalRty { host_name; name; rty; captured } in
+      (ctx, item)
   | MRty { is_assumption; name; rty } ->
       let rty = rty_type_check ctx [] rty in
       let item = MRty { is_assumption; name; rty } in
@@ -295,6 +312,6 @@ let struct_mk_axiom_ctx l =
 let struct_check ctx l =
   List.fold_left
     (fun (ctx, res) e ->
-      let ctx, e = item_check ctx e in
+      let ctx, e = item_check res ctx e in
       (ctx, res @ [ e ]))
     (ctx, []) l

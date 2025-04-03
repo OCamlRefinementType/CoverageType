@@ -155,6 +155,8 @@ let rec map_item (f : 't -> 's) (item_e : 't item) =
       MFuncImp { name = name#=>f; if_rec; body = typed_map_term f body }
   | MRty { is_assumption; name; rty } ->
       MRty { is_assumption; name; rty = map_rty f rty }
+  | MLocalRty { host_name; captured; name; rty } ->
+      MLocalRty { host_name; captured; name; rty = map_rty f rty }
 
 and typed_map_item (f : 't -> 's) (item_e : ('t, 't item) typed) =
   item_e#=>f#->(map_item f)

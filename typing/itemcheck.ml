@@ -28,6 +28,17 @@ let mk_imp_m bctx items =
       | _ -> (bctx, imp_m))
     (bctx, StrMap.empty) items
 
+let mk_invs items =
+  List.fold_left
+    (fun m -> function
+      | MLocalRty { host_name; name; rty; _ } ->
+          StrMap.update host_name
+            (function
+              | None -> Some [ name#:rty ] | Some l -> Some ((name#:rty) :: l))
+            m
+      | _ -> m)
+    StrMap.empty items
+
 let mk_tasks items =
   List.filter_map
     (function
@@ -37,16 +48,18 @@ let mk_tasks items =
 
 type resu = Suc of built_in_ctx | Fai of string
 
-let item_check bctx imp_m (name, rty) =
+let item_check bctx inv_m imp_m (name, rty) =
   let imp =
     StrMap.find
       (spf "The source code of given refinement type '%s' is missing." name)
       imp_m name
   in
   let () = Pp.printf "@{<bold>imp_m(%s)@}\n%s\n" name (layout_typed_term imp) in
-  let rty = instantiate_rty_by_nty [%here] rty imp.ty in
+  let invs = match StrMap.find_opt inv_m name with None -> [] | Some l -> l in
+  let sol, rty = instantiate_rty_by_nty [%here] rty imp.ty in
+  let invs = List.map (fun x -> x#=>(map_rty (Nt.msubst_nt sol))) invs in
   _task_info name rty;
-  match term_type_check bctx (imp, rty) with
+  match term_type_check bctx (Common.Rctx.emp [] invs) (imp, rty) with
   | Some _ ->
       _task_succ name;
       Suc (rty_add_to_right bctx name#:rty)
@@ -56,11 +69,12 @@ let item_check bctx imp_m (name, rty) =
 
 let struc_check bctx items =
   let bctx, imp_m = mk_imp_m bctx items in
+  let inv_m = mk_invs items in
   let tasks = mk_tasks items in
   let _, res =
     List.fold_left
-      (fun (bctx, failed) item ->
-        match item_check bctx imp_m item with
+      (fun (bctx, failed) (name, rty) ->
+        match item_check bctx inv_m imp_m (name, rty) with
         | Suc bctx -> (bctx, failed)
         | Fai name -> (bctx, failed @ [ name ]))
       (bctx, []) tasks
