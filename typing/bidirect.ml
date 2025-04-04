@@ -14,7 +14,7 @@ let type_check_group (bctx : built_in_ctx) =
   let _find_in_ctx loc (rctx : rctx) (id : string) =
     let res = lookup_ctxs [ Rctx.to_ctx rctx; bctx.builtin_ctx ] id in
     match res with
-    | Some res -> res
+    | Some res -> fresh_name_rty res
     | None -> _die_with loc (spf "cannot find %s in type context" id)
   in
   let _id_type_infer loc (rctx : rctx) (id : (Nt.t, string) typed) : Nt.t rty =
@@ -206,7 +206,11 @@ let type_check_group (bctx : built_in_ctx) =
     let () = pprint_typing_infer_term_before rctx e in
     let res =
       match e.x with
-      | CErr -> Some CErr#:(mk_bot_underrty e.ty)
+      | CErr ->
+          _assert [%here]
+            (spf "err can only has base type, not %s" (Nt.layout_nt e.ty))
+            (Nt.is_base_tp e.ty);
+          Some CErr#:(mk_bot_underrty e.ty)
       | CVal v ->
           let* v = value_type_infer rctx v in
           Some (CVal v)#:v.ty
@@ -237,6 +241,7 @@ let type_check_group (bctx : built_in_ctx) =
             instantiate_poly_pred_rty rctx.pred_ctx appf.ty apparg'.ty
           in
           let rctx' = Rctx.add_preds rctx poly_preds in
+          (* let () = Printf.printf "appf_ty : %s\n" (layout_rty appf_ty) in *)
           let* retty =
             if is_over_arr_rty appf_ty then
               over_arrow_type_apply rctx' appf_ty apparg.x#:apparg_rty
@@ -249,15 +254,18 @@ let type_check_group (bctx : built_in_ctx) =
               in
               _die [%here]
           in
+          (* let () = Printf.printf "retty : %s\n" (layout_rty retty) in *)
           let retty =
             remove_redundant_poly_pred
             @@ construct_poly_pred_rty (poly_preds, retty)
           in
+          (* let () = Printf.printf "retty : %s\n" (layout_rty retty) in *)
           Some (CApp { appf; apparg = apparg' })#:retty
       | CAppOp { op; appopargs } ->
           let op =
             op.x#:(_find_in_ctx [%here] rctx (op_name_for_typectx op.x))
           in
+          let () = Printf.printf "op_ty : %s\n" (layout_rty op.ty) in
           let* appopargs =
             opt_list_to_list_opt
             @@ List.map
@@ -273,6 +281,7 @@ let type_check_group (bctx : built_in_ctx) =
                 over_arrow_type_apply rctx rty apparg.x#:apparg'.ty)
               (Some op.ty) appopargs
           in
+          let () = Printf.printf "retty : %s\n" (layout_rty retty) in
           Some (CAppOp { op; appopargs = List.map snd appopargs })#:retty
       | CMatch { matched; match_cases } ->
           (* NOTE: we drop unreachable cases *)
