@@ -2,6 +2,7 @@
     "mode": [
         "Debug"
     ],
+    "show_var_type_in_prop": false,
     "max_printing_size": 300,
     "log_tags": [
         // "syn",

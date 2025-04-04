@@ -150,10 +150,10 @@ let[@library] Stlc_tyctx_cons =
 
 (* the built-in random generators *)
 
-let[@library] int_range =
-  let a = ((true : [%v: int]) [@over]) in
-  let b = ((1 + a < v : [%v: int]) [@over]) in
-  ((a < v && v < b : [%v: int]) [@under])
+(* let[@library] int_range = *)
+(*   let a = ((true : [%v: int]) [@over]) in *)
+(*   let b = ((1 + a < v : [%v: int]) [@over]) in *)
+(*   ((a < v && v < b : [%v: int]) [@under]) *)
 
 let[@library] bool_gen =
   let _ = ((true : [%v: unit]) [@over]) in

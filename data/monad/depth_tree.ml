@@ -90,12 +90,15 @@ let[@assert] cons_gen (b1 : poly) (p1 : int -> 'b1 -> bool) (p2 : 'b1 -> bool)
 (*  Basic generator varaints *)
 
 let int_bound (n : int) : int cm =
-  if n < 0 then Err else fmap (fun (r : int) -> r mod (n + 1)) int_gen
+  if n < 0 then return Err else fmap (fun (r : int) -> r mod (n + 1)) int_gen
 
 let[@assert] int_bound ?r:(n = ((0 <= v : [%v: int]) [@over])) =
   M (0 <= v && v <= n : [%v: int])
 
-(* let prog : int cm = *)
-(*   bind int_gen (fun (x : int) -> if x >= 0 then return x else return Err) *)
+let int_range (a : int) (b : int) : int cm =
+  if b < a then return Err
+  else fmap (fun (x : int) -> a + x) (int_bound (b - a))
 
-(* let[@assert] prog = M (v >= 0 : [%v: int]) *)
+let[@assert] int_range ?r:(a = ((true : [%v: int]) [@over]))
+    ?r:(b = ((a <= v : [%v: int]) [@over])) =
+  M (a <= v && v <= b : [%v: int])
