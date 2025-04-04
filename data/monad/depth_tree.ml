@@ -102,3 +102,21 @@ let int_range (a : int) (b : int) : int cm =
 let[@assert] int_range ?r:(a = ((true : [%v: int]) [@over]))
     ?r:(b = ((a <= v : [%v: int]) [@over])) =
   M (a <= v && v <= b : [%v: int])
+
+let nat : int cm =
+  bind (int_bound 10) (fun (p : int) ->
+      if p < 5 then int_bound 10
+      else if p < 8 then int_bound 100
+      else if p < 9 then int_bound 1000
+      else int_bound 10000)
+
+let[@assert] nat = M (0 <= v && v <= 1000 : [%v: int])
+
+let option (g : 'a cm) : 'a option cm =
+  fmap (fun (p : int) -> if p < 2 then None else Some (g ())) (int_bound 10)
+
+let pair (g1 : 'a cm) (g2 : 'b cm) : ('a * 'b) cm = fun () -> (g1 (), g2 ())
+
+let[@assert] pair (b1 : poly) (b2 : poly) (p1 : 'b1 -> bool) (p2 : 'b2 -> bool)
+    ?r:(_ = M (p1 v : [%v: 'b1])) ?r:(_ = M (p2 v : [%v: 'b2])) =
+  M (p1 (fst v) && p2 (snd v) : [%v: 'b1 * 'b2])
