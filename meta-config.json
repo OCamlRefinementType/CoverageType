@@ -10,7 +10,7 @@
         // "plan",
         // "parsing",
         "queries",
-        // "model",
+        "model",
         // "z3encode",
         "auxtyping",
         "preprocess",

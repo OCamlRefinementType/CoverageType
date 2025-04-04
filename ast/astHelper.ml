@@ -262,10 +262,28 @@ let mk_top_cty nty = { nty; phi = Prop.mk_true }
 let mk_bot_cty nty = { nty; phi = Prop.mk_false }
 let cty_to_overrty cty = RtyBase { ou = Over; cty }
 let cty_to_underrty cty = RtyBase { ou = Under; cty }
-let mk_top_overrty nty = cty_to_overrty @@ mk_top_cty nty
-let mk_bot_overrty nty = cty_to_overrty @@ mk_bot_cty nty
-let mk_top_underrty nty = cty_to_underrty @@ mk_top_cty nty
-let mk_bot_underrty nty = cty_to_underrty @@ mk_bot_cty nty
+
+let mk_top_overrty nty =
+  if Nt.is_base_tp nty then cty_to_overrty @@ mk_top_cty nty else _die [%here]
+
+let mk_bot_overrty nty =
+  if Nt.is_base_tp nty then cty_to_overrty @@ mk_bot_cty nty else _die [%here]
+
+let rec mk_top_underrty nty =
+  match nty with
+  | Nt.Ty_arrow (t1, t2) ->
+      let argrty = mk_top_overrty t1 in
+      let retty = mk_top_underrty t2 in
+      RtyArr { arg = Rename.dummy (); argrty; retty }
+  | _ -> cty_to_underrty @@ mk_top_cty nty
+
+let rec mk_bot_underrty nty =
+  match nty with
+  | Nt.Ty_arrow (t1, t2) ->
+      let argrty = mk_top_overrty t1 in
+      let retty = mk_bot_underrty t2 in
+      RtyArr { arg = Rename.dummy (); argrty; retty }
+  | _ -> cty_to_underrty @@ mk_bot_cty nty
 
 let mk_unit_underrty phi =
   RtyBase { ou = Under; cty = { nty = Nt.unit_ty; phi } }

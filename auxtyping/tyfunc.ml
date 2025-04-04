@@ -71,6 +71,9 @@ let rec union_rtys = function
           in
           RtyBase { ou = Under; cty = union_ctys ctys }
       | Nt.Ty_arrow (t1, _) when Nt.equal_nt t1 Nt.unit_ty ->
+          let () =
+            List.iter (fun rty -> Printf.printf "%s\n" (layout_rty rty)) rtys
+          in
           let rtys = List.map (ret_ty [%here]) rtys in
           let rty = union_rtys rtys in
           mk_nfv_arr (mk_top_overrty Nt.unit_ty) rty
