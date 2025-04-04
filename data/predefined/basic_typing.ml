@@ -3,6 +3,7 @@
 type unit = TT
 
 type bool = True | False
+type 'a option = None | Some of 'a
 type 'a list = Nil | Cons of 'a * 'a list
 type 'a pairinghp = Phpleaf | Phpnode of 'a * 'a pairinghp list
 type 'a tree = Leaf | Node of 'a * 'a tree * 'a tree
