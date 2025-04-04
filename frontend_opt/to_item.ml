@@ -27,7 +27,7 @@ let ocaml_structure_item_to_item structure =
   | Pstr_value (flag, [ value_binding ]) ->
       Some
         (let name = Prop.typed_id_of_pattern value_binding.pvb_pat in
-         let name, ty = (name.x, name.ty) in
+         let name, ty = (name.x, desugar_basic_coverage_monad name.ty) in
          match value_binding.pvb_attributes with
          | [ x ] -> (
              match x.attr_name.txt with

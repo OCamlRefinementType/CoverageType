@@ -114,16 +114,13 @@ let sub_cty ou builtin_ctx ctx cty1 cty2 =
   let query =
     match ou with
     | Over ->
-        let prop = List.fold_right smart_dependent_exists underctx cty2.phi in
-        let qvs, prop = lift_ex_quantifiers [] prop in
-        let prop = smart_exists qvs (smart_implies cty1.phi prop) in
+        let prop = smart_implies cty1.phi cty2.phi in
         List.fold_right smart_dependent_forall
           (overctx @ [ (default_v, mk_top_cty cty1.nty) ])
           prop
     | Under ->
-        let prop = List.fold_right smart_dependent_exists underctx cty1.phi in
-        let qvs, prop = lift_ex_quantifiers [] prop in
-        let prop = smart_exists qvs (smart_implies cty2.phi prop) in
+        let rhs = List.fold_right smart_dependent_exists underctx cty1.phi in
+        let prop = smart_implies cty2.phi rhs in
         List.fold_right smart_dependent_forall
           (overctx @ [ (default_v, mk_top_cty cty2.nty) ])
           prop
@@ -136,7 +133,9 @@ let sub_cty ou builtin_ctx ctx cty1 cty2 =
     _log_auxtyping @@ fun _ ->
     Printf.printf "let[@axiom] %s\n" (layout_prop__raw query)
   in
-  check_valid (bctx_to_axioms builtin_ctx) query
+  let res = check_valid (bctx_to_axioms builtin_ctx) query in
+  let () = if not res then _die [%here] in
+  res
 
 (* NOTE: after exists the constraints into the return type, the emptiness can be checked final stage;
    It may cause the more branch analysis.
