@@ -1,5 +1,6 @@
 open Zutils
 open OcamlParser
+open Oparse
 open Mutils
 open Prop
 open Parsetree
@@ -54,7 +55,7 @@ let vars_phi_of_expr expr =
     | Pexp_constraint (e', ct) ->
         (* let () = Printf.printf "\nct: %s\n" (layout_ct ct) in *)
         (* let () = *)
-        (*   Printf.printf "\ne': %s\n" (Pprintast.string_of_expression e') *)
+        (*   Printf.printf "\ne': %s\n" (string_of_expression e') *)
         (* in *)
         let v = get_self ct in
         let vs, phi = aux e' in
@@ -67,4 +68,4 @@ let vars_phi_of_expr expr =
 let cty_of_expr expr =
   match vars_phi_of_expr expr with
   | [ { x; ty } ], phi when String.equal x default_v -> { nty = ty; phi }
-  | _ -> _failatwith [%here] (Pprintast.string_of_expression expr)
+  | _ -> _failatwith [%here] (string_of_expression expr)

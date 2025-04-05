@@ -71,15 +71,13 @@ let to_ocamltypedec = function
   | _ -> _die [%here]
 
 let layout_ocaml es =
-  let _ = Format.flush_str_formatter () in
-  Pprintast.structure Format.str_formatter
+  Oparse.string_of_structure
   @@ List.map
        (fun e ->
          {
            pstr_desc = Pstr_type (Asttypes.Recursive, [ e ]);
            pstr_loc = Location.none;
          })
-       es;
-  Format.flush_str_formatter ()
+       es
 
 let layout_type_dec e = layout_ocaml [ to_ocamltypedec e ]
