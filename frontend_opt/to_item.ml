@@ -1,5 +1,6 @@
 open Zutils
 open OcamlParser
+open Oparse
 open Mutils
 open Prop
 open Parsetree
@@ -74,9 +75,7 @@ let ocaml_structure_item_to_item structure =
          | _ -> _failatwith [%here] "wrong syntax")
   | Pstr_attribute _ -> None
   | _ ->
-      let () =
-        Printf.printf "%s\n" (Pprintast.string_of_structure [ structure ])
-      in
+      let () = Printf.printf "%s\n" (string_of_structure [ structure ]) in
       _failatwith [%here] "translate not a func_decl"
 
 let ocaml_structure_to_items structure =

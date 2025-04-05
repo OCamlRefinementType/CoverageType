@@ -1,5 +1,6 @@
 open Zutils
 open OcamlParser
+open Oparse
 open Mutils
 open Prop
 open Parsetree
@@ -96,8 +97,7 @@ let to_typed_ids x =
     | Tuple xs -> List.fold_left aux l xs
     | _ ->
         _die_with [%here]
-        @@ spf "%s not a pattern"
-             (Pprintast.string_of_expression @@ raw_term_to_expr x.x)
+        @@ spf "%s not a pattern" (string_of_expression @@ raw_term_to_expr x.x)
   in
   aux [] x
 
@@ -130,8 +130,8 @@ let rec typed_raw_term_of_pattern pattern =
           (AppOp (op, args))#:Nt.Ty_unknown)
   | Ppat_any -> (Var "_"#:Nt.Ty_unknown)#:Nt.Ty_unknown
   | _ ->
-      Pprintast.pattern Format.std_formatter pattern;
-      failwith "wrong pattern name, maybe untyped"
+      Printf.printf "%s\n" @@ string_of_pattern pattern;
+      _die_with [%here] "wrong pattern name, maybe untyped"
 
 let typed_ids_of_pattern pattern =
   to_typed_ids @@ typed_raw_term_of_pattern pattern
@@ -257,8 +257,7 @@ let typed_raw_term_of_expr expr =
     | _ ->
         raise
         @@ failwith
-             (Sugar.spf "not imp client parsing:%s"
-             @@ Pprintast.string_of_expression expr)
+             (Sugar.spf "not imp client parsing:%s" @@ string_of_expression expr)
   in
   aux expr
 
@@ -268,15 +267,11 @@ let typed_id_of_expr expr =
   let x = typed_raw_term_of_expr expr in
   match x.x with
   | Var id -> id#:x.ty
-  | _ ->
-      _failatwith [%here] (spf "die: %s" (Pprintast.string_of_expression expr))
+  | _ -> _failatwith [%here] (spf "die: %s" (string_of_expression expr))
 
 let id_of_expr expr = (typed_id_of_expr expr).x
-let layout_raw_term x = Pprintast.string_of_expression @@ raw_term_to_expr x
-
-let layout_typed_raw_term x =
-  Pprintast.string_of_expression @@ raw_term_to_expr x.x
-
+let layout_raw_term x = string_of_expression @@ raw_term_to_expr x
+let layout_typed_raw_term x = string_of_expression @@ raw_term_to_expr x.x
 let layout_omit_type x = layout_raw_term @@ (typed_raw_term_of_expr x).x
 let layout_typed_term x = layout_typed_raw_term @@ denormalize_term x
 let layout_term x = layout_typed_raw_term @@ denormalize_term x#:Nt.Ty_unknown

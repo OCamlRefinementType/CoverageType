@@ -1,5 +1,6 @@
 open Zutils
 open OcamlParser
+open Oparse
 open Prop
 open Parsetree
 open Zdatatype
@@ -58,7 +59,7 @@ let rec rty_of_expr expr =
       return_rty (rty_of_expr expr)
   | _ ->
       _failatwith [%here]
-        (spf "wrong refinement type: %s" (Pprintast.string_of_expression expr))
+        (spf "wrong refinement type: %s" (string_of_expression expr))
 
 let rty_of_expr expr =
   let rty = rty_of_expr expr in

@@ -5,7 +5,7 @@ open Zutils
 
 let parse file =
   ocaml_structure_to_items
-  @@ OcamlParser.Pparse.parse_implementation ~tool_name:"ocamlc" file
+  @@ OcamlParser.Oparse.parse_imp_from_file ~sourcefile:file
 
 let _ctxs = ref None
 let _log = Myconfig._log_preprocess
