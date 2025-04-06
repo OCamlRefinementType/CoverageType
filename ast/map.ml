@@ -135,7 +135,11 @@ let rec map_rty (f : 't -> 's) (rty_e : 't rty) =
   | RtyBase { ou; cty } -> RtyBase { ou; cty = map_cty f cty }
   | RtyArr { argrty; arg; retty } ->
       RtyArr { argrty = map_rty f argrty; arg; retty = map_rty f retty }
-  | RtyPolyType { pt; rty } -> RtyPolyType { pt; rty = map_rty f rty }
+  | RtyPolyType { pt; rty } ->
+      let pt =
+        match f (Nt.Ty_var pt) with Nt.Ty_var pt -> pt | _ -> _die [%here]
+      in
+      RtyPolyType { pt; rty = map_rty f rty }
   | RtyPolyPred { pred; rty } ->
       RtyPolyPred { pred = pred#=>f; rty = map_rty f rty }
 

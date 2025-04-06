@@ -56,7 +56,7 @@ let rec rty_of_expr expr =
       let argrty = rty_of_expr vb.pvb_expr in
       RtyArr { argrty; arg; retty }
   | Pexp_construct (c, Some expr) when String.equal _monad (longid_to_id c) ->
-      return_rty (rty_of_expr expr)
+      mk_return_rty (rty_of_expr expr)
   | _ ->
       _failatwith [%here]
         (spf "wrong refinement type: %s" (string_of_expression expr))

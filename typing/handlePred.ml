@@ -15,6 +15,8 @@ open Zdatatype
 
 type solution = { args : (Nt.t, string) typed list; body : Nt.t prop }
 
+let _log = Myconfig._log "instantiateRty"
+
 let layout_solution (p, sol) =
   spf "%s(%s) := %s" p
     (List.split_by_comma _get_x sol.args)
@@ -24,13 +26,17 @@ let layaout_solutions m =
   List.split_by ";; " layout_solution @@ StrMap.to_kv_list m
 
 let instantiate_lit (p, sol) lit =
+  _log (fun () ->
+      Printf.printf "instantiate_lit %s in %s\n" p (layout_lit lit.x));
   match lit.x with
   | AAppOp (op, args) when String.equal p op.x ->
       let l = _safe_combine [%here] sol.args args in
       let l =
         List.map
           (fun (x, lit) ->
-            _assert [%here] "instantiate: basic type should be equal"
+            _assert [%here]
+              (spf "instantiate: basic type should be equal: %s != %s"
+                 (Nt.layout x.ty) (Nt.layout lit.ty))
               (Nt.equal_nt x.ty lit.ty);
             (x.x, lit.x))
           l
@@ -131,14 +137,12 @@ let unification_rtys poly_preds cs =
                 aux (StrMap.add p sol m) cs)
         | ( RtyArr { argrty = argrty1; arg = arg1; retty = retty1 },
             RtyArr { argrty = argrty2; arg = arg2; retty = retty2 } ) ->
-            let arg3 = Rename.unique arg2 in
-            let retrt1 =
-              subst_rty_instance arg1 (AVar arg3#:(erase_rty argrty1)) retty1
+            _assert [%here] "all name shoudl be fresh"
+              (not (String.equal arg1 arg2));
+            let retty1 =
+              subst_rty_instance arg1 (AVar arg2#:(erase_rty argrty1)) retty1
             in
-            let retrt2 =
-              subst_rty_instance arg2 (AVar arg3#:(erase_rty argrty1)) retty2
-            in
-            aux m ((argrty1, argrty2) :: (retrt1, retrt2) :: cs)
+            aux m ((argrty1, argrty2) :: (retty1, retty2) :: cs)
         | _, _ ->
             Printf.printf "rty1: %s\nrty2: %s\n" (layout_rty t1) (layout_rty t2);
             _die [%here])
@@ -153,7 +157,7 @@ let unification_rtys poly_preds cs =
 
 let instantiate_poly_pred_rty_aux pds frty xrty =
   let () =
-    Printf.printf "instantiate %s with %s\n"
+    Printf.printf "instantiate %s\nwith %s\n"
       (layout_rty (construct_poly_pred_rty (pds, frty)))
       (layout_rty xrty)
   in
@@ -191,7 +195,7 @@ let instantiate_poly_pred_rty predctx frty xty =
       (fun m pred ->
         match Typectx.get_opt predctx pred.x with
         | None -> m
-        | Some _ -> (pred.x, Rename.unique pred.x) :: m)
+        | Some _ -> (pred.x, Rename.unique_var pred.x) :: m)
       [] pds
   in
   let pds =

@@ -15,14 +15,21 @@ let mk_self_wf_dec x =
 
 module Rctx = struct
   type rctx = {
+    task_name : string;
     tyvar_ctx : string list;
     pred_ctx : Nt.t ctx;
     rty_ctx : Nt.t rty ctx;
     inv_ctx : Nt.nt rty ctx;
   }
 
-  let emp tyvar_ctx invs =
-    { tyvar_ctx; pred_ctx = emp; rty_ctx = emp; inv_ctx = ctx_from_list invs }
+  let emp task_name tyvar_ctx invs =
+    {
+      task_name;
+      tyvar_ctx;
+      pred_ctx = emp;
+      rty_ctx = emp;
+      inv_ctx = ctx_from_list invs;
+    }
 
   (* let to_ctx_g_v_pair ctx = *)
   (*   let rec aux (gctx, ctx) l = *)
@@ -85,7 +92,8 @@ module Rctx = struct
 
   open Zdatatype
 
-  let pprint { tyvar_ctx; pred_ctx; rty_ctx; inv_ctx } () =
+  let pprint { task_name; tyvar_ctx; pred_ctx; rty_ctx; inv_ctx } () =
+    Pp.printf "@{<bold>Task:@} %s\n" task_name;
     Pp.printf "@{<bold>Poly Vars:@} %s\n" (StrList.to_string tyvar_ctx);
     Pp.printf "@{<bold>Poly Preds:@} %s\n"
       (Typectx.layout_ctx Nt.layout pred_ctx);

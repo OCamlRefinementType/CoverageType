@@ -163,10 +163,14 @@ let typed_raw_term_of_expr expr =
               let args = aux args in
               match args.x with Tuple es -> es | _ -> [ args ])
         in
+        (* let () = if String.equal (longid_to_id c) "None" then _die [%here] in *)
         let c = constructor_to_term_or_op @@ longid_to_id c in
         match c with
         | C_is_term tm -> tm
         | C_is_op op ->
+            (* let () = *)
+            (*   if String.equal (Prop.layout_op op.x) "None" then _die [%here] *)
+            (* in *)
             let () = Printf.printf "MK op: %s\n" (layout_op op.x) in
             (AppOp (op, args))#:Nt.Ty_unknown)
     | Pexp_constant _ -> (Const (expr_to_constant expr))#:Nt.Ty_unknown
@@ -223,7 +227,7 @@ let typed_raw_term_of_expr expr =
         (* fun () -> is equal to fun (dummy_unit: unit) -> *)
         let arg =
           match arg.x with
-          | Const U -> (Var (Rename.dummy ())#:Nt.unit_ty)#:Nt.unit_ty
+          | Const U -> (Var (Rename.dummy_var ())#:Nt.unit_ty)#:Nt.unit_ty
           | _ -> arg
         in
         let () =
@@ -244,7 +248,7 @@ let typed_raw_term_of_expr expr =
         (Lam { lamarg; lambody = aux expr })#:Nt.Ty_unknown
         (* un-curry *)
     | Pexp_sequence (e1, e2) ->
-        let lhs = [ { x = Rename.unique "unused"; ty = Nt.unit_ty } ] in
+        let lhs = [ { x = Rename.dummy_var (); ty = Nt.unit_ty } ] in
         let rhs = aux e1 in
         let letbody = aux e2 in
         (Let { if_rec = false; lhs; rhs; letbody })#:Nt.Ty_unknown

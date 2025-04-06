@@ -274,7 +274,7 @@ let rec mk_top_underrty nty =
   | Nt.Ty_arrow (t1, t2) ->
       let argrty = mk_top_overrty t1 in
       let retty = mk_top_underrty t2 in
-      RtyArr { arg = Rename.dummy (); argrty; retty }
+      RtyArr { arg = Rename.dummy_var (); argrty; retty }
   | _ -> cty_to_underrty @@ mk_top_cty nty
 
 let rec mk_bot_underrty nty =
@@ -282,7 +282,7 @@ let rec mk_bot_underrty nty =
   | Nt.Ty_arrow (t1, t2) ->
       let argrty = mk_top_overrty t1 in
       let retty = mk_bot_underrty t2 in
-      RtyArr { arg = Rename.dummy (); argrty; retty }
+      RtyArr { arg = Rename.dummy_var (); argrty; retty }
   | _ -> cty_to_underrty @@ mk_bot_cty nty
 
 let mk_unit_underrty phi =
@@ -399,10 +399,14 @@ let bctx_to_axioms bctx = List.map _get_ty @@ ctx_to_list bctx.axioms
 (** Monad *)
 
 let mk_return_rty retty =
-  RtyArr { retty; arg = Rename.dummy (); argrty = mk_top_overrty Nt.unit_ty }
+  RtyArr
+    { retty; arg = Rename.dummy_var (); argrty = mk_top_overrty Nt.unit_ty }
 
 let ret_ty loc = function RtyArr { retty; _ } -> retty | _ -> _die loc
-let mk_nfv_arr argrty retty = RtyArr { argrty; retty; arg = Rename.dummy () }
+
+let mk_nfv_arr argrty retty =
+  RtyArr { argrty; retty; arg = Rename.dummy_var () }
+
 let get_raw_function_name x = match x.x with Var x -> Some x.x | _ -> None
 
 let is_raw_monadic_bind x =
@@ -432,23 +436,19 @@ let rec fresh_name_rty rty =
   | RtyBase _ -> rty
   | RtyArr { argrty; arg; retty } ->
       let argrty = fresh_name_rty argrty in
-      let arg' = Rename.unique arg in
+      let arg' = Rename.unique_var arg in
       let retty =
         subst_rty_instance arg (AVar arg'#:(erase_rty argrty)) retty
       in
-      let retty = fresh_name_rty retty in
-      RtyArr { argrty; arg = arg'; retty }
-  | RtyPolyType { pt; rty } -> RtyPolyType { pt; rty = fresh_name_rty rty }
-  | RtyPolyPred { pred; rty } -> RtyPolyPred { pred; rty = fresh_name_rty rty }
-
-let mk_tmp () = Rename.unique "tmp"
-
-let return_rty rty =
-  match rty with
-  | RtyBase { ou = Under; _ } ->
-      RtyArr
-        { argrty = mk_top_overrty Nt.unit_ty; arg = mk_tmp (); retty = rty }
-  | _ -> _die_with [%here] "monad should be in a base type"
+      RtyArr { argrty; arg = arg'; retty = fresh_name_rty retty }
+  | RtyPolyType { pt; rty } ->
+      let pt' = Rename.unique_type_var pt in
+      let rty = map_rty (Nt.subst_nt (pt, Nt.Ty_var pt')) rty in
+      RtyPolyType { pt = pt'; rty = fresh_name_rty rty }
+  | RtyPolyPred { pred; rty } ->
+      let pred' = pred#->Rename.unique_var in
+      let rty = rename_pred_rty pred.x pred'.x rty in
+      RtyPolyPred { pred = pred'; rty = fresh_name_rty rty }
 
 (** Poly *)
 

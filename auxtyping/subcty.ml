@@ -91,23 +91,26 @@ let sub_cty ou builtin_ctx ctx cty1 cty2 =
   in
   let () =
     let dom = List.map fst (overctx @ underctx) in
-    _assert [%here]
-      (spf
-         "left-hand-side type %s should be closed under over + under ctx: [ %s \
-          ]"
-         (layout_rty (RtyBase { ou; cty = cty1 }))
-         (StrList.to_string dom))
-      (is_close_cty dom cty1)
+    if not (is_close_cty dom cty1) then (
+      Printf.printf
+        "left-hand-side type %s\n\
+         %s should be closed under over + under ctx: [ %s ]\n"
+        (* (layout_rty (RtyBase { ou; cty = cty1 })) *)
+        (show_prop cty1.phi)
+        (StrList.to_string (fv_cty_id cty1))
+        (StrList.to_string dom);
+      _die [%here])
   in
   let () =
     let dom = List.map fst (overctx @ underctx) in
-    _assert [%here]
-      (spf
-         "right-hand-side type %s should be closed under over + under ctx: [ \
-          %s ]"
-         (layout_rty (RtyBase { ou; cty = cty2 }))
-         (StrList.to_string dom))
-      (is_close_cty dom cty2)
+    if not (is_close_cty dom cty2) then (
+      Printf.printf
+        "right-hand-side type %s\n\
+        \ %s should be closed under over + under ctx: [ %s ]\n"
+        (layout_rty (RtyBase { ou; cty = cty2 }))
+        (StrList.to_string (fv_cty_id cty2))
+        (StrList.to_string dom);
+      _die [%here])
   in
   let nty = if Nt.equal_nt cty1.nty cty2.nty then cty1.nty else _die [%here] in
   let overctx = (default_v, mk_top_cty nty) :: overctx in

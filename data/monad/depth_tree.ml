@@ -111,12 +111,17 @@ let nat : int cm =
       else int_bound 10000)
 
 let[@assert] nat = M (0 <= v && v <= 1000 : [%v: int])
-
-let option (g : 'a cm) : 'a option cm =
-  fmap (fun (p : int) -> if p < 2 then None else Some (g ())) (int_bound 10)
-
 let pair (g1 : 'a cm) (g2 : 'b cm) : ('a * 'b) cm = fun () -> (g1 (), g2 ())
 
 let[@assert] pair (b1 : poly) (b2 : poly) (p1 : 'b1 -> bool) (p2 : 'b2 -> bool)
     ?r:(_ = M (p1 v : [%v: 'b1])) ?r:(_ = M (p2 v : [%v: 'b2])) =
   M (p1 (fst v) && p2 (snd v) : [%v: 'b1 * 'b2])
+
+let option (g : 'a cm) : 'a option cm =
+  fmap (fun (p : int) -> if p < 2 then None else Some (g ())) (int_bound 10)
+
+let[@assert] option (b1 : poly) (p1 : 'b1 -> bool) ?r:(_ = M (p1 v : [%v: 'b1]))
+    =
+  M
+    (fun ((y [@ex]) : 'b1) -> v == None || (v == Some y && p1 y)
+      : [%v: 'b1 option])

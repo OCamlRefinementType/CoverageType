@@ -159,3 +159,20 @@ let rec subst_rty (string_x : string) f (rty_e : 't rty) =
 
 and typed_subst_rty (string_x : string) f (rty_e : ('t, 't rty) typed) =
   rty_e#->(subst_rty string_x f)
+
+let rename_pred_cty oldname newname { nty; phi } =
+  { nty; phi = rename_pred_prop oldname newname phi }
+
+let rename_pred_rty oldname newname =
+  let rec aux rty_e =
+    match rty_e with
+    | RtyBase { ou; cty } ->
+        RtyBase { ou; cty = rename_pred_cty oldname newname cty }
+    | RtyArr { argrty; arg; retty } ->
+        RtyArr { argrty = aux argrty; arg; retty = aux retty }
+    | RtyPolyType { pt; rty } -> RtyPolyType { pt; rty = aux rty }
+    | RtyPolyPred { pred; rty } ->
+        if String.equal pred.x oldname then RtyPolyPred { pred; rty }
+        else RtyPolyPred { pred; rty = aux rty }
+  in
+  aux
