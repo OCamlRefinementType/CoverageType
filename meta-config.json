@@ -2,7 +2,7 @@
     "mode": [
         "Debug"
     ],
-    "show_var_type_in_prop": false,
+    "show_var_type_in_prop": true,
     "max_printing_size": 300,
     "log_tags": [
         // "syn",
@@ -11,8 +11,10 @@
         // "plan",
         // "parsing",
         "queries",
-        // "model",
+        "model",
         // "z3encode",
+        "unification",
+        "instantiateRty",
         "auxtyping",
         "preprocess",
         "typing",

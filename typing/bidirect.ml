@@ -11,15 +11,17 @@ type value_infer_mode = TopParam | PolyPredParam
 let value_infer_mode = PolyPredParam
 
 let type_check_group (bctx : built_in_ctx) =
-  let _find_in_ctx loc (rctx : rctx) (id : string) =
-    let res = lookup_ctxs [ Rctx.to_ctx rctx; bctx.builtin_ctx ] id in
+  let _find_in_ctx loc (rctx : rctx) (id : (Nt.t, string) typed) =
+    let res = lookup_ctxs [ Rctx.to_ctx rctx; bctx.builtin_ctx ] id.x in
     match res with
-    | Some res -> fresh_name_rty res
-    | None -> _die_with loc (spf "cannot find %s in type context" id)
+    | Some res ->
+        let rty = fresh_name_rty res in
+        let _, rty = instantiate_rty_by_nty [%here] rty id.ty in
+        rty
+    | None -> _die_with loc (spf "cannot find %s in type context" id.x)
   in
   let _id_type_infer loc (rctx : rctx) (id : (Nt.t, string) typed) : Nt.t rty =
-    let rty = _find_in_ctx loc rctx id.x in
-    let _, rty = instantiate_rty_by_nty [%here] rty id.ty in
+    let rty = _find_in_ctx loc rctx id in
     (* NOTE: both over and under type will induce under type *)
     if is_base_rty rty then mk_eq_tvar_underrty id.x#:(erase_rty rty) else rty
   in
@@ -32,6 +34,7 @@ let type_check_group (bctx : built_in_ctx) =
     let res =
       match v.x with
       | VVar id ->
+          let () = if String.equal id.x "None" then _die [%here] in
           let rty = _id_type_infer [%here] rctx id in
           Some (VVar id.x#:rty)#:rty
       | VConst U -> Some (VConst U)#:(mk_top_underrty Nt.unit_ty)
@@ -63,8 +66,8 @@ let type_check_group (bctx : built_in_ctx) =
             match value_infer_mode with
             | PolyPredParam ->
                 let pred =
-                  (Rename.unique "pred")#:(Nt.construct_arr_tp
-                                             ([ nty ], Nt.bool_ty))
+                  (Rename.unique_var "p")#:(Nt.construct_arr_tp
+                                              ([ nty ], Nt.bool_ty))
                 in
                 let open Prop in
                 let phi =
@@ -142,7 +145,7 @@ let type_check_group (bctx : built_in_ctx) =
         let () = Printf.printf "fix retty %s\n" (layout_rty retty) in
         let arg, retty =
           if String.equal arg fixarg.x then
-            let arg' = Rename.unique arg in
+            let arg' = Rename.unique_var arg in
             (arg', subst_rty_instance arg (AVar arg'#:fixarg.ty) retty)
           else (arg, retty)
         in
@@ -178,7 +181,7 @@ let type_check_group (bctx : built_in_ctx) =
           _warinning_typing_error [%here] (layout_lit arglit, argrty);
           None)
         else
-          let retty = exists_rty (Rename.dummy ())#:tmp_rty retty in
+          let retty = exists_rty (Rename.fresh_var ())#:tmp_rty retty in
           Some retty
     | _ -> _die [%here]
   and arrow_arrow_type_apply (rctx : rctx) appf_rty
@@ -262,9 +265,7 @@ let type_check_group (bctx : built_in_ctx) =
           (* let () = Printf.printf "retty : %s\n" (layout_rty retty) in *)
           Some (CApp { appf; apparg = apparg' })#:retty
       | CAppOp { op; appopargs } ->
-          let op =
-            op.x#:(_find_in_ctx [%here] rctx (op_name_for_typectx op.x))
-          in
+          let op = op.x#:(_find_in_ctx [%here] rctx op#->op_name_for_typectx) in
           let () = Printf.printf "op_ty : %s\n" (layout_rty op.ty) in
           let* appopargs =
             opt_list_to_list_opt
@@ -367,7 +368,9 @@ let type_check_group (bctx : built_in_ctx) =
               RtyBase { ou = Under; cty = { nty = Nt.unit_ty; phi } }
           | _ -> _die [%here]
         in
-        let rctx' = Rctx.add_vars rctx (args @ [ (Rename.dummy ())#:retty ]) in
+        let rctx' =
+          Rctx.add_vars rctx (args @ [ (Rename.fresh_var ())#:retty ])
+        in
         let* exp' = term_type_infer rctx' exp in
         let exp' = exp'#=>(Rctx.diff_exists_rty [%here] rctx' rctx) in
         let () =

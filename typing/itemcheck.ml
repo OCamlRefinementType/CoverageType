@@ -59,7 +59,7 @@ let item_check bctx inv_m imp_m (name, rty) =
   let sol, rty = instantiate_rty_by_nty [%here] rty imp.ty in
   let invs = List.map (fun x -> x#=>(map_rty (Nt.msubst_nt sol))) invs in
   _task_info name rty;
-  match term_type_check bctx (Common.Rctx.emp [] invs) (imp, rty) with
+  match term_type_check bctx (Common.Rctx.emp name [] invs) (imp, rty) with
   | Some _ ->
       _task_succ name;
       Suc (rty_add_to_right bctx name#:rty)

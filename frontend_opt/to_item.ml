@@ -11,6 +11,7 @@ open To_rty
 open To_raw_term
 open Common
 
+(* NOTE: The top level normal type need to be closed by Nt.close_poly_nt *)
 let ocaml_structure_item_to_item structure =
   match structure.pstr_desc with
   | Pstr_primitive { pval_name; pval_type; pval_prim; pval_attributes; _ } ->

@@ -8,15 +8,47 @@ type t = Nt.t
 
 let _log = Myconfig._log_preprocess
 
-let cty_type_check (ctx : t ctx) (poly_vars : string list)
-    ({ phi; nty } : t cty) : t cty =
-  let () =
-    _log @@ fun _ ->
-    pprint_ctx Nt.layout ctx;
-    print_newline ();
-    Printf.printf "cty: %s\n" (layout_cty { phi; nty })
+let constraint_cty_type_check (ctx : t ctx) (bc : BC.bc) ({ phi; nty } : t cty)
+    =
+  let ctx = add_to_right ctx default_v#:nty in
+  let bc, phi = constraint_prop_type_check ctx bc phi in
+  (bc, { nty; phi })
+
+let constraint_rty_type_check (ctx : t ctx) (bc : BC.bc) (rty : t rty) =
+  let rec aux ctx bc rty =
+    let () = _log @@ fun _ -> Printf.printf "rty: %s\n" (layout_rty rty) in
+    match rty with
+    | RtyBase { ou; cty } ->
+        let bc, cty = constraint_cty_type_check ctx bc cty in
+        (bc, RtyBase { ou; cty })
+    | RtyArr { argrty; arg; retty } ->
+        let bc, argrty = aux ctx bc argrty in
+        let argnty = erase_rty argrty in
+        let ctx' =
+          if Nt.is_base_tp argnty then add_to_right ctx arg#:argnty else ctx
+        in
+        let bc, retty = aux ctx' bc retty in
+        (bc, RtyArr { argrty; arg; retty })
+    | RtyPolyType { pt; rty } ->
+        let bc = BC.add_type_var bc pt in
+        let bc, rty = aux ctx bc rty in
+        (bc, RtyPolyType { pt; rty })
+    | RtyPolyPred { pred; rty } ->
+        let ctx' = add_to_right ctx pred in
+        let bc, rty = aux ctx' bc rty in
+        (bc, RtyPolyPred { pred; rty })
   in
-  { phi = prop_type_check (add_to_right ctx default_v#:nty) poly_vars phi; nty }
+  aux ctx bc rty
+
+(* let cty_type_check (ctx : t ctx) (poly_vars : string list) *)
+(*     ({ phi; nty } : t cty) : t cty = *)
+(*   let () = *)
+(*     _log @@ fun _ -> *)
+(*     pprint_ctx Nt.layout ctx; *)
+(*     print_newline (); *)
+(*     Printf.printf "cty: %s\n" (layout_cty { phi; nty }) *)
+(*   in *)
+(*   { phi = prop_type_check (add_to_right ctx default_v#:nty) poly_vars phi; nty } *)
 
 let rty_type_check (ctx : t ctx) (poly_vars : string list) (rty : t rty) : t rty
     =
@@ -27,31 +59,13 @@ let rty_type_check (ctx : t ctx) (poly_vars : string list) (rty : t rty) : t rty
     print_newline ();
     Pp.printf "@{<bold>rty task@}: %s\n" (layout_rty rty)
   in
-  let rec aux ctx poly_vars rty =
-    let () = _log @@ fun _ -> Printf.printf "rty: %s\n" (layout_rty rty) in
-    match rty with
-    | RtyBase { ou; cty } ->
-        RtyBase { ou; cty = cty_type_check ctx poly_vars cty }
-    | RtyArr { argrty; arg; retty } ->
-        let argrty = aux ctx poly_vars argrty in
-        let argnty = erase_rty argrty in
-        let ctx' =
-          if Nt.is_base_tp argnty then add_to_right ctx arg#:argnty else ctx
-        in
-        let retty = aux ctx' poly_vars retty in
-        RtyArr { argrty; arg; retty }
-    | RtyPolyType { pt; rty } ->
-        if List.exists (String.equal pt) poly_vars then
-          _die_with [%here] (spf "same poly var: %s" pt)
-        else
-          let rty = aux ctx (pt :: poly_vars) rty in
-          RtyPolyType { pt; rty }
-    | RtyPolyPred { pred; rty } ->
-        let ctx' = add_to_right ctx pred in
-        let rty = aux ctx' poly_vars rty in
-        RtyPolyPred { pred; rty }
-  in
-  aux ctx poly_vars rty
+  let bc, rty = constraint_rty_type_check ctx (BC.empty poly_vars) rty in
+  let solution = Normalty.type_unification StrMap.empty bc.cs in
+  match solution with
+  | None ->
+      Printf.printf "bc\n%s\nprop:%s" (BC.layout bc) (layout_rty rty);
+      _die_with [%here] "rty normal type error"
+  | Some sol -> map_rty (Normalty.msubst_nt sol) rty
 
 module BC = Normalty.BoundConstraints
 
@@ -204,7 +218,7 @@ let raw_term_type_check ctx polyvars term =
       res
 
 let constructor_declaration_mk_ (retty, { constr_name; argsty }) =
-  constr_name#:(Nt.construct_arr_tp (argsty, retty))
+  constr_name#:(Nt.close_poly_nt [%here] @@ Nt.construct_arr_tp (argsty, retty))
 
 let item_mk_ctx (e : t item) =
   match e with
