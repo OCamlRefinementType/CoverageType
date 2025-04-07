@@ -36,10 +36,10 @@ let exists_rty (x : string) (xrty : 't rty) (rty : 't rty) : 't rty =
 
 let exists_rty x rty =
   match x.ty with
-  | RtyBase { ou = Under; cty = { nty; _ } } when Nt.equal_nt Nt.unit_ty nty ->
+  | RtyBase { ou = Under; cty } when Nt.equal_nt Nt.unit_ty cty.nty ->
       _assert [%here] "unit variable cannot be refered"
         (not @@ is_free_rty x.x rty);
-      map_rty_retty (exists_rty x.x x.ty) rty
+      map_rty_retty (exists_cty x.x cty) rty
   | _ -> exists_rty x.x x.ty rty
 
 let exists_rtys = List.fold_right exists_rty

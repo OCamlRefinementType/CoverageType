@@ -3,7 +3,6 @@ open Zutils
 open Sugar
 open Auxtyping
 open Common
-open Rctx
 open HandlePred
 
 type value_infer_mode = TopParam | PolyPredParam
@@ -12,7 +11,7 @@ let value_infer_mode = PolyPredParam
 
 let type_check_group (bctx : built_in_ctx) =
   let _find_in_ctx loc (rctx : rctx) (id : (Nt.t, string) typed) =
-    let res = lookup_ctxs [ Rctx.to_ctx rctx; bctx.builtin_ctx ] id.x in
+    let res = lookup_ctxs [ rctx.rty_ctx; bctx.builtin_ctx ] id.x in
     match res with
     | Some res ->
         let rty = fresh_name_rty res in
@@ -27,7 +26,7 @@ let type_check_group (bctx : built_in_ctx) =
   in
   let subtyping rctx (rty1, rty2) =
     pprint_typing_subtyping rctx (rty1, rty2);
-    sub_rty bctx (Rctx.to_ctx rctx) (rty1, rty2)
+    sub_rty rctx (rty1, rty2)
   in
   let rec value_type_infer (rctx : rctx) (v : (Nt.t, Nt.t value) typed) :
       (Nt.t rty, Nt.t rty value) typed option =
@@ -176,7 +175,7 @@ let type_check_group (bctx : built_in_ctx) =
         let tmp_rty =
           mk_unit_underrty (subst_prop_instance default_v arglit cty.phi)
         in
-        if not (non_emptiness_rty bctx (Rctx.to_ctx rctx) tmp_rty) then (
+        if not (non_emptiness_rty rctx tmp_rty) then (
           _warinning_nonemptiness_error [%here] argrty;
           _warinning_typing_error [%here] (layout_lit arglit, argrty);
           None)
@@ -295,7 +294,22 @@ let type_check_group (bctx : built_in_ctx) =
           in
           let* matched = value_type_infer rctx matched in
           Some (CMatch { matched; match_cases })#:unioned_ty
-      | CLetDeTuple _ -> failwith "unimp"
+      | CLetDeTuple { turhs; tulhs; body } ->
+          let* turhs' = value_type_infer rctx turhs in
+          let tmp = (Rename.fresh_var ())#:turhs.ty in
+          let tulhs =
+            List.mapi
+              (fun idx x ->
+                let lit = lit_to_tlit (AProj (tvar_to_lit tmp, idx)) in
+                let rty = mk_eq_lit_underrty lit in
+                x.x#:rty)
+              tulhs
+          in
+          let tmp = tmp.x#:turhs'.ty in
+          let rctx' = Rctx.add_vars rctx (tmp :: tulhs) in
+          let* body = term_type_infer rctx' body in
+          let rty = Rctx.diff_exists_rty [%here] rctx' rctx body.ty in
+          Some (CLetDeTuple { turhs = turhs'; tulhs; body })#:rty
       (* | CLetE { rhs; lhs; body } -> *)
       (*     let* rhs = term_type_infer rctx rhs in *)
       (*     let lhs = lhs.x#:rhs.ty in *)
@@ -321,7 +335,7 @@ let type_check_group (bctx : built_in_ctx) =
         Some (CVal v)#:v.ty
     | CApp _ | CAppOp _ | CMatch _ | CLetE _ ->
         let* e' = term_type_infer rctx e in
-        if sub_rty bctx (Rctx.to_ctx rctx) (e'.ty, rty) then Some e'.x#:rty
+        if sub_rty rctx (e'.ty, rty) then Some e'.x#:rty
         else (
           _warinning_subtyping_error [%here] (e'.ty, rty);
           _warinning_typing_error [%here] (layout_typed_term e, rty);
@@ -336,14 +350,8 @@ let type_check_group (bctx : built_in_ctx) =
     match x with
     | CMatchcase { constructor; args; exp } ->
         let constructor_rty =
-          match lookup_ctxs [ bctx.builtin_ctx ] constructor.x with
-          | Some rty -> rty
-          | None ->
-              _die_with [%here]
-              @@ spf "cannot find rty of constructor %s from builtin context"
-                   constructor.x
+          _find_in_ctx [%here] rctx constructor#->dt_name_for_typectx
         in
-        let constructor_rty = fresh_name_rty constructor_rty in
         (* let () = *)
         (*   Printf.printf "%s: %s\n" constructor.x (layout_rty constructor_rty) *)
         (* in *)
@@ -366,7 +374,9 @@ let type_check_group (bctx : built_in_ctx) =
                   phi
               in
               RtyBase { ou = Under; cty = { nty = Nt.unit_ty; phi } }
-          | _ -> _die [%here]
+          | _ ->
+              Printf.printf "retty: %s\n" (layout_rty retty);
+              _die [%here]
         in
         let rctx' =
           Rctx.add_vars rctx (args @ [ (Rename.fresh_var ())#:retty ])

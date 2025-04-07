@@ -2,7 +2,8 @@
     "mode": [
         "Debug"
     ],
-    "show_var_type_in_prop": true,
+    "show_var_type_in_prop": false,
+    "instantiate_poly_type_var_in_smt": true,
     "max_printing_size": 300,
     "log_tags": [
         // "syn",
@@ -13,6 +14,7 @@
         "queries",
         "model",
         // "z3encode",
+        "axiom",
         "unification",
         "instantiateRty",
         "auxtyping",

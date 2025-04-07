@@ -32,7 +32,7 @@ let get_ou expr =
   | l when List.exists (fun x -> String.equal x.attr_name.txt "over") l -> Over
   | _ -> Under
 
-let poly_type = Nt._constructor_ty_0 "poly"
+let base_type_name = Nt._constructor_ty_0 "baseType"
 let _monad = "M"
 
 let rec rty_of_expr expr =
@@ -40,9 +40,14 @@ let rec rty_of_expr expr =
   | Pexp_constraint _ -> RtyBase { ou = get_ou expr; cty = cty_of_expr expr }
   | Pexp_fun (Asttypes.Nolabel, None, pattern, body) ->
       let param = To_raw_term.typed_id_of_pattern pattern in
-      if Nt.equal_nt poly_type param.ty then
+      if Nt.equal_nt base_type_name param.ty then
         RtyPolyType { pt = param.x; rty = rty_of_expr body }
       else RtyPolyPred { pred = param; rty = rty_of_expr body }
+  | Pexp_fun (Asttypes.Optional _, None, pattern, body) ->
+      let param = To_raw_term.typed_id_of_pattern pattern in
+      let retty = rty_of_expr body in
+      let argrty = mk_top_overrty param.ty in
+      RtyArr { argrty; arg = param.x; retty }
   | Pexp_fun (_, Some rtyexpr, pattern, body) ->
       let retty = rty_of_expr body in
       let arg = id_of_pattern pattern in

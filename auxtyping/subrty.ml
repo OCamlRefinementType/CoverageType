@@ -5,34 +5,39 @@ open Subcty
 
 let _log = Myconfig._log_typing
 
-let rec sub_rty bctx rctx (rty1, rty2) =
+let rec sub_rty rctx (rty1, rty2) =
   pprint_subtyping
     (fun () ->
-      Typectx.pprint_ctx layout_rty rctx;
+      Typectx.pprint_ctx layout_rty rctx.rty_ctx;
       print_newline ())
     (rty1, rty2) ();
   let aux rctx (rty1, rty2) =
     match (rty1, rty2) with
     | RtyBase { ou = Over; cty = cty1 }, RtyBase { ou = Over; cty = cty2 } ->
-        sub_cty Over bctx rctx cty1 cty2
+        sub_cty Over rctx cty1 cty2
     | RtyBase { ou = Under; cty = cty1 }, RtyBase { ou = Under; cty = cty2 } ->
-        sub_cty Under bctx rctx cty1 cty2
+        sub_cty Under rctx cty1 cty2
     | ( RtyArr { arg = arg1; argrty = argrty1; retty = retty1 },
         RtyArr { arg = arg2; argrty = argrty2; retty = retty2 } ) ->
-        sub_rty bctx rctx (argrty2, argrty1)
+        sub_rty rctx (argrty2, argrty1)
         &&
         let retty2 =
           subst_rty_instance arg2 (AVar arg1#:(erase_rty argrty1)) retty2
         in
-        sub_rty bctx (Typectx.add_to_right rctx arg1#:argrty2) (retty1, retty2)
+        sub_rty
+          {
+            rctx with
+            rty_ctx = Typectx.add_to_right rctx.rty_ctx arg1#:argrty2;
+          }
+          (retty1, retty2)
     | _, _ ->
         _failatwith [%here]
           (spf "die: %s <: %s" (layout_rty rty1) (layout_rty rty2))
   in
   aux rctx (rty1, rty2)
 
-let non_emptiness_rty builtin_ctx ctx rty =
+let non_emptiness_rty rctx rty =
   match rty with
-  | RtyBase { ou = Under; cty } -> non_emptiness_cty builtin_ctx ctx cty
+  | RtyBase { ou = Under; cty } -> non_emptiness_cty rctx cty
   | RtyArr _ -> true
   | _ -> _failatwith [%here] "die"

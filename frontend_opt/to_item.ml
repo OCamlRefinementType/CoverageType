@@ -34,7 +34,14 @@ let ocaml_structure_item_to_item structure =
          | [ x ] -> (
              match x.attr_name.txt with
              | "axiom" ->
-                 MAxiom { name; prop = prop_of_expr value_binding.pvb_expr }
+                 let tasks =
+                   match x.attr_payload with
+                   | PStr [] -> []
+                   | PPat (pat, None) -> Prop.tuple_id_of_pattern pat
+                   | _ -> _die [%here]
+                 in
+                 MAxiom
+                   { name; tasks; prop = prop_of_expr value_binding.pvb_expr }
              | "assert" -> (
                  let rty = rty_of_expr value_binding.pvb_expr in
                  match x.attr_payload with
@@ -86,7 +93,9 @@ let layout_item = function
   | MTyDecl _ as item -> To_type_dec.layout_type_dec item
   | MMethodPred x -> spf "val[@method_predicate] %s: %s" x.x @@ Nt.layout x.ty
   | MValDecl x -> spf "val %s: %s" x.x @@ Nt.layout x.ty
-  | MAxiom { name; prop } -> spf "let[@axiom] %s = %s" name (layout_prop prop)
+  | MAxiom { name; prop; tasks } ->
+      spf "let[@axiom ? (%s)] %s = %s" name (StrList.to_string tasks)
+        (layout_prop prop)
   | MFuncImpRaw { name; if_rec; body } ->
       spf "let %s%s = %s"
         (if if_rec then "rec " else "")

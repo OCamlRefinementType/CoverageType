@@ -114,8 +114,8 @@ let id_to_term v = value_to_term @@ id_to_value v
 let map_rty_retty f rty =
   let rec aux rty =
     match rty with
-    | RtyBase _ -> f rty
-    | RtyArr { argrty; arg; retty } -> RtyArr { argrty; arg; retty = f retty }
+    | RtyBase { ou; cty } -> RtyBase { ou; cty = f cty }
+    | RtyArr { argrty; arg; retty } -> RtyArr { argrty; arg; retty = aux retty }
     | RtyPolyType { pt; rty } -> RtyPolyType { pt; rty = aux rty }
     | RtyPolyPred { pred; rty } -> RtyPolyPred { pred; rty = aux rty }
   in
@@ -295,17 +295,22 @@ let value_to_lit loc = function
   | VConst c -> AC c
   | _ -> _die loc
 
+let mk_eq_lit_prop lit =
+  lit_to_prop @@ mk_lit_eq_lit [%here] (AVar default_v#:lit.ty) lit.x
+
 let mk_eq_var_prop x = lit_to_prop (mk_var_eq_var [%here] default_v#:x.ty x)
 
 let mk_eq_c_prop c =
   lit_to_prop (mk_var_eq_c [%here] default_v#:(constant_to_nt c) c)
 
+let mk_eq_lit_cty x = { nty = x.ty; phi = mk_eq_lit_prop x }
 let mk_eq_tvar_cty x = { nty = x.ty; phi = mk_eq_var_prop x }
 let mk_eq_c_cty c = { nty = constant_to_nt c; phi = mk_eq_c_prop c }
 let mk_eq_tvar_overrty x = RtyBase { ou = Over; cty = mk_eq_tvar_cty x }
 let mk_eq_tvar_underrty x = RtyBase { ou = Under; cty = mk_eq_tvar_cty x }
 let mk_eq_c_overrty x = RtyBase { ou = Over; cty = mk_eq_c_cty x }
 let mk_eq_c_underrty x = RtyBase { ou = Under; cty = mk_eq_c_cty x }
+let mk_eq_lit_underrty x = RtyBase { ou = Under; cty = mk_eq_lit_cty x }
 
 let flip_rty rty =
   match rty with
@@ -382,19 +387,30 @@ let denormalize_structure = List.map denormalize_item
 
 open Typectx
 
-let rty_add_to_right { builtin_ctx; axioms } x =
-  { builtin_ctx = add_to_right builtin_ctx x; axioms }
+let rty_add_to_right { builtin_ctx; cur_axiom_names } x =
+  { builtin_ctx = add_to_right builtin_ctx x; cur_axiom_names }
 
-let axiom_add_to_right { builtin_ctx; axioms } x =
-  { builtin_ctx; axioms = add_to_right axioms x }
+let axiom_add_to_right { builtin_ctx; cur_axiom_names } (x, tasks, prop) =
+  if List.exists (String.equal x) cur_axiom_names then _die [%here]
+  else
+    let () = Prop.Prover.update_axioms [ (x, tasks, prop) ] in
+    { builtin_ctx; cur_axiom_names = cur_axiom_names @ [ x ] }
 
-let rty_add_to_rights { builtin_ctx; axioms } x =
-  { builtin_ctx = add_to_rights builtin_ctx x; axioms }
+let rty_add_to_rights { builtin_ctx; cur_axiom_names } x =
+  { builtin_ctx = add_to_rights builtin_ctx x; cur_axiom_names }
 
-let axiom_add_to_rights { builtin_ctx; axioms } x =
-  { builtin_ctx; axioms = add_to_rights axioms x }
-
-let bctx_to_axioms bctx = List.map _get_ty @@ ctx_to_list bctx.axioms
+let axiom_add_to_rights { builtin_ctx; cur_axiom_names } xs =
+  if
+    List.exists
+      (fun (x, _, _) -> List.exists (String.equal x) cur_axiom_names)
+      xs
+  then _die [%here]
+  else
+    let () = Prop.Prover.update_axioms xs in
+    {
+      builtin_ctx;
+      cur_axiom_names = cur_axiom_names @ List.map (fun (x, _, _) -> x) xs;
+    }
 
 (** Monad *)
 

@@ -33,23 +33,21 @@ let report_unclosed loc query =
           fvs))
     (0 == List.length fvs)
 
-let check_valid axioms query =
+let check_valid (task, query) =
   let () =
     _log_debug @@ fun _ ->
     Printf.printf "check valid: %s\n" (layout_prop_ query)
   in
   let () = report_unclosed [%here] query in
-  let _ = Prover.update_axioms axioms in
-  Prover.check_valid query
+  Prover.check_valid (task, query)
 
-let check_sat axioms query =
+let check_sat (task, query) =
   let () =
     _log_debug @@ fun _ ->
     Printf.printf "check valid: %s\n" (layout_prop_ query)
   in
   let () = report_unclosed [%here] query in
-  let _ = Prover.update_axioms axioms in
-  Prover.check_sat_bool query
+  Prover.check_sat_bool (task, query)
 
 let simplify_sub_typectx ctx (rty1, rty2) =
   let ctx = Typectx.ctx_to_list ctx in
@@ -74,8 +72,8 @@ let simplify_sub_typectx ctx (rty1, rty2) =
   in
   aux ([], ctx) (rty1, rty2)
 
-let sub_cty ou builtin_ctx ctx cty1 cty2 =
-  let ctx_list, cty1, cty2 = simplify_sub_typectx ctx (cty1, cty2) in
+let sub_cty ou rctx cty1 cty2 =
+  let ctx_list, cty1, cty2 = simplify_sub_typectx rctx.rty_ctx (cty1, cty2) in
   let overctx, underctx = build_wf_ctx ctx_list in
   let () =
     _log_auxtyping @@ fun _ ->
@@ -136,7 +134,7 @@ let sub_cty ou builtin_ctx ctx cty1 cty2 =
     _log_auxtyping @@ fun _ ->
     Printf.printf "let[@axiom] %s\n" (layout_prop__raw query)
   in
-  let res = check_valid (bctx_to_axioms builtin_ctx) query in
+  let res = check_valid (Some rctx.task_name, query) in
   let () = if not res then _die [%here] in
   res
 
@@ -145,10 +143,10 @@ let sub_cty ou builtin_ctx ctx cty1 cty2 =
 *)
 let lazy_emptiness_check = false
 
-let non_emptiness_cty builtin_ctx ctx cty =
+let non_emptiness_cty rctx cty =
   if lazy_emptiness_check then true
   else
-    let overctx, underctx = build_wf_ctx (Typectx.ctx_to_list ctx) in
+    let overctx, underctx = build_wf_ctx (Typectx.ctx_to_list rctx.rty_ctx) in
     let underctx = underctx @ [ (default_v, mk_top_cty cty.nty) ] in
     let () =
       _log_auxtyping @@ fun _ ->
@@ -181,4 +179,4 @@ let non_emptiness_cty builtin_ctx ctx cty =
       _log_auxtyping @@ fun _ ->
       Printf.printf "let[@axiom] %s\n" (layout_prop__raw query)
     in
-    check_sat (bctx_to_axioms builtin_ctx) query
+    check_sat (Some rctx.task_name, query)

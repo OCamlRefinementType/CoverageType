@@ -63,7 +63,7 @@ let rty_type_check (ctx : t ctx) (poly_vars : string list) (rty : t rty) : t rty
   let solution = Normalty.type_unification StrMap.empty bc.cs in
   match solution with
   | None ->
-      Printf.printf "bc\n%s\nprop:%s" (BC.layout bc) (layout_rty rty);
+      Printf.printf "bc\n%s\nprop:%s\n" (BC.layout bc) (layout_rty rty);
       _die_with [%here] "rty normal type error"
   | Some sol -> map_rty (Normalty.msubst_nt sol) rty
 
@@ -119,7 +119,13 @@ let rec constraint_term_type_infer (ctx : t ctx) (bc : BC.bc) (e : t raw_term) =
       let bc, _ = BC.add bc (f_ty, f.ty) in
       (bc, (App (f, args))#:retty)
   | Let { if_rec = false; rhs; lhs; letbody } ->
-      let lhs = List.map (Nt.__force_typed [%here]) lhs in
+      let () =
+        List.iter
+          (fun x ->
+            if Nt.is_unkown x.ty then
+              _die_with [%here] (spf "let-binding %s is untyped" x.x))
+          lhs
+      in
       let bc, rhs = constraint_term_type_check ctx bc rhs in
       let bc, letbody =
         constraint_term_type_check (add_to_rights ctx lhs) bc letbody
@@ -155,9 +161,10 @@ let rec constraint_term_type_infer (ctx : t ctx) (bc : BC.bc) (e : t raw_term) =
                   (bc, (x.x#:t) :: args))
                 args (bc, [])
             in
-            let bc, constructor =
-              constraint_id_type_infer ctx bc constructor.x
+            let bc, op =
+              constraint_op_type_infer ctx bc (DtConstructor constructor.x)
             in
+            let constructor = constructor.x#:op.ty in
             let bc, exp =
               constraint_term_type_check (add_to_rights ctx args) bc exp
             in
@@ -203,7 +210,9 @@ let raw_term_type_check ctx polyvars term =
   let bc, term = constraint_term_type_check ctx (BC.empty polyvars) term in
   let solution = Normalty.type_unification StrMap.empty bc.cs in
   match solution with
-  | None -> _die_with [%here] "raw term normal type errpr"
+  | None ->
+      Pp.printf "@{<bold>Before subst:@}\n%s\n" (layout_typed_raw_term term);
+      _die_with [%here] "raw term normal type error"
   | Some sol ->
       let res = typed_map_raw_term (Normalty.msubst_nt sol) term in
       Pp.printf "@{<bold>Before subst:@}\n%s\n" (layout_typed_raw_term term);
@@ -263,8 +272,8 @@ let item_check (checked : t item list) ctx (e : t item) : t ctx * t item =
       let x = Nt.__force_typed [%here] x in
       let res = MMethodPred x in
       (add_to_right ctx x, res)
-  | MAxiom { name; prop } ->
-      (ctx, MAxiom { name; prop = prop_type_check ctx [] prop })
+  | MAxiom { name; tasks; prop } ->
+      (ctx, MAxiom { name; tasks; prop = prop_type_check ctx [] prop })
   | MLocalRty { host_name; name; rty; captured } ->
       let host_rty =
         List.filter_map
@@ -318,10 +327,10 @@ let struct_mk_rty_ctx l =
 
 let struct_mk_axiom_ctx l =
   let aux res = function
-    | MAxiom { name; prop } -> Typectx.add_to_right res name#:prop
+    | MAxiom { name; tasks; prop } -> res @ [ (name, tasks, prop) ]
     | _ -> res
   in
-  List.fold_left aux Typectx.emp l
+  List.fold_left aux [] l
 
 let struct_check ctx l =
   List.fold_left
