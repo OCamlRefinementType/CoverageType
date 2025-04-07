@@ -60,6 +60,5 @@ val list_nth : 'a list -> int -> 'a
 
 (** Aux functions *)
 
-(** For frequency *)
-
-val sum_fst_int : (int * 'a) list -> int
+val sum_fst_int : (int * 'a) list -> int (* for frequency *)
+val choose_by_fq : int list -> int (* for frequency *)

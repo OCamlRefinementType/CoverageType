@@ -105,3 +105,6 @@ let[@library] list_nth =
 
 let[@library] sum_fst_int =
  fun (a : baseType) ?r:(xs : (int * 'a) list) -> (0 <= v : [%v: int])
+
+let[@library] choose_by_fq =
+ fun ?r:(xs : int list) -> (0 <= v && v < list_len xs : [%v: int])

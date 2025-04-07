@@ -147,18 +147,11 @@ let rec frequencyl_aux (i : int) (m : int) (l : (int * 'a) list) (acc : int) :
       let (n : int), (x : 'a) = tmp_pair in
       if bool_gen () then return x else frequencyl_aux (i - 1) m rest (acc + n)
 
-(* let[@assert] frequencyl_aux (b1 : baseType) *)
-(*     ?r:(i = ((0 <= v : [%v: int]) [@over])) *)
-(*     ?r:(m = ((0 <= v : [%v: int]) [@over])) *)
-(*     ?r:(l = ((i == list_len v : [%v: (int * 'b1) list]) [@over])) *)
-(*     ?r:(acc = ((0 <= v : [%v: int]) [@over])) = *)
-(*   M (list_snd_mem l v : [%v: 'b1]) *)
-
-let[@library] frequencyl_aux (b1 : baseType)
+let[@assert] frequencyl_aux (b1 : baseType)
     ?r:(i = ((0 <= v : [%v: int]) [@over]))
     ?r:(m = ((0 <= v : [%v: int]) [@over]))
     ?r:(l = ((i == list_len v : [%v: (int * 'b1) list]) [@over]))
-    ?r:(acc = ((0 <= v : [%v: int]) [@over])) =
+    ?r:(acc = ((true : [%v: int]) [@over])) =
   M (list_snd_mem l v : [%v: 'b1])
 
 let frequencyl (l : (int * 'a) list) : 'a gen =
@@ -167,3 +160,12 @@ let frequencyl (l : (int * 'a) list) : 'a gen =
 let[@assert] frequencyl (b1 : baseType)
     ?r:(l = ((true : [%v: (int * 'b1) list]) [@over])) =
   M (list_snd_mem l v : [%v: 'b1])
+
+let frequency (fq : int list) (l : int -> 'a gen) : 'a gen =
+ fun () -> l (choose_by_fq fq) ()
+
+let[@assert] frequency (b1 : baseType) (p1 : int -> 'b1 -> bool)
+    ?r:(fq : int list)
+    ?r:(_ =
+        fun ?r:(x = ((0 <= v : [%v: int]) [@over])) -> M (p1 x v : [%v: 'b1])) =
+  M (fun ((x [@ex]) : int) -> 0 <= x && x < list_len fq && p1 x v : [%v: 'b1])

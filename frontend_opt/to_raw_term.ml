@@ -40,7 +40,7 @@ and raw_term_to_expr (expr : Nt.t raw_term) =
       @@ Pexp_let (flag, [ vb ], typed_raw_term_to_expr letbody)
   | AppOp (op, args) ->
       (* NOTE: to make the printed code looks clearer, we don't print type of operators. *)
-      mk_op_apply (layout_op op.x, List.map typed_raw_term_to_expr args)
+      mk_op_apply (mkvar (layout_op op.x), List.map typed_raw_term_to_expr args)
   | App (func, args) ->
       (* NOTE: to make the printed code looks clearer, we don't print type of function in its application. *)
       let func = raw_term_to_expr func.x in

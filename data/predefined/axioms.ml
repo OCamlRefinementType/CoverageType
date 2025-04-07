@@ -1,3 +1,5 @@
+(** We always use 'a as poly type in the axioms *)
+
 (* let[@axiom] ax1 = *)
 (*  fun (n : int) -> *)
 (*   implies (n >= 0) (fun (v : int tree) -> *)
@@ -39,45 +41,20 @@ let[@axiom] list_snd_mem_none_when_len_0 =
  fun (l : (int * 'a) list) (v : 'a) ->
   (list_len l == 0)#==>(not (list_snd_mem l v))
 
-let[@axiom? frequencyl] list_len_geq_0_pair =
- fun (l : (int * int) list) -> list_len l >= 0
+let[@axiom] list_snd_mem_implies_len_gt_zero =
+ fun (l : (int * 'a) list) (v : 'a) -> (list_snd_mem l v)#==>(list_len l > 0)
 
-(* let[@axiom? frequencyl_aux] list_len_has_hd_tl_pair = *)
-(*  fun (l : (int * int) list) -> *)
-(*   (list_len l > 0) *)
-(*   #==> (fun ((x [@ex]) : int * int) ((xs [@ex]) : (int * int) list) -> *)
-(*   hd l x && tl l xs && list_snd_mem l (snd x)) *)
+let[@axiom] list_len_gt_zero_implies_has_hd_tl =
+ fun (l : (int * 'a) list) ->
+  (list_len l > 0)
+  #==> (fun ((hde [@ex]) : int * 'a) ((tle [@ex]) : (int * 'a) list) ->
+  hd l hde && tl l tle)
 
-let[@axiom? frequencyl_aux] frequencyl_aux =
- fun (i : int) ->
-  implies (0 <= i) (fun (m : int) ->
-      implies (0 <= m) (fun (l : (int * 'a) list) ->
-          implies
-            (i == list_len l)
-            (fun (acc : int) ->
-              implies (0 <= acc) (fun (v : 'a) ->
-                  implies (list_snd_mem l v)
-                    (fun ((tmp_pair [@exists]) : int * 'a) ->
-                      fun ((rest [@exists]) : (int * 'a) list) ->
-                       hd l tmp_pair && tl l rest
-                       && fun ((tmp_78 [@exists]) : int * 'a) ->
-                       tmp_78 == tmp_pair && fun ((n [@exists]) : int) ->
-                       n == fst tmp_78 && fun ((x [@exists]) : 'a) ->
-                       x == snd tmp_78 && fun ((x_39 [@exists]) : int) ->
-                       x_39 == acc + n && fun ((x_40 [@exists]) : bool) ->
-                       iff x_40 (m < x_39)
-                       && ((x_40 && v == x)
-                          || (not x_40) && fun ((x_41 [@exists]) : int) ->
-                             x_41 == i - 1 && fun ((x_45 [@exists]) : int) ->
-                             x_45 == acc + n
-                             && 0 <= x_45
-                             && x_41 == list_len rest
-                             && 0 <= m && x_41 < i && 0 <= x_41
-                             && list_snd_mem rest v))))))
+let[@axiom] list_snd_mem_implies_snd_mem_hd_or_tl =
+ fun (l : (int * 'a) list) (v : 'a) (hde : int * 'a) (tle : (int * 'a) list) ->
+  (list_snd_mem l v && hd l hde && tl l tle)#==>(v == snd hde
+                                                || list_snd_mem tle v)
 
-(* let[@axiom] list_snd_mem_is_mem = *)
-(*  fun (l : (int * 'a) list) (v : 'a) -> *)
-(*   (list_snd_mem l v) #==> (fun ((ptmp [@ex]) : int * 'a) -> *)
-(*   list_mem l ptmp && v == snd ptmp) *)
-
-(* [v:'a | ∃tmp_pair, (∃rest, (hd l tmp_pair ∧ tl l rest ∧ (∃n, (n == (fst tmp_pair) ∧ (((m < acc + n) ∧ v == (snd tmp_pair)) ∨ (¬(m < acc + n) ∧ 0 <= (acc + n) ∧ p1 rest ∧ 0 <= m ∧ (i - 1) < i ∧ 0 <= (i - 1) ∧ list_snd_mem rest v))))))] *)
+let[@axiom] list_tl_len_minus_one =
+ fun (l : (int * 'a) list) (tle : (int * 'a) list) ->
+  (tl l tle)#==>(list_len l == 1 + list_len tle)
