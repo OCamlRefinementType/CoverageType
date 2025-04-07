@@ -26,7 +26,8 @@ let load_ctxs () =
       let basic_ctx, items = struct_check Typectx.emp items in
       let builtin_ctx = struct_mk_rty_ctx items in
       let axioms = struct_mk_axiom_ctx items in
-      let bctx = { builtin_ctx; axioms } in
+      let bctx = { builtin_ctx; cur_axiom_names = [] } in
+      let bctx = axiom_add_to_rights bctx axioms in
       let res = (basic_ctx, bctx) in
       _ctxs := Some res;
       res

@@ -27,7 +27,7 @@ let constructor_declaration_to_ocaml { constr_name; argsty } =
 
 let of_ocamltypedec { ptype_name; ptype_params; ptype_kind; ptype_manifest; _ }
     =
-  if String.equal ptype_name.txt "cm" then
+  if is_basic_coverage_monad ptype_name.txt then
     (* Coverage Monad Definition *)
     None
   else

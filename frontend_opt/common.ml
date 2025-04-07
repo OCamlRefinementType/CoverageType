@@ -1,11 +1,16 @@
 open Zutils
 open Nt
 
+let basic_coverage_monad = [ "cm"; "gen" ]
+
+let is_basic_coverage_monad x =
+  List.exists (String.equal x) basic_coverage_monad
+
 let desugar_basic_coverage_monad =
   let rec aux rty =
     match rty with
     | Ty_var _ | Ty_unknown | Ty_uninter _ -> rty
-    | Ty_constructor (name, [ ty ]) when String.equal name "cm" ->
+    | Ty_constructor (name, [ ty ]) when is_basic_coverage_monad name ->
         construct_arr_tp ([ unit_ty ], ty)
     | Ty_constructor (name, tys) -> Ty_constructor (name, List.map aux tys)
     | Ty_record xs -> Ty_record (List.map (fun x -> x#=>aux) xs)

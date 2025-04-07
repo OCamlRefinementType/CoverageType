@@ -14,14 +14,6 @@ let mk_self_wf_dec x =
   else _failatwith [%here] "unimp"
 
 module Rctx = struct
-  type rctx = {
-    task_name : string;
-    tyvar_ctx : string list;
-    pred_ctx : Nt.t ctx;
-    rty_ctx : Nt.t rty ctx;
-    inv_ctx : Nt.nt rty ctx;
-  }
-
   let emp task_name tyvar_ctx invs =
     {
       task_name;
@@ -43,7 +35,7 @@ module Rctx = struct
   (*   in *)
   (*   Typectx.(aux (emp, emp) ctx) *)
 
-  let to_ctx { rty_ctx; _ } = rty_ctx
+  (* let to_ctx { rty_ctx; _ } = rty_ctx *)
   (* let gctx, ctx = to_ctx_g_v_pair (Typectx.ctx_to_list ctx) in *)
   (* Typectx.concat gctx ctx *)
 
@@ -69,20 +61,20 @@ module Rctx = struct
   let diff_exists_rty_opt rctx1 rctx2 rty =
     _assert [%here] "die"
       (List.equal String.equal rctx1.tyvar_ctx rctx2.tyvar_ctx);
-    let _ =
-      _log @@ fun () ->
-      Pp.printf "%s\n - \n%s\n"
-        (Typectx.layout_ctx layout_rty rctx1.rty_ctx)
-        (Typectx.layout_ctx layout_rty rctx2.rty_ctx)
-    in
+    (* let _ = *)
+    (*   _log @@ fun () -> *)
+    (*   Pp.printf "%s\n - \n%s\n" *)
+    (*     (Typectx.layout_ctx layout_rty rctx1.rty_ctx) *)
+    (*     (Typectx.layout_ctx layout_rty rctx2.rty_ctx) *)
+    (* in *)
     let* vars =
       subtract_opt (equal_rty Nt.equal_nt) rctx1.rty_ctx rctx2.rty_ctx
     in
-    let _ =
-      _log @@ fun () ->
-      Pp.printf "exists [%s] into %s\n" (layout_rtyed_vars vars)
-        (layout_rty rty)
-    in
+    (* let _ = *)
+    (*   _log @@ fun () -> *)
+    (*   Pp.printf "exists [%s] into %s\n" (layout_rtyed_vars vars) *)
+    (*     (layout_rty rty) *)
+    (* in *)
     Some (exists_rtys vars rty)
 
   let diff_exists_rty loc ctx1 ctx2 rty =

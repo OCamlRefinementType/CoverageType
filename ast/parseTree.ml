@@ -113,7 +113,7 @@ type 't item =
     }
   | MValDecl of ('t, string) typed
   | MMethodPred of ('t, string) typed
-  | MAxiom of { name : string; prop : 't prop }
+  | MAxiom of { name : string; tasks : string list; prop : 't prop }
   | MFuncImpRaw of {
       name : ('t, string) typed;
       if_rec : bool;
@@ -135,4 +135,15 @@ type 't item =
 
 open Typectx
 
-type built_in_ctx = { builtin_ctx : Nt.nt rty ctx; axioms : Nt.nt prop ctx }
+type built_in_ctx = {
+  builtin_ctx : Nt.nt rty ctx;
+  cur_axiom_names : string list;
+}
+
+type rctx = {
+  task_name : string;
+  tyvar_ctx : string list;
+  pred_ctx : Nt.t ctx;
+  rty_ctx : Nt.t rty ctx;
+  inv_ctx : Nt.nt rty ctx;
+}

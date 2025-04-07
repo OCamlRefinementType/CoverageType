@@ -24,8 +24,9 @@ let subtype_check source_file () =
       (fun () -> Typectx.pprint_ctx layout_rty Typectx.emp)
       (rty1, rty2) ()
   in
+  let _ = Preprocess.load_bctx () in
   let res =
-    Auxtyping.sub_rty (Preprocess.load_bctx ()) Typectx.emp (rty1, rty2)
+    Auxtyping.sub_rty (Typing.Rctx.emp "subtyping" [] []) (rty1, rty2)
   in
   Pp.printf "@{<bold>result: %b:@}\n" res
 
