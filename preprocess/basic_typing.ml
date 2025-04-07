@@ -273,7 +273,7 @@ let item_check (checked : t item list) ctx (e : t item) : t ctx * t item =
       let res = MMethodPred x in
       (add_to_right ctx x, res)
   | MAxiom { name; tasks; prop } ->
-      (ctx, MAxiom { name; tasks; prop = prop_type_check ctx [] prop })
+      (ctx, MAxiom { name; tasks; prop = prop_type_check ctx [ "a" ] prop })
   | MLocalRty { host_name; name; rty; captured } ->
       let host_rty =
         List.filter_map
