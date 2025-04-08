@@ -81,7 +81,7 @@ let[@library] dummy = (true : [%v: unit])
 
 (** lists *)
 
-let[@library] Nil = fun (a : baseType) -> (emp v : [%v: 'a list])
+let[@library] Nil = fun (a : baseType) -> (list_len v == 0 : [%v: 'a list])
 
 let[@library] Cons =
  fun (a : baseType) ?r:(x : 'a) ?r:(xs : 'a list) ->
@@ -108,3 +108,6 @@ let[@library] sum_fst_int =
 
 let[@library] choose_by_fq =
  fun ?r:(xs : int list) -> (0 <= v && v < list_len xs : [%v: int])
+
+let[@library] char_of_int =
+ fun ?r:(x : int) -> (x == char_to_int v : [%v: char])

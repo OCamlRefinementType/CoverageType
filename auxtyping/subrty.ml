@@ -14,9 +14,11 @@ let rec sub_rty rctx (rty1, rty2) =
   let aux rctx (rty1, rty2) =
     match (rty1, rty2) with
     | RtyBase { ou = Over; cty = cty1 }, RtyBase { ou = Over; cty = cty2 } ->
-        sub_cty Over rctx cty1 cty2
+        if equal_cty (fun _ _ -> true) cty1 cty2 then true
+        else sub_cty Over rctx cty1 cty2
     | RtyBase { ou = Under; cty = cty1 }, RtyBase { ou = Under; cty = cty2 } ->
-        sub_cty Under rctx cty1 cty2
+        if equal_cty (fun _ _ -> true) cty1 cty2 then true
+        else sub_cty Under rctx cty1 cty2
     | ( RtyArr { arg = arg1; argrty = argrty1; retty = retty1 },
         RtyArr { arg = arg2; argrty = argrty2; retty = retty2 } ) ->
         sub_rty rctx (argrty2, argrty1)

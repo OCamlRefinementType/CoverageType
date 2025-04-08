@@ -45,6 +45,11 @@ let[@axiom] list_snd_mem_implies_len_gt_zero =
  fun (l : (int * 'a) list) (v : 'a) -> (list_snd_mem l v)#==>(list_len l > 0)
 
 let[@axiom] list_len_gt_zero_implies_has_hd_tl =
+ fun (l : 'a list) ->
+  (list_len l > 0) #==> (fun ((hde [@ex]) : 'a) ((tle [@ex]) : 'a list) ->
+  hd l hde && tl l tle)
+
+let[@axiom] list_len_gt_zero_implies_has_hd_tl_pair =
  fun (l : (int * 'a) list) ->
   (list_len l > 0)
   #==> (fun ((hde [@ex]) : int * 'a) ((tle [@ex]) : (int * 'a) list) ->
@@ -55,6 +60,36 @@ let[@axiom] list_snd_mem_implies_snd_mem_hd_or_tl =
   (list_snd_mem l v && hd l hde && tl l tle)#==>(v == snd hde
                                                 || list_snd_mem tle v)
 
-let[@axiom] list_tl_len_minus_one =
+let[@axiom] list_tl_len_minus_one_pair =
  fun (l : (int * 'a) list) (tle : (int * 'a) list) ->
   (tl l tle)#==>(list_len l == 1 + list_len tle)
+
+let[@axiom] list_tl_len_minus_one =
+ fun (l : 'a list) (tle : 'a list) ->
+  (tl l tle)#==>(list_len l == 1 + list_len tle)
+
+let[@axiom] list_hd_implies_len_gt_zero =
+ fun (l : 'a list) (v : 'a) -> (hd l v)#==>(list_len l > 0)
+
+let[@axiom] list_tl_implies_len_gt_zero =
+ fun (l : 'a list) (tle : 'a list) -> (tl l tle)#==>(list_len l > 0)
+
+let[@axiom] list_hd_is_mem =
+ fun (l : 'a list) (v : 'a) -> (hd l v)#==>(list_mem l v)
+
+let[@axiom] list_repeat_tl_is_repeat =
+ fun (l : 'a list) (tle : 'a list) ->
+  (list_repeat l && tl l tle)#==>(list_repeat tle)
+
+let[@axiom] list_repeat_hd_also_mem =
+ fun (l : 'a list) (x : 'a) (y : 'a) ->
+  (list_repeat l && hd l x && list_mem l y)#==>(x == y)
+
+let[@axiom] list_hd_unique =
+ fun (l : 'a list) (x : 'a) (y : 'a) -> (hd l x && hd l y)#==>(x == y)
+
+let[@axiom] list_tl_unique =
+ fun (l : 'a list) (tle1 : 'a list) (tle2 : 'a list) ->
+  (tl l tle1 && tl l tle2)#==>(tle1 == tle2)
+
+let[@axiom] list_len_geq_zero = fun (l : 'a list) -> list_len l >= 0
