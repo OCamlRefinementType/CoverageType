@@ -19,6 +19,9 @@ val ( >= ) : int -> int -> bool
 val ( + ) : int -> int -> int
 val ( - ) : int -> int -> int
 val ( mod ) : int -> int -> int
+val not : bool -> bool
+val ( && ) : bool -> bool -> bool
+val ( || ) : bool -> bool -> bool
 val char_to_int : char -> int
 val char_is_digit : char -> bool
 val char_le : char -> char -> bool
@@ -54,7 +57,8 @@ val list_mem : 'a. 'a list -> 'a -> bool
 val sorted : 'a list -> bool
 val uniq : 'a list -> bool
 val list_snd_mem : (int * 'a) list -> 'a -> bool (* for frequency *)
-val list_repeat : 'a list -> bool (* for repeat *)
+val list_swap : 'a list -> int -> int -> 'a list -> bool (* for shuffle *)
+val list_same_mem : 'a list -> 'a list -> bool (* for shuffle *)
 
 (** list functions *)
 
@@ -66,3 +70,4 @@ val list_nth : 'a list -> int -> 'a
 val sum_fst_int : (int * 'a) list -> int (* for frequency *)
 val choose_by_fq : int list -> int (* for frequency *)
 val char_of_int : int -> char
+val swap : 'a list -> int -> int -> 'a list (* for shuffle *)

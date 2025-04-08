@@ -104,8 +104,6 @@ let[@assert] option (b1 : baseType) (p1 : 'b1 -> bool)
     (fun ((y [@ex]) : 'b1) -> v == None || (v == Some y && p1 y)
       : [%v: 'b1 option])
 
-(* Others *)
-
 (* Oneof *)
 
 let oneof (l : int -> 'a gen) : 'a gen = fun () -> l (nat_gen ()) ()
@@ -179,16 +177,25 @@ let[@assert] numeral = M (char_is_digit v : [%v: char])
 
 (* List *)
 
-let rec list_size_aux (n : int) (gen : 'a gen) : 'a list =
-  if n <= 0 then [] else gen () :: list_size_aux (n - 1) gen
+let rec list_repeat (n : int) (gen : 'a gen) : 'a list =
+  if n <= 0 then [] else gen () :: list_repeat (n - 1) gen
 
-let[@assert] list_size_aux (b1 : baseType)
-    ?r:(n = ((0 <= v : [%v: int]) [@over])) ?r:(_ = M (true : [%v: 'b1])) =
+let[@assert] list_repeat (b1 : baseType) ?r:(n = ((0 <= v : [%v: int]) [@over]))
+    ?r:(_ = M (true : [%v: 'b1])) =
   (list_len v == n : [%v: 'b1 list])
 
 let list_size (size_gen : int gen) (gen : 'a gen) : 'a list gen =
-  fmap (fun (n : int) -> list_size_aux n gen) size_gen
+  fmap (fun (n : int) -> list_repeat n gen) size_gen
 
 let[@assert] list_size (b1 : baseType) ?r:(_ = M (0 <= v : [%v: int]))
     ?r:(_ = M (true : [%v: 'b1])) =
   M (true : [%v: 'b1 list])
+
+(* Pair *)
+
+let pos_split2 (n : int) : (int * int) gen =
+  if n < 2 then return Err
+  else fmap (fun (n1 : int) -> (n1, n - n1)) (int_range 1 (n - 1))
+
+let[@assert] pos_split2 ?r:(n = ((2 <= v : [%v: int]) [@over])) =
+  M (fst v + snd v == n && 0 < fst v && 0 < snd v : [%v: int * int])

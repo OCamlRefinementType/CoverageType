@@ -61,8 +61,8 @@ let union_ctys = n_to_one_ctys smart_or
 let rec union_rtys = function
   | [] -> _die [%here]
   | rty :: _ as rtys -> (
-      match erase_rty rty with
-      | Nt.Ty_constructor _ | Nt.Ty_var _ ->
+      match rty with
+      | RtyBase { ou = Under; _ } ->
           let ctys =
             List.map
               (function
@@ -70,7 +70,7 @@ let rec union_rtys = function
               rtys
           in
           RtyBase { ou = Under; cty = union_ctys ctys }
-      | Nt.Ty_arrow (t1, _) when Nt.equal_nt t1 Nt.unit_ty ->
+      | RtyArr { argrty; _ } when Nt.equal_nt (erase_rty argrty) Nt.unit_ty ->
           let () =
             List.iter (fun rty -> Printf.printf "%s\n" (layout_rty rty)) rtys
           in

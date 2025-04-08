@@ -77,14 +77,6 @@ let[@axiom] list_tl_implies_len_gt_zero =
 let[@axiom] list_hd_is_mem =
  fun (l : 'a list) (v : 'a) -> (hd l v)#==>(list_mem l v)
 
-let[@axiom] list_repeat_tl_is_repeat =
- fun (l : 'a list) (tle : 'a list) ->
-  (list_repeat l && tl l tle)#==>(list_repeat tle)
-
-let[@axiom] list_repeat_hd_also_mem =
- fun (l : 'a list) (x : 'a) (y : 'a) ->
-  (list_repeat l && hd l x && list_mem l y)#==>(x == y)
-
 let[@axiom] list_hd_unique =
  fun (l : 'a list) (x : 'a) (y : 'a) -> (hd l x && hd l y)#==>(x == y)
 
@@ -93,3 +85,18 @@ let[@axiom] list_tl_unique =
   (tl l tle1 && tl l tle2)#==>(tle1 == tle2)
 
 let[@axiom] list_len_geq_zero = fun (l : 'a list) -> list_len l >= 0
+
+(* let[@axiom] list_same_mem_len_eq_zero_same = *)
+(*  fun (l1 : 'a list) (l2 : 'a list) -> *)
+(*   (list_same_mem l1 l2 && list_len l1 == 0)#==>(l1 == l2) *)
+
+(* let[@axiom] list_same_mem_len_eq = *)
+(*  fun (l1 : 'a list) (l2 : 'a list) -> *)
+(*   (list_same_mem l1 l2)#==>(list_len l1 == list_len l2) *)
+
+(* let[@axiom] list_same_mem_len_gt_zero_swap_exists = *)
+(*   fun (l1 : 'a list) (l2 : 'a list) -> *)
+(*   (list_same_mem l1 l2 && list_len l1 >= 0)#==> *)
+(*   (fun ((i [@ex]) : int) ((j [@ex]) : int) -> *)
+(*                           list_swap l1  *)
+(*   ) *)
