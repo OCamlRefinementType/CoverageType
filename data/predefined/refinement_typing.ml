@@ -35,6 +35,14 @@ let[@library] ( - ) = fun ?r:(a : int) ?r:(b : int) -> (v == a - b : [%v: int])
 let[@library] ( mod ) =
  fun ?r:(a : int) ?r:(b : int) -> (v == a mod b : [%v: int])
 
+let[@library] not = fun ?r:(a : bool) -> (iff v (not a) : [%v: bool])
+
+let[@library] ( && ) =
+ fun ?r:(a : bool) ?r:(b : bool) -> (iff v (a && b) : [%v: bool])
+
+let[@library] ( || ) =
+ fun ?r:(a : bool) ?r:(b : bool) -> (iff v (a || b) : [%v: bool])
+
 (** Builtin generators *)
 
 let[@library] bool_gen = M (true : [%v: bool])
@@ -111,3 +119,9 @@ let[@library] choose_by_fq =
 
 let[@library] char_of_int =
  fun ?r:(x : int) -> (x == char_to_int v : [%v: char])
+
+let[@library] swap =
+ fun (a : baseType) ?r:(l : 'a list)
+     ?r:(i = ((0 <= v && v < list_len l : [%v: int]) [@over]))
+     ?r:(j = ((0 <= v && v < list_len l : [%v: int]) [@over])) ->
+  (true : [%v: 'a list])
