@@ -169,3 +169,26 @@ let[@assert] frequency (b1 : baseType) (p1 : int -> 'b1 -> bool)
     ?r:(_ =
         fun ?r:(x = ((0 <= v : [%v: int]) [@over])) -> M (p1 x v : [%v: 'b1])) =
   M (fun ((x [@ex]) : int) -> 0 <= x && x < list_len fq && p1 x v : [%v: 'b1])
+
+(* Char *)
+
+let numeral : char gen =
+  fmap (fun (c : int) -> char_of_int (c + 48)) (int_bound 9)
+
+let[@assert] numeral = M (char_is_digit v : [%v: char])
+
+(* List *)
+
+let rec list_size_aux (n : int) (gen : 'a gen) : 'a list =
+  if n <= 0 then [] else gen () :: list_size_aux (n - 1) gen
+
+let[@assert] list_size_aux (b1 : baseType)
+    ?r:(n = ((0 <= v : [%v: int]) [@over])) ?r:(_ = M (true : [%v: 'b1])) =
+  (list_len v == n : [%v: 'b1 list])
+
+let list_size (size_gen : int gen) (gen : 'a gen) : 'a list gen =
+  fmap (fun (n : int) -> list_size_aux n gen) size_gen
+
+let[@assert] list_size (b1 : baseType) ?r:(_ = M (0 <= v : [%v: int]))
+    ?r:(_ = M (true : [%v: 'b1])) =
+  M (true : [%v: 'b1 list])

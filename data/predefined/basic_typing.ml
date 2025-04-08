@@ -19,6 +19,9 @@ val ( >= ) : int -> int -> bool
 val ( + ) : int -> int -> int
 val ( - ) : int -> int -> int
 val ( mod ) : int -> int -> int
+val char_to_int : char -> int
+val char_is_digit : char -> bool
+val char_le : char -> char -> bool
 
 (** Builtin generators *)
 
@@ -45,13 +48,13 @@ type 'a list = Nil | Cons of 'a * 'a list
 
 val list_len : 'a list -> int
 val list_nth_pred : 'a list -> int -> 'a -> bool
-val emp : 'a list -> bool
 val hd : 'a list -> 'a -> bool
 val tl : 'a list -> 'a list -> bool
 val list_mem : 'a. 'a list -> 'a -> bool
 val sorted : 'a list -> bool
 val uniq : 'a list -> bool
 val list_snd_mem : (int * 'a) list -> 'a -> bool (* for frequency *)
+val list_repeat : 'a list -> bool (* for repeat *)
 
 (** list functions *)
 
@@ -62,3 +65,4 @@ val list_nth : 'a list -> int -> 'a
 
 val sum_fst_int : (int * 'a) list -> int (* for frequency *)
 val choose_by_fq : int list -> int (* for frequency *)
+val char_of_int : int -> char
