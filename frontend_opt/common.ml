@@ -9,11 +9,12 @@ let is_basic_coverage_monad x =
 let desugar_basic_coverage_monad =
   let rec aux rty =
     match rty with
-    | Ty_var _ | Ty_unknown | Ty_uninter _ -> rty
+    | Ty_var _ | Ty_unknown -> rty
     | Ty_constructor (name, [ ty ]) when is_basic_coverage_monad name ->
         construct_arr_tp ([ unit_ty ], ty)
     | Ty_constructor (name, tys) -> Ty_constructor (name, List.map aux tys)
-    | Ty_record xs -> Ty_record (List.map (fun x -> x#=>aux) xs)
+    | Ty_record { alias; fds } ->
+        Ty_record { alias; fds = List.map (fun x -> x#=>aux) fds }
     | Ty_arrow (nt1, nt2) -> Ty_arrow (aux nt1, aux nt2)
     | Ty_tuple nts -> Ty_tuple (List.map aux nts)
     | Ty_poly (x, t) -> Ty_poly (x, aux t)
