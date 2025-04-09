@@ -2,8 +2,6 @@
     "mode": [
         "Debug"
     ],
-    "show_var_type_in_prop": false,
-    "instantiate_poly_type_var_in_smt": true,
     "max_printing_size": 300,
     "log_tags": [
         // "syn",
@@ -25,7 +23,21 @@
         // "desymbolic",
         "never-use"
     ],
-    "prover_timeout_bound": 999,
+    "bool_options": [
+        [
+            "show_var_type_in_prop",
+            false
+        ],
+        [
+            "instantiate_poly_type_var_in_smt",
+            true
+        ],
+        [
+            "show_record_type_feilds",
+            true
+        ]
+    ],
+    "prover_timeout_bound": 1999,
     "prim_path": {
         "predefined_path": "data/predefined",
         "axioms_path": "",

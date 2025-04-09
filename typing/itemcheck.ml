@@ -79,7 +79,10 @@ let struc_check bctx items =
         | Fai name -> (bctx, failed @ [ name ]))
       (bctx, []) tasks
   in
-  let () = _log @@ fun _ -> Pp.printf "@{<bold>Summary:@}\n" in
+  let () =
+    _log @@ fun _ ->
+    Pp.printf "@{<bold>Summary (total %i tasks):@}\n" (List.length tasks)
+  in
   let () =
     match res with
     | [] ->

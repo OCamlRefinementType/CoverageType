@@ -231,15 +231,14 @@ let constructor_declaration_mk_ (retty, { constr_name; argsty }) =
 
 let item_mk_ctx (e : t item) =
   match e with
-  | MTyDecl { type_name; type_params; type_decls } ->
+  | MTyDecl { type_name; type_params; type_decl = Decl_constructors l } ->
       let retty =
         Nt.Ty_constructor
           (type_name, List.map (fun x -> Nt.Ty_var x) type_params)
       in
-      let xs =
-        List.map (fun c -> constructor_declaration_mk_ (retty, c)) type_decls
-      in
+      let xs = List.map (fun c -> constructor_declaration_mk_ (retty, c)) l in
       xs
+  | MTyDecl { type_decl = Decl_record _; _ } -> []
   | MValDecl x -> [ Nt.__force_typed [%here] x ]
   | MMethodPred mp -> [ Nt.__force_typed [%here] mp ]
   | MAxiom _ -> []
@@ -254,16 +253,17 @@ let item_erase (e : 'a item) =
 
 let item_check (checked : t item list) ctx (e : t item) : t ctx * t item =
   match e with
-  | MTyDecl { type_name; type_params; type_decls } ->
-      let res = MTyDecl { type_name; type_params; type_decls } in
+  | MTyDecl { type_name; type_params; type_decl = Decl_constructors fds } ->
+      let res =
+        MTyDecl { type_name; type_params; type_decl = Decl_constructors fds }
+      in
       let retty =
         Nt.Ty_constructor
           (type_name, List.map (fun x -> Nt.Ty_var x) type_params)
       in
-      let xs =
-        List.map (fun c -> constructor_declaration_mk_ (retty, c)) type_decls
-      in
+      let xs = List.map (fun c -> constructor_declaration_mk_ (retty, c)) fds in
       (add_to_rights ctx xs, res)
+  | MTyDecl { type_decl = Decl_record _; _ } -> (ctx, e)
   | MValDecl x ->
       let x = Nt.__force_typed [%here] x in
       let res = MValDecl x in

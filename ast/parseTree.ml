@@ -85,6 +85,11 @@ and 't raw_match_case =
 type constructor_declaration = { constr_name : string; argsty : Nt.nt list }
 [@@deriving eq, ord, show, sexp]
 
+type type_decl =
+  | Decl_constructors of constructor_declaration list
+  | Decl_record of (Nt.nt, string) typed list
+[@@deriving eq, ord, show, sexp]
+
 (* NOTE: v is default variable *)
 let default_v = "v"
 
@@ -109,7 +114,7 @@ type 't item =
   | MTyDecl of {
       type_name : string;
       type_params : string list;
-      type_decls : constructor_declaration list;
+      type_decl : type_decl;
     }
   | MValDecl of ('t, string) typed
   | MMethodPred of ('t, string) typed
