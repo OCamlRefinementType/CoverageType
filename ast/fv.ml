@@ -24,6 +24,8 @@ and fv_term (term_e : 't term) =
   match term_e with
   | CErr -> []
   | CVal _t__tvaluetyped0 -> [] @ typed_fv_value _t__tvaluetyped0
+  | CRecord l -> List.concat_map (fun (_, v) -> typed_fv_value v) l
+  | CField { rd; _ } -> typed_fv_value rd
   | CLetE { rhs; lhs; body } ->
       Zdatatype.List.substract (typed_eq String.equal)
         ([] @ typed_fv_term body)
@@ -78,6 +80,8 @@ let rec fv_raw_term (raw_term_e : 't raw_term) =
       @ typed_fv_raw_term _t__traw_termtyped0
   | Tuple _t__traw_termtypedlist0 ->
       [] @ List.concat (List.map typed_fv_raw_term _t__traw_termtypedlist0)
+  | Record l -> List.concat_map (fun (_, v) -> typed_fv_raw_term v) l
+  | Field (rd, _) -> typed_fv_raw_term rd
   | Match { matched; match_cases } ->
       ([] @ List.concat (List.map fv_raw_match_case match_cases))
       @ typed_fv_raw_term matched

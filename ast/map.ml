@@ -25,6 +25,8 @@ and map_term : 't 's. ('t -> 's) -> 't term -> 's term =
   match term_e with
   | CErr -> CErr
   | CVal _t__tvaluetyped0 -> CVal (typed_map_value f _t__tvaluetyped0)
+  | CRecord l -> CRecord (List.map (fun (x, v) -> (x, typed_map_value f v)) l)
+  | CField { rd; field } -> CField { rd = typed_map_value f rd; field }
   | CLetE { rhs; lhs; body } ->
       CLetE
         {
@@ -96,6 +98,8 @@ let rec map_raw_term : 't 's. ('t -> 's) -> 't raw_term -> 's raw_term =
           typed_map_raw_term f _t__traw_termtyped2 )
   | Tuple _t__traw_termtypedlist0 ->
       Tuple (List.map (typed_map_raw_term f) _t__traw_termtypedlist0)
+  | Record l -> Record (List.map (fun (x, v) -> (x, typed_map_raw_term f v)) l)
+  | Field (rd, field) -> Field (typed_map_raw_term f rd, field)
   | Match { matched; match_cases } ->
       Match
         {

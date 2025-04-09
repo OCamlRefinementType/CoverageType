@@ -34,7 +34,7 @@
         ],
         [
             "show_record_type_feilds",
-            true
+            false
         ]
     ],
     "prover_timeout_bound": 1999,

@@ -25,6 +25,10 @@ and subst_term (string_x : string) f (term_e : 't term) =
   | CErr -> CErr
   | CVal _t__tvaluetyped0 ->
       CVal (typed_subst_value string_x f _t__tvaluetyped0)
+  | CRecord l ->
+      CRecord (List.map (fun (x, v) -> (x, typed_subst_value string_x f v)) l)
+  | CField { rd; field } ->
+      CField { rd = typed_subst_value string_x f rd; field }
   | CLetE { rhs; lhs; body } ->
       if String.equal lhs.x string_x then
         CLetE { rhs = typed_subst_term string_x f rhs; lhs; body }
@@ -112,6 +116,9 @@ let rec subst_raw_term (string_x : string) f (raw_term_e : 't raw_term) =
           typed_subst_raw_term string_x f _t__traw_termtyped2 )
   | Tuple _t__traw_termtypedlist0 ->
       Tuple (List.map (typed_subst_raw_term string_x f) _t__traw_termtypedlist0)
+  | Record l ->
+      Record (List.map (fun (x, v) -> (x, typed_subst_raw_term string_x f v)) l)
+  | Field (rd, field) -> Field (typed_subst_raw_term string_x f rd, field)
   | Match { matched; match_cases } ->
       Match
         {
