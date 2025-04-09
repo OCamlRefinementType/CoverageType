@@ -312,6 +312,10 @@ let mk_eq_c_overrty x = RtyBase { ou = Over; cty = mk_eq_c_cty x }
 let mk_eq_c_underrty x = RtyBase { ou = Under; cty = mk_eq_c_cty x }
 let mk_eq_lit_underrty x = RtyBase { ou = Under; cty = mk_eq_lit_cty x }
 
+let as_under_base_rty loc = function
+  | RtyBase { ou = Under; cty } -> cty
+  | _ -> _die loc
+
 let flip_rty rty =
   match rty with
   | RtyBase { ou = Over; cty } -> RtyBase { ou = Under; cty }
@@ -338,6 +342,14 @@ and typed_term_to_typed_raw_term (term_e : ('t, 't term) typed) =
   match term_e.x with
   | CErr -> Err#:term_e.ty
   | CVal _t__tvaluetyped0 -> typed_value_to_typed_raw_term _t__tvaluetyped0
+  | CRecord l ->
+      let e =
+        Record (List.map (fun (x, v) -> (x, typed_value_to_typed_raw_term v)) l)
+      in
+      e#:term_e.ty
+  | CField { rd; field } ->
+      let e = Field (typed_value_to_typed_raw_term rd, field) in
+      e#:term_e.ty
   | CLetE { rhs; lhs; body } ->
       (Let
          {

@@ -216,6 +216,31 @@ let type_check_group (bctx : built_in_ctx) =
       | CVal v ->
           let* v = value_type_infer rctx v in
           Some (CVal v)#:v.ty
+      | CRecord vs ->
+          let fields, vs = List.split vs in
+          let* vs =
+            opt_list_to_list_opt @@ List.map (value_type_infer rctx) vs
+          in
+          let vs = List.combine fields vs in
+          let self = default_v#:e.ty in
+          let phis =
+            List.map
+              (fun (x, v) ->
+                let cty = as_under_base_rty [%here] v.ty in
+                let lit = AField (lit_to_tlit (AVar self), x) in
+                let phi = subst_prop_instance default_v lit cty.phi in
+                phi)
+              vs
+          in
+          let cty = { nty = e.ty; phi = smart_and phis } in
+          let rty = RtyBase { ou = Under; cty } in
+          Some (CRecord vs)#:rty
+      | CField { rd; field } ->
+          let lit = value_to_lit [%here] rd.x in
+          let lit = (AField (lit_to_tlit lit, field))#:e.ty in
+          let* rd = value_type_infer rctx rd in
+          let rty = RtyBase { ou = Under; cty = mk_eq_lit_cty lit } in
+          Some (CField { rd; field })#:rty
       | CLetE { rhs; lhs; body } ->
           let* rhs = term_type_infer rctx rhs in
           let lhs = lhs.x#:rhs.ty in
@@ -333,7 +358,7 @@ let type_check_group (bctx : built_in_ctx) =
     | CVal v ->
         let* v = value_type_check rctx v rty in
         Some (CVal v)#:v.ty
-    | CApp _ | CAppOp _ | CMatch _ | CLetE _ ->
+    | CApp _ | CAppOp _ | CMatch _ | CLetE _ | CRecord _ | CField _ ->
         let* e' = term_type_infer rctx e in
         if sub_rty rctx (e'.ty, rty) then Some e'.x#:rty
         else (

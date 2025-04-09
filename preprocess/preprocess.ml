@@ -48,7 +48,12 @@ let load_alias () =
 
 let preproress source_file =
   let items = parse source_file in
-  let items = Type_alias.item_inline (load_alias ()) items in
-  let _, code = struct_check (load_basic_ctx ()) items in
+  let items' = Type_alias.item_inline (load_alias ()) items in
+  let alias = Type_alias.item_mk_type_alias_ctx items' in
+  let items' = Type_alias.item_inline alias items' in
+  (* let () = Pp.printf "@{<bold>result:@}\n%s\n" (layout_structure items) in *)
+  (* let () = Pp.printf "@{<bold>result:@}\n%s\n" (layout_structure items') in *)
+  (* let () = _die [%here] in *)
+  let _, code = struct_check (load_basic_ctx ()) items' in
   (* let () = Pp.printf "@{<bold>result:@}\n%s\n" (layout_structure code) in *)
   normalize_structure code

@@ -83,6 +83,20 @@ let rec constraint_term_type_infer (ctx : t ctx) (bc : BC.bc) (e : t raw_term) =
   | Tuple es ->
       let bc, es = constraint_terms_type_check ctx bc es in
       (bc, (Tuple es)#:(Nt.Ty_tuple (List.map _get_ty es)))
+  | Record es ->
+      let es = List.sort (fun x y -> String.compare (fst x) (fst y)) es in
+      let fields, es = List.split es in
+      let bc, es = constraint_terms_type_check ctx bc es in
+      let es = List.combine fields es in
+      let tys = List.map (fun (x, e) -> x#:e.ty) es in
+      (bc, (Record es)#:(Nt.mk_record None tys))
+  | Field (e, field) ->
+      let bc, e = constraint_term_type_check ctx bc e in
+      let tys = Nt.as_record [%here] e.ty in
+      let ty =
+        _get_ty @@ List.find "die" (fun x -> String.equal x.x field) tys
+      in
+      (bc, (Field (e, field))#:ty)
   | Lam { lamarg; lambody } ->
       let lamarg = Nt.__force_typed [%here] lamarg in
       let bc, lambody =

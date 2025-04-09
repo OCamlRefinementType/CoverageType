@@ -61,6 +61,15 @@ and normalize_get_comp (k : 't cont) (expr : ('t, 't raw_term) typed) :
       normalize_get_values
         (fun vs -> kv (VTuple vs)#:(Nt.Ty_tuple (List.map _get_ty vs)))
         es
+  | Record es ->
+      let fields, es = List.split es in
+      normalize_get_values
+        (fun vs ->
+          let vs = List.combine fields vs in
+          k (CRecord vs)#:expr.ty)
+        es
+  | Field (e, field) ->
+      normalize_get_value (fun rd -> k (CField { rd; field })#:expr.ty) e
   | Var var -> kv (VVar var)#:expr.ty
   | Const c -> kv (VConst c)#:expr.ty
   (* NOTE: do we need a name of a function? *)

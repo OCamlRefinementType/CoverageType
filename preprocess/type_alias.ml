@@ -39,13 +39,20 @@ let item_mk_type_alias_ctx items =
     | MAxiom _ -> []
     | MRty _ -> []
     | MLocalRty _ -> []
-    | MFuncImpRaw _ | MFuncImp _ -> _failatwith [%here] "not predefine"
+    | MFuncImpRaw _ | MFuncImp _ -> []
   in
   let l = List.concat_map f items in
   self_inline l
 
 let item_inline decls items =
-  let minline = List.fold_right inline_record decls in
+  let minline nt =
+    let res = List.fold_right inline_record decls nt in
+    let () =
+      Printf.printf "decls %s \n" (List.split_by_comma _get_x decls);
+      Printf.printf "minline %s ==> %s\n" (Nt.layout nt) (Nt.layout res)
+    in
+    res
+  in
   let f e =
     match e with
     | MTyDecl { type_name; type_params; type_decl = Decl_constructors decls } ->

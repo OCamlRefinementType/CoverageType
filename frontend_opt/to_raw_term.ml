@@ -31,6 +31,15 @@ and raw_term_to_expr (expr : Nt.t raw_term) =
   | Err -> mk_construct ("Err", [])
   | Tuple es ->
       desc_to_ocamlexpr @@ Pexp_tuple (List.map typed_raw_term_to_expr es)
+  | Record l ->
+      let l =
+        List.map (fun (x, v) -> (id_to_longid x, typed_raw_term_to_expr v)) l
+      in
+      let e = Pexp_record (l, None) in
+      desc_to_ocamlexpr e
+  | Field (e, field) ->
+      let e = Pexp_field (typed_raw_term_to_expr e, id_to_longid field) in
+      desc_to_ocamlexpr e
   | Var var -> typed_to_expr mkvar var
   | Const v -> constant_to_expr v
   | Let { if_rec; lhs; rhs; letbody } ->
@@ -151,6 +160,11 @@ let typed_raw_term_of_expr expr =
   let rec aux expr =
     match expr.pexp_desc with
     | Pexp_tuple es -> (Tuple (List.map aux es))#:Nt.Ty_unknown
+    | Pexp_record (l, _) ->
+        let l = List.map (fun (x, e) -> (longid_to_id x, aux e)) l in
+        (Record l)#:Nt.Ty_unknown
+    | Pexp_field (e, field) ->
+        (Field (aux e, longid_to_id field))#:Nt.Ty_unknown
     | Pexp_constraint (expr, ty) ->
         (* let () = Printf.printf "Pexp_constraint: %s\n" (layout_ct ty) in *)
         update_ty (aux expr) (core_type_to_t ty)

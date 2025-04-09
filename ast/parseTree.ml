@@ -23,6 +23,8 @@ type 't value =
 and 't term =
   | CErr
   | CVal of ('t, 't value) typed
+  | CRecord of (string * ('t, 't value) typed) list
+  | CField of { rd : ('t, 't value) typed; field : string }
   | CLetE of {
       rhs : ('t, 't term) typed;
       lhs : (('t, string) typed[@bound]);
@@ -69,6 +71,8 @@ type 't raw_term =
       * ('t, 't raw_term) typed
       * ('t, 't raw_term) typed
   | Tuple of ('t, 't raw_term) typed list
+  | Record of (string * ('t, 't raw_term) typed) list
+  | Field of ('t, 't raw_term) typed * string
   | Match of {
       matched : ('t, 't raw_term) typed;
       match_cases : 't raw_match_case list;
