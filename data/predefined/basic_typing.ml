@@ -43,6 +43,12 @@ val dummy : unit
 
 (** Datatypes and method predicates (needs to be stratificated) *)
 
+(** string *)
+
+(** string predicates *)
+
+val string_len : string -> int
+
 (** lists *)
 
 type 'a list = Nil | Cons of 'a * 'a list
