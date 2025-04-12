@@ -12,7 +12,7 @@
         "queries",
         "model",
         // "z3encode",
-        "axiom",
+        // "axiom",
         "unification",
         "instantiateRty",
         "auxtyping",
@@ -37,7 +37,7 @@
             false
         ]
     ],
-    "prover_timeout_bound": 1999,
+    "prover_timeout_bound": 999,
     "prim_path": {
         "predefined_path": "data/predefined",
         "axioms_path": "",

@@ -141,7 +141,7 @@ let sub_cty ou rctx cty1 cty2 =
 (* NOTE: after exists the constraints into the return type, the emptiness can be checked final stage;
    It may cause the more branch analysis.
 *)
-let lazy_emptiness_check = false
+let lazy_emptiness_check = true
 
 let non_emptiness_cty rctx cty =
   if lazy_emptiness_check then true
