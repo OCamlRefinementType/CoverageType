@@ -97,14 +97,14 @@ let layout_item = function
       spf "let[@axiom ? (%s)] %s = %s" name (StrList.to_string tasks)
         (layout_prop prop)
   | MFuncImpRaw { name; if_rec; body } ->
-      spf "let %s%s = %s"
+      spf "let %s%s : %s ? %s = %s"
         (if if_rec then "rec " else "")
-        name.x
+        name.x (Nt.layout name.ty) (Nt.layout body.ty)
         (layout_typed_raw_term body)
   | MFuncImp { name; if_rec; body } ->
-      spf "let %s%s = %s"
+      spf "let %s%s : %s = %s"
         (if if_rec then "rec " else "")
-        name.x
+        name.x (Nt.layout body.ty)
         (denormalize_term body |> layout_typed_raw_term)
   | MRty { is_assumption = false; name; rty } ->
       spf "let[@assert] %s = %s" name (layout_rty rty)

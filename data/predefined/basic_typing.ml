@@ -49,6 +49,15 @@ val dummy : unit
 
 val string_len : string -> int
 
+(** rational number *)
+
+val rational_zero_one : int * int -> bool
+val rational_zero_one_list : (int * int) list -> bool
+
+(** priority *)
+
+val wf_priority : priority -> bool
+
 (** lists *)
 
 type 'a list = Nil | Cons of 'a * 'a list

@@ -50,3 +50,32 @@ let[@assert] operation_proto_gen = M (string_len v < 32 : [%v: string])
 let operation_gen (block_hash_gen : Hash.t gen) : operation gen =
   block_hash_gen >>= fun (branch : Hash.t) ->
   operation_proto_gen >|= fun (proto : string) -> { shell = { branch }; proto }
+
+let[@library] max_int = M (v == 2147483647 : [%v: int])
+
+let[@library] small_list ?r:(_ = M (rational_zero_one v : [%v: int * int])) =
+  M (rational_zero_one_list v && list_len v <= 100 : [%v: (int * int) list])
+
+let[@library] oneofl (b1 : baseType) (p1 : 'b1 list -> bool)
+    ?r:(l = ((p1 v : [%v: 'b1 list]) [@over])) =
+  M (list_mem l v : [%v: 'b1])
+
+let q_in_0_1 : (int * int) gen =
+ fun () ->
+  let (q : int) = int_range 1 (max_int ()) () in
+  let (p : int) = int_range 0 q () in
+  (p, q)
+
+let[@assert] q_in_0_1 = M (rational_zero_one v : [%v: int * int])
+
+type priority = High | Medium | Low of (int * int) list
+
+let priority_gen : priority gen =
+  oneofl [ High; Medium; Low [] ] >>= fun (top_prio_value : priority) ->
+  match top_prio_value with
+  | High -> return High
+  | Medium -> return Medium
+  | Low _ ->
+      small_list q_in_0_1 >|= fun (weights : (int * int) list) -> Low weights
+
+let[@assert] priority_gen = M (wf_priority v : [%v: priority])

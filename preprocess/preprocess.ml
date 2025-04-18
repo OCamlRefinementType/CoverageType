@@ -53,7 +53,7 @@ let preproress source_file =
   let items' = Type_alias.item_inline alias items' in
   (* let () = Pp.printf "@{<bold>result:@}\n%s\n" (layout_structure items) in *)
   (* let () = Pp.printf "@{<bold>result:@}\n%s\n" (layout_structure items') in *)
-  (* let () = _die [%here] in *)
   let _, code = struct_check (load_basic_ctx ()) items' in
   (* let () = Pp.printf "@{<bold>result:@}\n%s\n" (layout_structure code) in *)
+  (* let () = _die [%here] in *)
   normalize_structure code

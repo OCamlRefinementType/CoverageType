@@ -1,5 +1,14 @@
 (** We always use 'a as poly type in the axioms *)
 
+(** Axioms *)
+
+let[@axiom] rational_zero_one =
+ fun (v : int * int) ->
+  (rational_zero_one v)#==>(0 <= fst v
+                           && fst v <= snd v
+                           && 1 <= snd v
+                           && snd v <= 2147483647)
+
 (** String *)
 
 let[@axiom] string_len_geq_zero = fun (l : string) -> string_len l >= 0
