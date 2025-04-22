@@ -106,23 +106,20 @@ let rec constraint_term_type_infer (ctx : t ctx) (bc : BC.bc) (e : t raw_term) =
       (bc, (Lam { lamarg; lambody })#:ty)
   | AppOp (op, args) ->
       let bc, op = constraint_op_type_check ctx bc op in
-      (* let bc, op' = constraint_op_type_infer ctx op.x in *)
-      (* let () = *)
-      (*   Printf.printf "op': %s : %s\n" (Prop.layout_op op'.x) (Nt.layout op'.ty) *)
-      (* in *)
-      (* let mk_constraint ty (bc, x') = *)
-      (*   if Nt.is_unkown ty then (bc, x') *)
-      (*   else *)
-      (*     let bc, (ty, _) = BC.add bc (ty, x'.ty) in *)
-      (*     (bc, x'.x#:ty) *)
-      (* in *)
-      (* let bc, op = mk_constraint op.ty (bc, op') in *)
       let () =
+        _log @@ fun () ->
         Printf.printf "op: %s : %s\n" (Prop.layout_op op.x) (Nt.layout op.ty)
       in
       let bc, args = constraint_terms_type_check ctx bc args in
       let bc, retty = BC.fresh bc in
       let op_ty = Nt.construct_arr_tp (List.map _get_ty args, retty) in
+      (* let op_ty = *)
+      (*   match args with *)
+      (*   | [] -> retty *)
+      (*   | _ -> *)
+      (*       Nt.construct_arr_tp *)
+      (*         ([ Nt.mk_tuple [%here] @@ List.map _get_ty args ], retty) *)
+      (* in *)
       let bc, _ = BC.add bc (op_ty, op.ty) in
       (bc, (AppOp (op, args))#:retty)
   | App (f, args) ->

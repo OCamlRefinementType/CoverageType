@@ -2,12 +2,81 @@
 
 (** Axioms *)
 
+(** Rational *)
+
 let[@axiom] rational_zero_one =
  fun (v : int * int) ->
   (rational_zero_one v)#==>(0 <= fst v
                            && fst v <= snd v
                            && 1 <= snd v
                            && snd v <= 2147483647)
+
+(** Priority *)
+
+let[@axiom] wf_priority =
+ fun (v : priority) ->
+  implies (wf_priority v) (fun ((x_17 [@exists]) : priority list) ->
+      list_len x_17 == 0 && fun ((x_18 [@exists]) : (int * int) list) ->
+      list_len x_18 == 0 && fun ((x_19 [@exists]) : priority) ->
+      is_low x_19 x_18 && fun ((x_20 [@exists]) : priority list) ->
+      hd x_20 x_19 && tl x_20 x_17
+      && fun ((x_21 [@exists]) : priority) ->
+      is_medium x_21 && fun ((x_22 [@exists]) : priority list) ->
+      hd x_22 x_21 && tl x_22 x_20
+      && fun ((x_23 [@exists]) : priority) ->
+      is_high x_23 && fun ((x_24 [@exists]) : priority list) ->
+      hd x_24 x_23 && tl x_24 x_22
+      && fun ((x_44 [@exists]) : priority) ->
+      list_mem x_24 x_44
+      && ((is_high x_44 && is_high v)
+         || (is_medium x_44 && is_medium v)
+            && fun ((lowl [@exists]) : (int * int) list) ->
+            is_low x_44 lowl && fun ((x_50 [@exists]) : (int * int) list) ->
+            rational_zero_one_list x_50 && list_len x_50 <= 100 && is_low v x_50
+         ))
+
+(** Tezos *)
+
+let[@axiom] tl_wf_decreasing =
+ fun (l : 'a list) (ll : 'a list) -> (tl l ll)#==>(decreasing ll l)
+
+let[@axiom] list_concat_wf_decreasing =
+ fun (l : 'a list) (l1 : 'a list) (l2 : 'a list) ->
+  (list_concat l1 l2 l)#==>(decreasing l1 l && decreasing l2 l)
+
+let[@axiom] l2t_pre_singleton =
+ fun (l : 'a list) (x : 'a) (xs : 'a list) (tr : 'a tezosTree) ->
+  (l2t_pre l tr && hd l x && tl l xs)#==>(iff
+                                            (list_len xs == 0)
+                                            (tezos_leaf tr x))
+
+let[@axiom] tezos =
+ fun (blocks : 'a list) ->
+  fun (v : 'a tezosTree) ->
+   implies (l2t_pre blocks v) (fun ((x [@exists]) : 'a) ->
+       fun ((xs [@exists]) : 'a list) ->
+        hd blocks x && tl blocks xs
+        && (list_len xs == 0
+           || (fun ((x_127 [@exists]) : 'a tezosTree) ->
+                l2t_pre xs x_127 && tezos_node1 v x x_127)
+              && fun ((x_130 [@exists]) : int) ->
+              0 <= list_len xs
+              && 0 <= x_130
+              && x_130 <= list_len xs
+              && fun ((x_131 [@exists]) : 'a list * 'a list) ->
+              0 <= x_130
+              && x_130 <= list_len xs
+              && list_concat (fst x_131) (snd x_131) xs
+              && ( list_len (fst x_131) == 0
+                 && ( (list_len (snd x_131) == 0 && tezos_leaf v x)
+                    || fun ((x_133 [@exists]) : 'a tezosTree) ->
+                      l2t_pre (snd x_131) x_133 && tezos_node1 v x x_133 )
+                 || fun ((x_132 [@exists]) : 'a tezosTree) ->
+                   l2t_pre (fst x_131) x_132
+                   && ( (list_len (snd x_131) == 0 && tezos_node1 v x x_132)
+                      || fun ((x_134 [@exists]) : 'a tezosTree) ->
+                        l2t_pre (snd x_131) x_134 && tezos_node2 v x x_132 x_134
+                      ) )))
 
 (** String *)
 

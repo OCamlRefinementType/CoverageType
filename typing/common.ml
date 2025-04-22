@@ -5,13 +5,13 @@ open Typectx
 open Auxtyping
 
 let _log = Myconfig._log_typing
+let _decreasing = "decreasing"
 
 let mk_self_wf_dec x =
   let open Prop in
-  if Nt.equal_nt x.ty Nt.int_ty then
-    let lt = "<"#:Nt.(construct_arr_tp ([ int_ty; int_ty ], bool_ty)) in
-    lit_to_prop (AAppOp (lt, List.map tvar_to_lit [ default_v#:x.ty; x ]))
-  else _failatwith [%here] "unimp"
+  let lt = if Nt.equal_nt x.ty Nt.int_ty then "<" else _decreasing in
+  let lt = lt#:Nt.(construct_arr_tp ([ x.ty; x.ty ], bool_ty)) in
+  lit_to_prop (AAppOp (lt, List.map tvar_to_lit [ default_v#:x.ty; x ]))
 
 module Rctx = struct
   let emp task_name tyvar_ctx invs =
@@ -85,11 +85,11 @@ module Rctx = struct
   open Zdatatype
 
   let pprint { task_name; tyvar_ctx; pred_ctx; rty_ctx; inv_ctx } () =
-    Pp.printf "@{<bold>Task:@} %s\n" task_name;
-    Pp.printf "@{<bold>Poly Vars:@} %s\n" (StrList.to_string tyvar_ctx);
-    Pp.printf "@{<bold>Poly Preds:@} %s\n"
+    Pp.printf "@{<bold>Task:@} %s " task_name;
+    Pp.printf "@{<bold>Poly Vars:@} %s; " (StrList.to_string tyvar_ctx);
+    Pp.printf "@{<bold>Poly Preds:@} %s; "
       (Typectx.layout_ctx Nt.layout pred_ctx);
-    Pp.printf "@{<bold>Invariants:@}\n";
+    Pp.printf "@{<bold>Invariants:@} ";
     Typectx.pprint_ctx layout_rty inv_ctx;
     Pp.printf "\n@{<bold>Refinement Type Ctx:@}\n";
     Typectx.pprint_ctx layout_rty rty_ctx;

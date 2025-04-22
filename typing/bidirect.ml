@@ -377,9 +377,9 @@ let type_check_group (bctx : built_in_ctx) =
         let constructor_rty =
           _find_in_ctx [%here] rctx constructor#->dt_name_for_typectx
         in
-        (* let () = *)
-        (*   Printf.printf "%s: %s\n" constructor.x (layout_rty constructor_rty) *)
-        (* in *)
+        let () =
+          Printf.printf "constructor.ty : %s\n" (layout_rty constructor_rty)
+        in
         let args, retty =
           List.fold_left
             (fun (args, rty) x ->

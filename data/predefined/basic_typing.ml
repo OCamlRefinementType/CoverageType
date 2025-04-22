@@ -4,6 +4,11 @@ type unit = TT
 type bool = True | False
 type 'a option = None | Some of 'a
 
+type 'a tezosTree =
+  | TezosLeaf of 'a
+  | TezosNode1 of 'a * 'a tezosTree
+  | TezosNode2 of 'a * 'a tezosTree * 'a tezosTree
+
 (* NOTE: pair are builtin *)
 (* val fst : 'a * 'b -> 'a *)
 (* val snd : 'a * 'b -> 'b *)
@@ -41,6 +46,10 @@ val sizecheck : int -> bool
 val subs : int -> int
 val dummy : unit
 
+(** Well-founded *)
+
+val decreasing : 'a -> 'a -> bool
+
 (** Datatypes and method predicates (needs to be stratificated) *)
 
 (** string *)
@@ -57,6 +66,15 @@ val rational_zero_one_list : (int * int) list -> bool
 (** priority *)
 
 val wf_priority : priority -> bool
+val is_high : priority -> bool
+val is_medium : priority -> bool
+val is_low : priority -> (int * int) list -> bool
+
+(** tezosTree *)
+
+val tezos_leaf : 'a tezosTree -> 'a -> bool
+val tezos_node1 : 'a tezosTree -> 'a -> 'a tezosTree -> bool
+val tezos_node2 : 'a tezosTree -> 'a -> 'a tezosTree -> 'a tezosTree -> bool
 
 (** lists *)
 
@@ -74,6 +92,10 @@ val uniq : 'a list -> bool
 val list_snd_mem : (int * 'a) list -> 'a -> bool (* for frequency *)
 val list_swap : 'a list -> int -> int -> 'a list -> bool (* for shuffle *)
 val list_same_mem : 'a list -> 'a list -> bool (* for shuffle *)
+val list_concat : 'a list -> 'a list -> 'a list -> bool
+val l2t_pre : 'a list -> 'a tezosTree -> bool
+
+(** list to tree predicates *)
 
 (** list functions *)
 
