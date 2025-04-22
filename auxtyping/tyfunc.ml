@@ -2,11 +2,22 @@ open Language
 open Zutils
 open Zdatatype
 
+(* let _simp_prop x = x *)
+let _simp_prop p =
+  let res = SimplProp.eval_arithmetic p in
+  (* let () = *)
+  (*   Pp.printf "@{<bold>SIMP@} %s =====> %s\n" (layout_prop p) (layout_prop res) *)
+  (* in *)
+  res
+
 let exists_cty (x : string) ({ nty; phi } : 't cty) (cty : 't cty) : 't cty =
   if Nt.equal_nt Nt.unit_ty nty then { cty with phi = smart_add_to phi cty.phi }
   else
     let phi = subst_prop_instance default_v (AVar x#:nty) phi in
-    { cty with phi = smart_exists [ x#:nty ] (smart_add_to phi cty.phi) }
+    let phi, cty_phi = map2 _simp_prop (phi, cty.phi) in
+    let phi = smart_exists [ x#:nty ] (smart_add_to phi cty_phi) in
+    let phi = SimplProp.simpl_query_by_eq phi in
+    { cty with phi }
 
 let exists_rty (x : string) (xrty : 't rty) (rty : 't rty) : 't rty =
   match xrty with
@@ -50,10 +61,9 @@ let n_to_one_ctys prop_f = function
       if
         List.for_all (function { nty = nty'; _ } -> Nt.equal_nt nty nty') ctys
       then
-        let phi =
-          prop_f (phi :: List.map (function { phi; _ } -> phi) ctys)
-        in
-        { nty; phi }
+        let phis = phi :: List.map (function { phi; _ } -> phi) ctys in
+        let phis = List.map _simp_prop phis in
+        { nty; phi = prop_f phis }
       else _die [%here]
 
 let union_ctys = n_to_one_ctys smart_or

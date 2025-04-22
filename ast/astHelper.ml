@@ -141,7 +141,13 @@ let mk_lete lhs rhs body = (CLetE { lhs; rhs; body })#:body.ty
 let mk_app appf apparg = (CApp { appf; apparg })#:(Nt.get_arr_rhs appf.ty)
 
 let mk_appop op appopargs =
-  (CAppOp { op; appopargs })#:(snd @@ Nt.destruct_arr_tp op.ty)
+  let paratys, retty = Nt.destruct_arr_tp op.ty in
+  let paratys =
+    List.sublist paratys ~start_included:(List.length appopargs)
+      ~end_excluded:(List.length paratys)
+  in
+  let retty = Nt.construct_arr_tp (paratys, retty) in
+  (CAppOp { op; appopargs })#:retty
 
 let rec __get_lam_term_ty loc = function
   | Lam { lamarg; lambody } -> (

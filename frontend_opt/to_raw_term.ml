@@ -154,7 +154,7 @@ let typed_id_of_pattern pattern =
            (List.split_by_comma _get_x ids))
 
 (* let monadic_operator = [ _bind; _fmap; _return ] *)
-let monadic_operator = []
+(* let monadic_operator = [] *)
 
 let typed_raw_term_of_expr expr =
   let rec aux expr =
@@ -202,19 +202,15 @@ let typed_raw_term_of_expr expr =
     | Pexp_apply (func, args) ->
         let args = List.map (fun x -> aux @@ snd x) args in
         let func = aux func in
-        let res =
-          match func.x with
-          | Var f -> (
-              if
-                (* NOTE: Monad *)
-                List.exists (String.equal f.x) monadic_operator
-              then AppOp ((PrimOp f.x)#:f.ty, args)
-              else
-                match string_to_op_opt f.x with
-                | Some op -> AppOp (op#:f.ty, args)
-                | None -> App (func, args))
-          | _ -> App (func, args)
-        in
+        (* let res = *)
+        (*   match func.x with *)
+        (*   | Var f -> ( *)
+        (*       match string_to_op_opt f.x with *)
+        (*       | Some op -> AppOp (op#:f.ty, args) *)
+        (*       | None -> App (func, args)) *)
+        (*   | _ -> App (func, args) *)
+        (* in *)
+        let res = App (func, args) in
         res#:Nt.Ty_unknown
     | Pexp_ifthenelse (e1, e2, Some e3) ->
         (Ifte (aux e1, aux e2, aux e3))#:Nt.Ty_unknown
@@ -232,7 +228,10 @@ let typed_raw_term_of_expr expr =
                       args = List.map term_force_var args;
                       exp = aux case.pc_rhs;
                     }
-              | _ -> _failatwith [%here] "?")
+              | _ ->
+                  Printf.printf "case.pc_lhs: %s\n"
+                    (OcamlParser.Oparse.string_of_pattern case.pc_lhs);
+                  _failatwith [%here] "?")
             match_cases
         in
         (Match { matched = aux matched; match_cases })#:Nt.Ty_unknown
