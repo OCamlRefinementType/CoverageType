@@ -12,22 +12,22 @@ let[@library] Some =
 (** Arithmatic operators *)
 
 let[@library] ( == ) =
- fun ?r:(a : int) ?r:(b : int) -> (iff v (a == b) : [%v: bool])
+ fun ?r:(a : int) ?r:(b : int) -> (v == (a == b) : [%v: bool])
 
 let[@library] ( != ) =
- fun ?r:(a : int) ?r:(b : int) -> (iff v (a != b) : [%v: bool])
+ fun ?r:(a : int) ?r:(b : int) -> (v == (a != b) : [%v: bool])
 
 let[@library] ( < ) =
- fun ?r:(a : int) ?r:(b : int) -> (iff v (a < b) : [%v: bool])
+ fun ?r:(a : int) ?r:(b : int) -> (v == (a < b) : [%v: bool])
 
 let[@library] ( > ) =
- fun ?r:(a : int) ?r:(b : int) -> (iff v (a > b) : [%v: bool])
+ fun ?r:(a : int) ?r:(b : int) -> (v == (a > b) : [%v: bool])
 
 let[@library] ( <= ) =
- fun ?r:(a : int) ?r:(b : int) -> (iff v (a <= b) : [%v: bool])
+ fun ?r:(a : int) ?r:(b : int) -> (v == (a <= b) : [%v: bool])
 
 let[@library] ( >= ) =
- fun ?r:(a : int) ?r:(b : int) -> (iff v (a >= b) : [%v: bool])
+ fun ?r:(a : int) ?r:(b : int) -> (v == (a >= b) : [%v: bool])
 
 let[@library] ( + ) = fun ?r:(a : int) ?r:(b : int) -> (v == a + b : [%v: int])
 let[@library] ( - ) = fun ?r:(a : int) ?r:(b : int) -> (v == a - b : [%v: int])
@@ -35,13 +35,13 @@ let[@library] ( - ) = fun ?r:(a : int) ?r:(b : int) -> (v == a - b : [%v: int])
 let[@library] ( mod ) =
  fun ?r:(a : int) ?r:(b : int) -> (v == a mod b : [%v: int])
 
-let[@library] not = fun ?r:(a : bool) -> (iff v (not a) : [%v: bool])
+let[@library] not = fun ?r:(a : bool) -> (v == not a : [%v: bool])
 
 let[@library] ( && ) =
- fun ?r:(a : bool) ?r:(b : bool) -> (iff v (a && b) : [%v: bool])
+ fun ?r:(a : bool) ?r:(b : bool) -> (v == (a && b) : [%v: bool])
 
 let[@library] ( || ) =
- fun ?r:(a : bool) ?r:(b : bool) -> (iff v (a || b) : [%v: bool])
+ fun ?r:(a : bool) ?r:(b : bool) -> (v == (a || b) : [%v: bool])
 
 (** Builtin generators *)
 
@@ -69,7 +69,7 @@ let[@library] decrement =
 
 let[@library] lt_eq_one =
   let s = ((true : [%v: int]) [@over]) in
-  (iff v (s <= 1) && iff (not v) (s > 1) : [%v: bool])
+  (v == (s <= 1) && iff (not v) (s > 1) : [%v: bool])
 
 let[@library] gt_eq_int_gen =
   let x = ((true : [%v: int]) [@over]) in
@@ -77,7 +77,7 @@ let[@library] gt_eq_int_gen =
 
 let[@library] sizecheck =
   let x = ((true : [%v: int]) [@over]) in
-  (iff v (x == 0) && iff (not v) (x > 0) : [%v: bool])
+  (v == (x == 0) && iff (not v) (x > 0) : [%v: bool])
 
 let[@library] subs =
   let s = ((true : [%v: int]) [@over]) in
@@ -106,6 +106,36 @@ let[@library] list_nth =
  fun (a : baseType) ?r:(xs : 'a list)
      ?r:(idx = ((0 <= v && v < list_len xs : [%v: int]) [@over])) ->
   (list_nth_pred xs idx v : [%v: 'a])
+
+(** Tree *)
+
+let[@library] Leaf = fun (a : baseType) -> (depth v == 0 : [%v: 'a tree])
+
+let[@library] Node =
+ fun (a : baseType) ?r:(x : 'a) ?r:(lt : 'a tree) ?r:(rt : 'a tree) ->
+  (root v x && lch v lt && rch v rt : [%v: 'a tree])
+
+(** Elrond *)
+
+let[@library] Streamnil =
+ fun (a : baseType) -> (stream_len v == 0 : [%v: 'a stream])
+
+let[@library] Streamlazycons =
+ fun (a : baseType) ?r:(x : 'a) ?r:(xs : 'a stream lazyty) ->
+  (stream_hd v x && stream_tl v (forc xs) : [%v: 'a stream])
+
+let[@library] Lazyty =
+ fun (a : baseType) ?r:(x : 'a stream) -> (forc v == x : [%v: 'a stream lazyty])
+
+let[@library] Lhpleaf =
+ fun (a : baseType) -> (leftisthp_depth v == 0 : [%v: 'a leftisthp])
+
+let[@library] Lhpnode =
+ fun (a : baseType) ?(r : int) ?r:(x : 'a) ?r:(lt : 'a leftisthp)
+     ?r:(rt : 'a leftisthp) ->
+  (leftisthp_rank v r && leftisthp_root v x && leftisthp_lch v lt
+   && leftisthp_rch v rt
+    : [%v: 'a leftisthp])
 
 (** Aux functions *)
 

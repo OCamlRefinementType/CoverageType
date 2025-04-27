@@ -47,10 +47,10 @@ let item_mk_type_alias_ctx items =
 let item_inline decls items =
   let minline nt =
     let res = List.fold_right inline_record decls nt in
-    let () =
-      Printf.printf "decls %s \n" (List.split_by_comma _get_x decls);
-      Printf.printf "minline %s ==> %s\n" (Nt.layout nt) (Nt.layout res)
-    in
+    (* let () = *)
+    (*   Printf.printf "decls %s \n" (List.split_by_comma _get_x decls); *)
+    (*   Printf.printf "minline %s ==> %s\n" (Nt.layout nt) (Nt.layout res) *)
+    (* in *)
     res
   in
   let f e =

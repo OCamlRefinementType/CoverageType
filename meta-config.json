@@ -13,7 +13,7 @@
         // "model",
         // "z3encode",
         // "axiom",
-        "unification",
+        // "unification",
         // "instantiateRty",
         "auxtyping",
         "preprocess",
@@ -25,19 +25,39 @@
     ],
     "bool_options": [
         [
+            "show_type_infer_pre_judgement",
+            false
+        ],
+        [
+            "show_type_infer_constant_judgement",
+            false
+        ],
+        [
+            "show_type_infer_variable_judgement",
+            false
+        ],
+        [
             "show_var_type_in_prop",
             false
         ],
         [
+            "show_var_type_in_lit",
+            false
+        ],
+        [
+            "show_var_type_in_term",
+            false
+        ],
+        [
             "instantiate_poly_type_var_in_smt",
-            true
+            false
         ],
         [
             "show_record_type_feilds",
             false
         ]
     ],
-    "prover_timeout_bound": 999,
+    "prover_timeout_bound": 2999,
     "prim_path": {
         "predefined_path": "data/predefined",
         "axioms_path": "",

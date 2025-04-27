@@ -82,17 +82,15 @@ module Rctx = struct
     | None -> _die loc
     | Some rty -> rty
 
-  open Zdatatype
-
   let pprint { task_name; tyvar_ctx; pred_ctx; rty_ctx; inv_ctx } () =
     Pp.printf "@{<bold>Task:@} %s " task_name;
-    Pp.printf "@{<bold>Poly Vars:@} %s; " (StrList.to_string tyvar_ctx);
+    Pp.printf "@{<bold>Poly Vars:@} %s; " (split_by ", " (fun x -> x) tyvar_ctx);
     Pp.printf "@{<bold>Poly Preds:@} %s; "
-      (Typectx.layout_ctx Nt.layout pred_ctx);
-    Pp.printf "@{<bold>Invariants:@} ";
-    Typectx.pprint_ctx layout_rty inv_ctx;
-    Pp.printf "\n@{<bold>Refinement Type Ctx:@}\n";
-    Typectx.pprint_ctx layout_rty rty_ctx;
+      (Typectx.layout_ctx ~splitter:", " Nt.layout pred_ctx);
+    Pp.printf "@{<bold>Invariants:@} %s\n"
+      (Typectx.layout_ctx ~splitter:", " layout_rty inv_ctx);
+    (* Pp.printf "\n@{<bold>Refinement Type Ctx:@} "; *)
+    Typectx.pprint_ctx ~splitter:", " layout_rty rty_ctx;
     print_newline ()
 end
 
@@ -117,7 +115,9 @@ let pprint_typing_check_term rctx (e, ty) =
   _log @@ pprint_typing_check (pprint rctx) (layout_typed_term e, layout_rty ty)
 
 let pprint_typing_infer_term_before rctx e =
-  _log @@ pprint_typing_infer (pprint rctx) (layout_typed_term e, "??")
+  if Myconfig.get_bool_option "show_type_infer_pre_judgement" then
+    _log @@ pprint_typing_infer (pprint rctx) (layout_typed_term e, "??")
+  else ()
 
 let layout_rty_opt res =
   match res with Some res -> layout_rty res | None -> "None"

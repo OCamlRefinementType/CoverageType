@@ -157,9 +157,10 @@ let unification_rtys poly_preds cs =
 
 let instantiate_poly_pred_rty_aux pds frty xrty =
   let () =
-    Printf.printf "instantiate %s\nwith %s\n"
-      (layout_rty (construct_poly_pred_rty (pds, frty)))
-      (layout_rty xrty)
+    _log (fun () ->
+        Printf.printf "instantiate %s\nwith %s\n"
+          (layout_rty (construct_poly_pred_rty (pds, frty)))
+          (layout_rty xrty))
   in
   let argrty, arg, retty =
     match frty with
@@ -167,7 +168,9 @@ let instantiate_poly_pred_rty_aux pds frty xrty =
     | _ -> _die [%here]
   in
   let* pds, m = unification_rtys pds [ (xrty, argrty) ] in
-  let () = Printf.printf "solution:\n%s\n" (layaout_solutions m) in
+  let () =
+    _log (fun () -> Printf.printf "solution:\n%s\n" (layaout_solutions m))
+  in
   let argrty = minstantiate_rty m argrty in
   (* let retty = *)
   (*   if Nt.is_base_tp (erase_rty argrty) then *)
@@ -176,10 +179,14 @@ let instantiate_poly_pred_rty_aux pds frty xrty =
   (* in *)
   let retty = minstantiate_rty m retty in
   let rty = RtyArr { argrty; arg; retty } in
-  let () = Printf.printf "instantiated rty: %s\n" (layout_rty rty) in
   let xrty = minstantiate_rty m xrty in
-  let () = Printf.printf "instantiated xrty: %s\n" (layout_rty xrty) in
-  let () = Printf.printf "pds: %s\n" (List.split_by_comma _get_x pds) in
+  let () =
+    _log (fun () ->
+        Printf.printf "instantiated rty: %s\n" (layout_rty rty);
+
+        Printf.printf "instantiated xrty: %s\n" (layout_rty xrty);
+        Printf.printf "pds: %s\n" (List.split_by_comma _get_x pds))
+  in
   Some (pds, rty, xrty)
 
 let instantiate_poly_pred_rty predctx frty xty =

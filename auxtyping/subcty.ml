@@ -41,14 +41,6 @@ let check_valid (task, query) =
   let () = report_unclosed [%here] query in
   Prover.check_valid (task, query)
 
-let check_sat (task, query) =
-  let () =
-    _log_debug @@ fun _ ->
-    Printf.printf "check valid: %s\n" (layout_prop_ query)
-  in
-  let () = report_unclosed [%here] query in
-  Prover.check_sat_bool (task, query)
-
 let simplify_sub_typectx ctx (rty1, rty2) =
   let ctx = Typectx.ctx_to_list ctx in
   let rec aux (prefix, rest) (rty1, rty2) =
@@ -142,7 +134,7 @@ let sub_cty ou rctx cty1 cty2 =
 (* NOTE: after exists the constraints into the return type, the emptiness can be checked final stage;
    It may cause the more branch analysis.
 *)
-let lazy_emptiness_check = true
+let lazy_emptiness_check = false
 
 let non_emptiness_cty rctx cty =
   if lazy_emptiness_check then true
@@ -168,9 +160,7 @@ let non_emptiness_cty rctx cty =
     in
     let overctx = (default_v, mk_top_cty cty.nty) :: overctx in
     let query =
-      List.fold_right smart_dependent_exists overctx
-      @@ List.fold_right smart_dependent_forall underctx
-      @@ cty.phi
+      List.fold_right smart_dependent_exists (overctx @ underctx) cty.phi
     in
     let () =
       _log_auxtyping @@ fun _ ->
@@ -178,6 +168,15 @@ let non_emptiness_cty rctx cty =
     in
     let () =
       _log_auxtyping @@ fun _ ->
-      Printf.printf "let[@axiom] %s\n" (layout_prop__raw query)
+      Printf.printf "let[@axiom] tmp = %s\n" (layout_prop__raw query)
     in
-    check_sat (Some rctx.task_name, query)
+    let res =
+      match Prover.check_sat (Some rctx.task_name, query) with
+      | SmtUnsat -> false
+      | SmtSat _ -> true
+      | Timeout -> true
+      (* NOTE: we cannot decide if this control flow is unreachable, thus continue *)
+    in
+    (* let () = if List.length underctx > 1 then _die [%here] in *)
+    (* let () = if not res then _die [%here] in *)
+    res

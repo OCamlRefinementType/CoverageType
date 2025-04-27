@@ -8,5 +8,5 @@ let rec leftisthp_gen (s : int) : int leftisthp =
     Lhpnode (s2 + 1, int_gen (), lt, rt)
 
 let[@assert] leftisthp_gen =
-  let s = (0 <= v : [%v: int]) [@over] in
-  (leftisthp_depth v s : [%v: int leftisthp]) [@under]
+  let s = ((0 <= v : [%v: int]) [@over]) in
+  ((leftisthp_depth v == s : [%v: int leftisthp]) [@under])

@@ -82,6 +82,8 @@ let[@axiom] tezos =
 
 let[@axiom] string_len_geq_zero = fun (l : string) -> string_len l >= 0
 
+(** List *)
+
 let[@axiom] list_mem_has_nth =
  fun (l : 'a list) (v : 'a) ->
   (list_mem l v) #==> (fun ((idx [@ex]) : int) ->
@@ -126,9 +128,166 @@ let[@axiom] list_tl_unique =
 
 let[@axiom] list_len_geq_zero = fun (l : 'a list) -> list_len l >= 0
 
-let[@axiom] list_len_geq_zero_implies_list_ex =
- fun (n : int) -> (0 <= n) #==> (fun ((l [@ex]) : 'a list) -> list_len l == n)
+(* let[@axiom] list_len_geq_zero_implies_list_ex = *)
+(*  fun (n : int) -> (0 <= n) #==> (fun ((l [@ex]) : 'a list) -> list_len l == n) *)
 
 let[@axiom] int_list_exists_0_9 =
  fun ((l0 [@ex]) : int list) ((l1 [@ex]) : int list) ((l2 [@ex]) : int list) ->
   tl l2 l1 && tl l1 l0 && list_len l0 == 0 && hd l1 1 && hd l2 9
+
+(** List :: uniq *)
+
+let[@axiom] unique_list_implies_hd_not_mem_in_tl =
+ fun (l : int list) (x : int) (xs : int list) ->
+  (uniq l && hd l x && tl l xs)#==>(uniq xs && not (list_mem xs x))
+
+let[@axiom] unique_list_length_1_ex =
+ fun ((l [@ex]) : int list) -> list_len l == 1 && uniq l
+
+(** Tree *)
+
+let[@axiom] tree_leaf_no_root (l : int tree) (x : int) =
+  (depth l == 0)#==>(not (root l x))
+
+let[@axiom] tree_leaf_no_ch (l : int tree) (l1 : int tree) =
+  (depth l == 0)#==>(not (lch l l1 || rch l l1))
+
+let[@axiom] tree_no_leaf_exists_lch (l : int tree) ((l1 [@exists]) : int tree) =
+  (not (depth l == 0))#==>(lch l l1)
+
+let[@axiom] tree_no_leaf_exists_rch (l : int tree) ((l2 [@exists]) : int tree) =
+  (not (depth l == 0))#==>(rch l l2)
+
+let[@axiom] tree_no_leaf_exists_root (l : int tree) ((x [@exists]) : int) =
+  (not (depth l == 0))#==>(root l x)
+
+let[@axiom] tree_root_no_leaf (l : int tree) (x : int) =
+  (root l x)#==>(not (depth l == 0))
+
+let[@axiom] tree_ch_no_leaf (l : int tree) (l1 : int tree) =
+  (lch l l1 || rch l l1)#==>(not (depth l == 0))
+
+let[@axiom] tree_depth_geq_0 (l : int tree) (n : int) =
+  (depth l == n)#==>(n >= 0)
+
+let[@axiom] tree_ch_depth_minus_1 (l : int tree) (l1 : int tree) (n : int)
+    (n1 : int) =
+  (lch l l1 || rch l l1)#==>(depth l1 == depth l - 1)
+
+(** tree_mem *)
+
+let[@axiom] tree_root_mem (l : int tree) (x : int) =
+  (root l x)#==>(tree_mem l x)
+
+let[@axiom] tree_mem_lch_mem (l : int tree) (l1 : int tree) (x : int) =
+  (lch l l1 && tree_mem l1 x)#==>(tree_mem l x)
+
+let[@axiom] tree_mem_rch_mem (l : int tree) (l1 : int tree) (x : int) =
+  (rch l l1 && tree_mem l1 x)#==>(tree_mem l x)
+
+(** bst *)
+
+let[@axiom] tree_leaf_bst (l : int tree) = (depth l == 0)#==>(bst l)
+
+let[@axiom] tree_bst_lch_bst (l : int tree) (l1 : int tree) =
+  (lch l l1 && bst l)#==>(bst l1)
+
+let[@axiom] tree_bst_rch_bst (l : int tree) (l1 : int tree) =
+  (rch l l1 && bst l)#==>(bst l1)
+
+let[@axiom] tree_bst_lch_mem_lt_root (l : int tree) (l1 : int tree) (x : int)
+    (y : int) =
+  (bst l && lch l l1 && root l x && tree_mem l1 y)#==>(y < x)
+
+let[@axiom] tree_bst_rch_mem_gt_root (l : int tree) (l1 : int tree) (x : int)
+    (y : int) =
+  (bst l && rch l l1 && root l x && tree_mem l1 y)#==>(x < y)
+
+(* let[@axiom] list_emp_unique = *)
+(*  fun (l : int list) -> (list_len l == 0)#==>(uniq l) *)
+
+(* let[@axiom] unique_list_tl_unique_list = *)
+(*  fun (l : int list) (l1 : int list) -> (tl l l1 && uniq l)#==>(uniq l1) *)
+
+(* let[@axiom] unique_list_hd_not_mem = *)
+(*  fun (l : int list) (l1 : int list) (x : int) -> *)
+(*   (tl l l1 && uniq l && hd l1 x)#==>(not (list_mem l1 x)) *)
+
+(** stream *)
+
+let[@axiom] stream_stream_emp_no_stream_hd (l : int stream) (x : int) =
+  (stream_len l == 0)#==>(not (stream_hd l x))
+
+let[@axiom] stream_stream_emp_no_stream_tl (l : int stream)
+    (l1 : int stream lazyty) =
+  (stream_len l == 0)#==>(not (stream_tl l (forc l1)))
+
+let[@axiom] stream_no_stream_emp_exists_stream_tl (l : int stream)
+    ((l1 [@exists]) : int stream lazyty) =
+  (not (stream_len l == 0))#==>(stream_tl l (forc l1))
+
+let[@axiom] stream_no_stream_emp_exists_stream_hd (l : int stream)
+    ((x [@exists]) : int) =
+  (not (stream_len l == 0))#==>(stream_hd l x)
+
+let[@axiom] stream_stream_hd_no_stream_emp (l : int stream) (x : int) =
+  (stream_hd l x)#==>(not (stream_len l == 0))
+
+let[@axiom] stream_stream_tl_no_stream_emp (l : int stream)
+    (l1 : int stream lazyty) =
+  (stream_tl l (forc l1))#==>(not (stream_len l == 0))
+
+let[@axiom] stream_stream_len_geq_0 (l : int stream) = stream_len l >= 0
+
+let[@axiom] stream_stream_tl_stream_len_plus_1 (l : int stream)
+    (l1 : int stream) =
+  (stream_tl l l1)#==>(stream_len l1 + 1 == stream_len l)
+
+(** leafisthp *)
+
+(** basic *)
+
+let[@axiom] leftisthp_leftisthp_leaf_no_leftisthp_root (l : int leftisthp)
+    (x : int) =
+  (leftisthp_depth l == 0)#==>(not (leftisthp_root l x))
+
+let[@axiom] leftisthp_leftisthp_leaf_no_ch (l : int leftisthp)
+    (l1 : int leftisthp) =
+  (leftisthp_depth l == 0)#==>(not (leftisthp_lch l l1 || leftisthp_rch l l1))
+
+let[@axiom] leftisthp_leftisthp_leaf_no_rank (l : int leftisthp) (r : int) =
+  (leftisthp_depth l == 0)#==>(not (leftisthp_rank l r))
+
+let[@axiom] leftisthp_no_leftisthp_leaf_exists_leftisthp =
+ fun (v : int leftisthp) ->
+  (leftisthp_depth v > 0)
+  #==>
+  (fun ((lt [@exists]) : int leftisthp)
+    ((r [@exists]) : int)
+    ((_x_3 [@exists]) : int)
+    ((rt [@exists]) : int leftisthp)
+  ->
+  leftisthp_lch v lt && leftisthp_rank v r && leftisthp_rch v rt
+  && leftisthp_root v _x_3)
+
+let[@axiom] leftisthp_leftisthp_root_no_leftisthp_leaf (l : int leftisthp)
+    (x : int) =
+  (leftisthp_root l x)#==>(not (leftisthp_depth l == 0))
+
+let[@axiom] leftisthp_ch_no_leftisthp_leaf (l : int leftisthp)
+    (l1 : int leftisthp) =
+  (leftisthp_lch l l1 || leftisthp_rch l l1)#==>(not (leftisthp_depth l == 0))
+
+let[@axiom] leftisthp_right_depth_leq_depth (l : int leftisthp) (r : int) =
+  (leftisthp_rank l r)#==>(r <= leftisthp_depth l && 0 < r)
+
+let[@axiom] leftisthp_right_depth_m1_depth (l : int leftisthp)
+    (l1 : int leftisthp) (r : int) =
+  (leftisthp_rch l l1 && leftisthp_rank l r)#==>(leftisthp_depth l1 == r - 1)
+
+let[@axiom] leftisthp_leftisthp_depth_ch_leftisthp_depth_minus_1
+    (tr : int leftisthp) (tr1 : int leftisthp) (n : int) =
+  (leftisthp_lch tr tr1)#==>(leftisthp_depth tr == leftisthp_depth tr1 + 1)
+
+let[@axiom] leftisthp_leftisthp_depth_geq_0 (l : int leftisthp) =
+  leftisthp_depth l >= 0

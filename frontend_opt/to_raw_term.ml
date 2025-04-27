@@ -10,10 +10,13 @@ open Sugar
 open Common
 
 let typed_to_expr f expr =
-  match expr.ty with
-  | Nt.Ty_unknown -> f expr.x
-  | _ ->
-      desc_to_ocamlexpr @@ Pexp_constraint (f expr.x, Nt.t_to_core_type expr.ty)
+  if Myconfig.get_bool_option "show_var_type_in_term" then
+    match expr.ty with
+    | Nt.Ty_unknown -> f expr.x
+    | _ ->
+        desc_to_ocamlexpr
+        @@ Pexp_constraint (f expr.x, Nt.t_to_core_type expr.ty)
+  else f expr.x
 
 let typed_id_to_pattern id =
   let pat = string_to_pattern id.x in
