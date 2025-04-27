@@ -102,6 +102,49 @@ val l2t_pre : 'a list -> 'a tezosTree -> bool
 val list_length : 'a list -> int
 val list_nth : 'a list -> int -> 'a
 
+(** trees *)
+
+type 'a tree = Leaf | Node of 'a * 'a tree * 'a tree
+
+(** tree predicates *)
+
+val depth : 'a tree -> int
+val root : 'a tree -> 'a -> bool
+val lch : 'a tree -> 'a tree -> bool
+val rch : 'a tree -> 'a tree -> bool
+val tree_mem : 'a tree -> 'a -> bool
+val bst : 'a tree -> bool
+val heap : 'a tree -> bool
+val complete : 'a tree -> bool
+val tree_num_node : 'a tree -> int
+
+(** Stream *)
+
+type 'a lazyty = Lazyty of 'a
+type 'a stream = Streamnil | Streamlazycons of 'a * 'a stream lazyty
+
+(** stream predicates *)
+
+val forc : 'a stream lazyty -> 'a stream
+val _forc : int -> int
+val stream_len : 'a stream -> int
+val stream_hd : 'a stream -> 'a -> bool
+val stream_tl : 'a stream -> 'a stream -> bool
+
+(** leftisthp *)
+
+type 'a leftisthp =
+  | Lhpleaf
+  | Lhpnode of int * 'a * 'a leftisthp * 'a leftisthp
+
+(** leftisthp predicates *)
+
+val leftisthp_depth : 'a leftisthp -> int
+val leftisthp_root : 'a leftisthp -> 'a -> bool
+val leftisthp_rank : 'a leftisthp -> int -> bool
+val leftisthp_lch : 'a leftisthp -> 'a leftisthp -> bool
+val leftisthp_rch : 'a leftisthp -> 'a leftisthp -> bool
+
 (** Aux functions *)
 
 val sum_fst_int : (int * 'a) list -> int (* for frequency *)

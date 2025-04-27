@@ -80,7 +80,7 @@ let ocaml_structure_item_to_item structure =
              in
              MFuncImpRaw
                { name = name#:ty; if_rec = get_if_rec flag; body = body.x#:ty }
-         | _ -> _failatwith [%here] "wrong syntax")
+         | _ -> _failatwith [%here] (spf "wrong syntax in %s" name))
   | Pstr_attribute _ -> None
   | _ ->
       let () = Printf.printf "%s\n" (string_of_structure [ structure ]) in

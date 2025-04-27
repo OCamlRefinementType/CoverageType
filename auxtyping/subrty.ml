@@ -42,4 +42,5 @@ let non_emptiness_rty rctx rty =
   match rty with
   | RtyBase { ou = Under; cty } -> non_emptiness_cty rctx cty
   | RtyArr _ -> true
+  | RtyPolyPred _ -> true
   | _ -> _failatwith [%here] "die"

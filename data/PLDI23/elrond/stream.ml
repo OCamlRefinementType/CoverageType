@@ -6,7 +6,5 @@ let rec stream_gen (size : int) : int stream =
     Streamlazycons (int_gen (), Lazyty l)
 
 let[@assert] stream_gen =
-  let s = (0 <= v : [%v: int]) [@over] in
-  (fun ((u [@exists]) : int) -> stream_len v u && u <= s
-    : [%v: int stream])
-    [@under]
+  let s = ((0 <= v : [%v: int]) [@over]) in
+  ((stream_len v <= s : [%v: int stream]) [@under])

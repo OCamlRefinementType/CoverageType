@@ -5,19 +5,23 @@ open Zdatatype
 (* let _simp_prop x = x *)
 let _simp_prop p =
   let res = SimplProp.eval_arithmetic p in
-  (* let () = *)
-  (*   Pp.printf "@{<bold>SIMP@} %s =====> %s\n" (layout_prop p) (layout_prop res) *)
-  (* in *)
+  let () =
+    Pp.printf "@{<bold>SIMP@} %s =====> %s\n" (layout_prop p) (layout_prop res)
+  in
   res
 
 let exists_cty (x : string) ({ nty; phi } : 't cty) (cty : 't cty) : 't cty =
   if Nt.equal_nt Nt.unit_ty nty then { cty with phi = smart_add_to phi cty.phi }
   else
+    let () = Pp.printf "@{<bold>exists_cty@} %s\n" (layout_prop phi) in
     let phi = subst_prop_instance default_v (AVar x#:nty) phi in
+    let () = Pp.printf "@{<bold>exists_cty@} %s\n" (layout_prop phi) in
     let phi, cty_phi = map2 _simp_prop (phi, cty.phi) in
+    let () = Pp.printf "@{<bold>exists_cty@} %s\n" (layout_prop phi) in
     let phi = smart_exists [ x#:nty ] (smart_add_to phi cty_phi) in
-    let phi = SimplProp.simpl_query_by_eq phi in
-    { cty with phi }
+    let () = Pp.printf "@{<bold>exists_cty@} %s\n" (layout_prop phi) in
+    let phi' = SimplProp.simpl_query_by_eq phi in
+    { cty with phi = phi' }
 
 let exists_rty (x : string) (xrty : 't rty) (rty : 't rty) : 't rty =
   match xrty with
@@ -35,14 +39,16 @@ let exists_rty (x : string) (xrty : 't rty) (rty : 't rty) : 't rty =
             RtyArr { argrty = aux argrty; arg; retty = aux retty }
         | RtyPolyPred _ | RtyPolyType _ -> _die [%here]
       in
-      let rty = aux rty in
+      let rty' = aux rty in
       let () =
-        _assert [%here]
-          (spf "exists: %s should closed under DOM[ %s ]" (layout_rty rty)
-             (StrList.to_string dom))
-        @@ is_close_rty dom rty
+        if not (is_close_rty dom rty') then (
+          Printf.printf "rty: %s\n" (layout_rty rty);
+          Printf.printf "%s: %s\n" x (layout_rty xrty);
+          Printf.printf "exists: %s should closed under DOM[ %s ]\n"
+            (layout_rty rty') (StrList.to_string dom);
+          _die [%here])
       in
-      rty
+      rty'
   | _ -> rty
 
 let exists_rty x rty =

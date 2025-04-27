@@ -7,7 +7,7 @@ type 't vcont = ('t, 't value) typed -> ('t, 't term) typed
 type 't vconts = ('t, 't value) typed list -> ('t, 't term) typed
 
 let _log = Myconfig._log "normalization"
-let new_x () = Rename.unique_var "x"
+let new_x () = Rename.unique_var "_x"
 let construct_lete lhs rhs body = (CLetE { lhs; rhs; body })#:body.ty
 let var_to_v x = (VVar x)#:x.ty
 
