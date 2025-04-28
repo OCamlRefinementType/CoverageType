@@ -118,10 +118,14 @@ let sub_cty ou rctx cty1 cty2 =
           (overctx @ [ (default_v, mk_top_cty cty2.nty) ])
           prop
   in
+  let () =
+    _log_auxtyping @@ fun _ ->
+    Printf.printf "before simp:\n%s\n\n" (layout_prop query)
+  in
   let query = SimplProp.simpl_query query in
   let () =
     _log_auxtyping @@ fun _ ->
-    Printf.printf "check valid: %s\n" (layout_prop query)
+    Printf.printf "check valid:\n%s\n\n" (layout_prop query)
   in
   let () =
     _log_auxtyping @@ fun _ ->

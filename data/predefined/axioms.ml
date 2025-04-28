@@ -144,6 +144,17 @@ let[@axiom] unique_list_implies_hd_not_mem_in_tl =
 let[@axiom] unique_list_length_1_ex =
  fun ((l [@ex]) : int list) -> list_len l == 1 && uniq l
 
+(** List :: sorted *)
+
+let[@axiom] list_emp_sorted (l : int list) = (list_len l == 0)#==>(sorted l)
+
+let[@axiom] list_tl_sorted (l : int list) (l1 : int list) =
+  (tl l l1 && sorted l)#==>(sorted l1)
+
+let[@axiom] list_hd_sorted (l : int list) (l1 : int list) (x : int) (y : int) =
+  (tl l l1 && sorted l)#==>(list_len l1 == 0
+                           || ((hd l1 y && hd l x)#==>(x <= y)))
+
 (** Tree *)
 
 let[@axiom] tree_leaf_no_root (l : int tree) (x : int) =
@@ -212,6 +223,36 @@ let[@axiom] tree_bst_rch_mem_gt_root (l : int tree) (l1 : int tree) (x : int)
 (* let[@axiom] unique_list_hd_not_mem = *)
 (*  fun (l : int list) (l1 : int list) (x : int) -> *)
 (*   (tl l l1 && uniq l && hd l1 x)#==>(not (list_mem l1 x)) *)
+
+(** tree :: complete *)
+
+let[@axiom] tree_complete_lch_complete (l : int tree) (l1 : int tree) =
+  (lch l l1 && complete l)#==>(complete l1)
+
+let[@axiom] tree_complete_rch_complete (l : int tree) (l1 : int tree) =
+  (rch l l1 && complete l)#==>(complete l1)
+
+let[@axiom] tree_complete_lch_depth_minus_1 (l : int tree) (l1 : int tree) =
+  (lch l l1 && complete l)#==>(depth l == depth l1 + 1)
+
+let[@axiom] tree_complete_rch_depth_minus_1 (l : int tree) (l1 : int tree) =
+  (rch l l1 && complete l)#==>(depth l == depth l1 + 1)
+
+(** tree :: heap *)
+
+let[@axiom] tree_heap_lch_heap (l : int tree) (l1 : int tree) =
+  (lch l l1 && heap l)#==>(heap l1)
+
+let[@axiom] tree_heap_rch_heap (l : int tree) (l1 : int tree) =
+  (rch l l1 && heap l)#==>(heap l1)
+
+let[@axiom] tree_heap_root_lt_lch_root (l : int tree) (l1 : int tree) (x : int)
+    (y : int) =
+  (heap l && lch l l1 && root l x && root l1 y)#==>(y < x)
+
+let[@axiom] tree_heap_root_rt_rch_root (l : int tree) (l1 : int tree) (x : int)
+    (y : int) =
+  (heap l && rch l l1 && root l x && root l1 y)#==>(y < x)
 
 (** stream *)
 
@@ -291,3 +332,91 @@ let[@axiom] leftisthp_leftisthp_depth_ch_leftisthp_depth_minus_1
 
 let[@axiom] leftisthp_leftisthp_depth_geq_0 (l : int leftisthp) =
   leftisthp_depth l >= 0
+
+(** rbtree *)
+
+let[@axiom] rbtree_rb_leaf_no_rb_root (l : int rbtree) (x : int) =
+  (rb_leaf l)#==>(not (rb_root l x))
+
+let[@axiom] rbtree_rb_leaf_no_rb_root_color (l : int rbtree) (x : bool) =
+  (rb_leaf l)#==>(not (rb_root_color l x))
+
+let[@axiom] rbtree_rb_leaf_no_ch (l : int rbtree) (l1 : int rbtree) =
+  (rb_leaf l)#==>(not (rb_lch l l1 || rb_rch l l1))
+
+let[@axiom] rbtree_no_rb_leaf_exists_ch (l : int rbtree)
+    ((l1 [@exists]) : int rbtree) ((l2 [@exists]) : int rbtree) =
+  (not (rb_leaf l))#==>(rb_lch l l1 && rb_rch l l2)
+
+let[@axiom] rbtree_no_rb_leaf_exists_rb_root (l : int rbtree)
+    ((x [@exists]) : int) =
+  (not (rb_leaf l))#==>(rb_root l x)
+
+let[@axiom] rbtree_no_rb_leaf_exists_rb_root_color (l : int rbtree)
+    ((x [@exists]) : bool) =
+  (not (rb_leaf l))#==>(rb_root_color l x)
+
+let[@axiom] rbtree_rb_root_no_rb_leaf (l : int rbtree) (x : int) =
+  (rb_root l x)#==>(not (rb_leaf l))
+
+let[@axiom] rbtree_rb_root_color_no_rb_leaf (l : int rbtree) (x : bool) =
+  (rb_root_color l x)#==>(not (rb_leaf l))
+
+let[@axiom] rbtree_ch_no_rb_leaf (l : int rbtree) (l1 : int rbtree) =
+  (rb_lch l l1 || rb_rch l l1)#==>(not (rb_leaf l))
+
+let[@axiom] rbtree_num_black_0_rb_leaf (l : int rbtree) =
+  (num_black l == 0 && not (rb_root_color l true))#==>(rb_leaf l)
+
+let[@axiom] rbtree_num_black_geq_0 (l : int rbtree) = num_black l >= 0
+
+let[@axiom] rbtree_rb_leaf_num_black_0 (l : int rbtree) (n : int) =
+  (rb_leaf l && num_black l == n)#==>(n == 0)
+
+let[@axiom] rbtree_positive_num_black_is_not_rb_leaf (l : int rbtree) =
+  (num_black l > 0)#==>(not (rb_leaf l))
+
+let[@axiom] num_black_root_black_lt_minus_1 (v : int rbtree) (lt : int rbtree) =
+  (rb_root_color v false && rb_lch v lt)#==>(1 + num_black lt == num_black v)
+
+let[@axiom] num_black_root_black_rt_minus_1 (v : int rbtree) (rt : int rbtree) =
+  (rb_root_color v false && rb_rch v rt)#==>(1 + num_black rt == num_black v)
+
+let[@axiom] num_black_root_red_lt_same (v : int rbtree) (lt : int rbtree) =
+  (rb_root_color v true && rb_lch v lt)#==>(num_black lt == num_black v)
+
+let[@axiom] num_black_root_red_rt_same (v : int rbtree) (rt : int rbtree) =
+  (rb_root_color v true && rb_rch v rt)#==>(num_black rt == num_black v)
+
+let[@axiom] num_black_root_black_0_lt_leaf (v : int rbtree) (lt : int rbtree) =
+  (num_black v == 0 && rb_lch v lt)#==>(rb_leaf lt)
+
+let[@axiom] num_black_root_black_0_rt_leaf (v : int rbtree) (rt : int rbtree) =
+  (num_black v == 0 && rb_rch v rt)#==>(rb_leaf rt)
+
+let[@axiom] num_black_root_black_0_rt_red (v : int rbtree) (rt : int rbtree) =
+  (num_black v == 0 && rb_rch v rt)#==>(rb_root_color v true)
+
+let[@axiom] no_red_red_lt (v : int rbtree) (lt : int rbtree) =
+  (no_red_red v && rb_lch v lt)#==>(no_red_red lt)
+
+let[@axiom] no_red_red_rt (v : int rbtree) (rt : int rbtree) =
+  (no_red_red v && rb_rch v rt)#==>(no_red_red rt)
+
+let[@axiom] no_red_red_root_red_lt_not_red (v : int rbtree) (lt : int rbtree) =
+  (no_red_red v && rb_lch v lt && rb_root_color v true)#==>(not
+                                                              (rb_root_color lt
+                                                                 true))
+
+let[@axiom] no_red_red_root_red_rt_not_red (v : int rbtree) (rt : int rbtree) =
+  (no_red_red v && rb_rch v rt && rb_root_color v true)#==>(not
+                                                              (rb_root_color rt
+                                                                 true))
+
+let[@axiom] black_lt_black_num_black_gt_1 (v : int rbtree) (lt : int rbtree) =
+  (rb_lch v lt && rb_root_color v false && rb_root_color lt false)#==>(num_black
+                                                                         v > 1)
+
+let[@axiom] black_rt_black_num_black_gt_1 (v : int rbtree) (rt : int rbtree) =
+  (rb_rch v rt && rb_root_color v false && rb_root_color rt false)#==>(num_black
+                                                                         v > 1)

@@ -10,14 +10,8 @@ let rec sorted_list_gen (size : int) (x : int) : int list =
       l2
     else Exn
 
-(* let[@assert] sorted_list_gen = *)
-(*   let s = (0 <= v : [%v: int]) [@over] in *)
-(*   let x = (true : [%v: int]) [@over] in *)
-(*   (lenF v == s : [%v: int list]) [@under] *)
-
-let[@assert] sorted_list_gen =
-  let s = (0 <= v : [%v: int]) [@over] in
-  let x = (true : [%v: int]) [@over] in
-  (len v s && sorted v && fun (u : int) -> (hd v u) #==> (x <= u)
+let[@assert] sorted_list_gen ?r:(s = ((0 <= v : [%v: int]) [@over]))
+    ?r:(x : int) =
+  (list_len v == s && sorted v && fun (u : int) -> (hd v u)#==>(x <= u)
     : [%v: int list])
     [@under]

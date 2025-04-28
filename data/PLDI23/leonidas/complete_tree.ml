@@ -7,6 +7,5 @@ let rec complete_tree_gen (s : int) : int tree =
     let (n : int) = int_gen () in
     Node (n, lt, rt)
 
-let[@assert] complete_tree_gen =
-  let s = (0 <= v : [%v: int]) [@over] in
-  (depth v s && complete v : [%v: int tree]) [@under]
+let[@assert] complete_tree_gen ?r:(s = ((0 <= v : [%v: int]) [@over])) =
+  (depth v == s && complete v : [%v: int tree])

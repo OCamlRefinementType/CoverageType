@@ -9,11 +9,8 @@ let rec depth_heap_gen (d : int) (mx : int) : int tree =
       Node (n, lt, rt)
     else Err
 
-let[@assert] depth_heap_gen =
-  let d = (0 <= v : [%v: int]) [@over] in
-  let mx = (true : [%v: int]) [@over] in
-  (heap v
-   && (fun ((u [@exists]) : int) -> depth v u && u <= d)
-   && fun (u : int) -> implies (root v u) (u < mx)
+let[@assert] depth_heap_gen ?r:(d = ((0 <= v : [%v: int]) [@over]))
+    ?r:(mx : int) =
+  (heap v && depth v <= d && fun (u : int) -> (root v u)#==>(u < mx)
     : [%v: int tree])
     [@under]
