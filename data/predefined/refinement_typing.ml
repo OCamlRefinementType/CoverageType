@@ -131,11 +131,20 @@ let[@library] Lhpleaf =
  fun (a : baseType) -> (leftisthp_depth v == 0 : [%v: 'a leftisthp])
 
 let[@library] Lhpnode =
- fun (a : baseType) ?(r : int) ?r:(x : 'a) ?r:(lt : 'a leftisthp)
+ fun (a : baseType) ?r:(rk : int) ?r:(x : 'a) ?r:(lt : 'a leftisthp)
      ?r:(rt : 'a leftisthp) ->
-  (leftisthp_rank v r && leftisthp_root v x && leftisthp_lch v lt
+  (leftisthp_rank v rk && leftisthp_root v x && leftisthp_lch v lt
    && leftisthp_rch v rt
     : [%v: 'a leftisthp])
+
+let[@library] Rbtleaf = fun (a : baseType) -> (rb_leaf v : [%v: 'a rbtree])
+
+let[@library] Rbtnode =
+ fun (a : baseType) ?r:(c : bool) ?r:(lt : 'a rbtree) ?r:(x : 'a)
+     ?r:(rt : 'a rbtree) ->
+  ((rb_root_color v c && rb_root v x && rb_lch v lt && rb_rch v rt
+    : [%v: 'a rbtree])
+    [@under])
 
 (** Aux functions *)
 

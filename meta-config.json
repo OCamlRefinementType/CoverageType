@@ -16,6 +16,7 @@
         // "unification",
         // "instantiateRty",
         "auxtyping",
+        // "simplProp",
         "preprocess",
         "typing",
         "result",

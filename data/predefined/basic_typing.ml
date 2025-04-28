@@ -145,6 +145,20 @@ val leftisthp_rank : 'a leftisthp -> int -> bool
 val leftisthp_lch : 'a leftisthp -> 'a leftisthp -> bool
 val leftisthp_rch : 'a leftisthp -> 'a leftisthp -> bool
 
+(** rbtree *)
+
+type 'a rbtree = Rbtleaf | Rbtnode of bool * 'a rbtree * 'a * 'a rbtree
+
+(** rbtree predicates *)
+
+val num_black : 'a rbtree -> int
+val rb_leaf : 'a rbtree -> bool
+val rb_root : 'a rbtree -> 'a -> bool
+val rb_root_color : 'a rbtree -> bool -> bool
+val rb_lch : 'a rbtree -> 'a rbtree -> bool
+val rb_rch : 'a rbtree -> 'a rbtree -> bool
+val no_red_red : 'a rbtree -> bool
+
 (** Aux functions *)
 
 val sum_fst_int : (int * 'a) list -> int (* for frequency *)
