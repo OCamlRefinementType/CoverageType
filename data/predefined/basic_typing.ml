@@ -94,6 +94,7 @@ val list_swap : 'a list -> int -> int -> 'a list -> bool (* for shuffle *)
 val list_same_mem : 'a list -> 'a list -> bool (* for shuffle *)
 val list_concat : 'a list -> 'a list -> 'a list -> bool
 val l2t_pre : 'a list -> 'a tezosTree -> bool
+val list_index : 'a list -> int -> 'a -> bool (* for STLC *)
 
 (** list to tree predicates *)
 
@@ -159,6 +160,38 @@ val rb_lch : 'a rbtree -> 'a rbtree -> bool
 val rb_rch : 'a rbtree -> 'a rbtree -> bool
 val no_red_red : 'a rbtree -> bool
 
+(** stlc *)
+
+type stlc_ty = Stlc_ty_nat | Stlc_ty_arr of stlc_ty * stlc_ty
+
+type stlc_term =
+  | Stlc_const of int
+  | Stlc_id of int
+  | Stlc_app of stlc_term * stlc_term
+  | Stlc_abs of stlc_ty * stlc_term
+
+type stlc_measure = Measure of int * int
+
+(** stlc predicates *)
+
+val num_arr : stlc_ty -> int
+val is_const : stlc_term -> bool
+val is_var : stlc_term -> bool
+val is_abs : stlc_term -> bool
+val is_app : stlc_term -> bool
+val typing : stlc_ty list -> stlc_term -> stlc_ty -> bool
+val num_app : stlc_term -> int
+val stlc_ty_nat : stlc_ty -> bool
+val stlc_ty_arr1 : stlc_ty -> stlc_ty -> bool
+val stlc_ty_arr2 : stlc_ty -> stlc_ty -> bool
+val stlc_const : stlc_term -> int -> bool
+val stlc_id : stlc_term -> int -> bool
+val stlc_app1 : stlc_term -> stlc_term -> bool
+val stlc_app2 : stlc_term -> stlc_term -> bool
+val stlc_abs_ty : stlc_term -> stlc_ty -> bool
+val stlc_abs_body : stlc_term -> stlc_term -> bool
+
+val stlc_measure : stlc_ty -> int -> int -> bool
 (** Aux functions *)
 
 val sum_fst_int : (int * 'a) list -> int (* for frequency *)
