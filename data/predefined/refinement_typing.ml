@@ -6,8 +6,13 @@ let[@library] False = (not v : [%v: bool]) [@under]
 let[@library] None = fun (a : baseType) -> (v == None : [%v: 'a option])
 
 let[@library] Some =
- fun (a : baseType) ?r:(x = ((true : [%v: 'a]) [@over])) ->
-  (v == Some x : [%v: 'a option])
+ fun (a : baseType) ?r:(x : 'a) -> (v == Some x : [%v: 'a option])
+
+let[@library] fst =
+ fun (a : baseType) (b : baseType) ?r:(x : 'a * 'b) -> (v == fst x : [%v: 'a])
+
+let[@library] snd =
+ fun (a : baseType) (b : baseType) ?r:(x : 'a * 'b) -> (v == snd x : [%v: 'b])
 
 (** Arithmatic operators *)
 
@@ -145,6 +150,27 @@ let[@library] Rbtnode =
   ((rb_root_color v c && rb_root v x && rb_lch v lt && rb_rch v rt
     : [%v: 'a rbtree])
     [@under])
+
+(** STLC *)
+
+let[@library] Stlc_ty_nat = (num_arr v == 0 : [%v: stlc_ty])
+
+let[@library] Stlc_ty_arr =
+ fun ?r:(t1 : stlc_ty) ?r:(t2 : stlc_ty) ->
+  (stlc_ty_arr1 v t1 && stlc_ty_arr2 v t2 : [%v: stlc_ty])
+
+let[@library] Stlc_const =
+ fun ?r:(n : int) -> (stlc_const v n : [%v: stlc_term])
+
+let[@library] Stlc_id = fun ?r:(n : int) -> (stlc_id v n : [%v: stlc_term])
+
+let[@library] Stlc_app =
+ fun ?r:(t1 : stlc_term) ?r:(t2 : stlc_term) ->
+  (stlc_app1 v t1 && stlc_app2 v t2 : [%v: stlc_term])
+
+let[@library] Stlc_abs =
+ fun ?r:(ty : stlc_ty) ?r:(body : stlc_term) ->
+  (stlc_abs_ty v ty && stlc_abs_body v body : [%v: stlc_term])
 
 (** Aux functions *)
 

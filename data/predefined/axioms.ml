@@ -420,3 +420,269 @@ let[@axiom] black_lt_black_num_black_gt_1 (v : int rbtree) (lt : int rbtree) =
 let[@axiom] black_rt_black_num_black_gt_1 (v : int rbtree) (rt : int rbtree) =
   (rb_rch v rt && rb_root_color v false && rb_root_color rt false)#==>(num_black
                                                                          v > 1)
+
+(** stlc *)
+
+let[@axiom] stlc_const_gen =
+ fun (v : stlc_term) ->
+  (is_const v) #==> (fun ((n2 [@exists]) : int) -> 0 <= n2 && stlc_const v n2)
+
+let[@axiom] stlc_ty_num_arr_ge_0 = fun (v : stlc_ty) -> num_arr v >= 0
+
+let[@axiom] stlc_ty_num_arr_gt_0_arr1_arr2 =
+ fun (v : stlc_ty) ->
+  (num_arr v > 0) #==> (fun ((t1 [@ex]) : stlc_ty) ((t2 [@ex]) : stlc_ty) ->
+  stlc_ty_arr1 v t1 && stlc_ty_arr2 v t2)
+
+let[@axiom] stlc_ty_num_arr_arr_sum =
+ fun (v : stlc_ty) (t1 : stlc_ty) (t2 : stlc_ty) ->
+  (stlc_ty_arr1 v t1 && stlc_ty_arr2 v t2)#==>(num_arr v
+                                              == 1 + num_arr t1 + num_arr t2)
+
+let[@axiom] list_index_list_len_gt_0 =
+ fun (gamma : stlc_ty list) (tau : stlc_ty) (i : int) ->
+  (list_index gamma i tau)#==>(0 <= i && i < list_len gamma)
+
+let[@axiom] list_index_hd_or_tl_minus_1 =
+ fun (gamma : stlc_ty list) (tau : stlc_ty) (v : int) (tau_hd : stlc_ty)
+     (gamma_rest : stlc_ty list) ->
+  implies
+    (hd gamma tau_hd && tl gamma gamma_rest && list_index gamma v tau)
+    ((v > 0 && list_index gamma_rest (v - 1) tau) || (v == 0 && tau_hd == tau))
+
+let[@axiom] stlc_var_typing =
+ fun (gamma : stlc_ty list) (tau : stlc_ty) (v : stlc_term) ->
+  implies
+    (typing gamma v tau && is_var v)
+    (fun ((id [@exists]) : int) -> list_index gamma id tau && stlc_id v id)
+
+let[@axiom] stlc_var_typing_another =
+ fun (gamma : stlc_ty list) ->
+  fun (tau : stlc_ty) ->
+   fun (v : stlc_term) ->
+    implies
+      (typing gamma v tau && is_var v)
+      (fun ((rev_id [@exists]) : int) ->
+        list_index gamma (list_len gamma - rev_id) tau
+        && stlc_id v (list_len gamma - rev_id))
+
+let[@axiom] stlc_ty_arr1_wf_decreasing =
+ fun (v : stlc_ty) (t1 : stlc_ty) -> (stlc_ty_arr1 v t1)#==>(decreasing t1 v)
+
+let[@axiom] stlc_ty_arr2_wf_decreasing =
+ fun (v : stlc_ty) (t2 : stlc_ty) -> (stlc_ty_arr1 v t2)#==>(decreasing t2 v)
+
+let[@axiom] stlc_typing_no_app_no_arr_is_const_var =
+ fun (tau : stlc_ty) (gamma : stlc_ty list) (v : stlc_term) ->
+  (typing gamma v tau && num_arr tau == 0)#==>(is_const v || is_var v)
+
+let[@axiom] stlc_typing_no_app_no_arr_is_abs_app =
+ fun (v : stlc_term) -> (num_app v > 0)#==>(is_abs v || is_app v)
+
+let[@axiom] stlc_typing_abs_app_exclusive =
+ fun (v : stlc_term) -> not (is_abs v && is_app v)
+
+let[@axiom] stlc_typing_no_app_abs =
+ fun (tau : stlc_ty) (gamma : stlc_ty list) (v : stlc_term) (tau1_1 : stlc_ty)
+     (tau2_1 : stlc_ty) ->
+  implies
+    (typing gamma v tau
+    && num_app v == 0
+    && num_arr tau > 0
+    && stlc_ty_arr1 tau tau1_1 && stlc_ty_arr2 tau tau2_1)
+    (fun ((_x_31 [@exists]) : stlc_ty list) ->
+      hd _x_31 tau1_1 && tl _x_31 gamma
+      && fun ((_x_32 [@exists]) : stlc_term) ->
+      decreasing tau2_1 tau && typing _x_31 _x_32 tau2_1
+      && num_app _x_32 == 0
+      && stlc_abs_ty v tau1_1 && stlc_abs_body v _x_32)
+
+let[@axiom] stlc_meaure_num_geq_0 =
+ fun (num : int) (tau : stlc_ty) (v : int) ->
+  (stlc_measure tau num v)#==>(num >= 0)
+
+let[@axiom] stlc_meaure_num_decr =
+ fun (num : int) (tau : stlc_ty) (v : int) (num1 : int) (tau1 : stlc_ty)
+     (v1 : int) ->
+  implies
+    (stlc_measure tau num v && stlc_measure tau1 num1 v1 && num1 < num)
+    (v1 < v)
+
+let[@axiom] stlc_meaure_tau_arr2 =
+ fun (num : int) (tau : stlc_ty) (v : int) (tau1 : stlc_ty) (v1 : int) ->
+  implies
+    (stlc_measure tau num v && stlc_measure tau1 num v1 && stlc_ty_arr2 tau tau1)
+    (v1 < v)
+
+let[@axiom] stlc_app1_num_app_lt =
+ fun (func : stlc_term) (v : stlc_term) ->
+  (stlc_app1 v func)#==>(num_app func < num_app v)
+
+let[@axiom] stlc_app1_num_app_lt_arg =
+ fun (func : stlc_term) (v : stlc_term) (arg : stlc_term) ->
+  (stlc_app1 v func && stlc_app2 v arg)#==>(num_app arg
+                                           < num_app v - num_app func)
+
+let[@axiom] stlc_typing_app_func_typing =
+ fun (func_ty : stlc_ty) (arg_ty : stlc_ty) (tau : stlc_ty)
+     (gamma : stlc_ty list) (func : stlc_term) (v : stlc_term)
+     (arg : stlc_term) ->
+  implies
+    (stlc_ty_arr1 func_ty arg_ty
+    && stlc_ty_arr2 func_ty tau && stlc_app1 v func && stlc_app2 v arg
+    && typing gamma v tau && typing gamma func func_ty)
+    (typing gamma arg arg_ty)
+
+let[@axiom] stlc_typing_abs_typing =
+ fun (func_ty : stlc_ty) (arg_ty : stlc_ty) (tau : stlc_ty)
+     (gamma : stlc_ty list) (body : stlc_term) (v : stlc_term) (arg : stlc_term)
+     (gamma' : stlc_ty list) ->
+  implies
+    (stlc_ty_arr1 func_ty arg_ty
+    && stlc_ty_arr2 func_ty tau && stlc_abs_ty v arg_ty && stlc_abs_body v body
+    && typing gamma v func_ty && hd gamma' arg_ty && tl gamma' gamma)
+    (typing gamma' body tau)
+
+let[@axiom] stlc_typing =
+ fun (measure : int) ->
+  fun (num : int) ->
+   fun (tau : stlc_ty) (gamma : stlc_ty list) (v : stlc_term) ->
+    implies
+      (stlc_measure tau num measure
+      && typing gamma v tau
+      && num_app v == num
+      && num > 0)
+      ( (fun ((func [@exists]) : stlc_term)
+          ((arg [@exists]) : stlc_term)
+          ((arg_ty [@exists]) : stlc_ty)
+          ((func_ty [@exists]) : stlc_ty)
+          ((m2 [@exists]) : int)
+          ((m1 [@exists]) : int)
+        ->
+          stlc_ty_arr1 func_ty arg_ty
+          && stlc_ty_arr2 func_ty tau && stlc_app1 v func && stlc_app2 v arg
+          && typing gamma func func_ty
+          && stlc_measure arg_ty (num_app arg) m2
+          && stlc_measure func_ty (num_app func) m1)
+      ||
+      fun ((tau1_4 [@exists]) : stlc_ty)
+        ((tau2_4 [@exists]) : stlc_ty)
+        ((_x_48 [@exists]) : stlc_ty list)
+        ((body_2 [@exists]) : stlc_term)
+        ((m3_0 [@exists]) : int)
+      ->
+        stlc_ty_arr1 tau tau1_4 && stlc_ty_arr2 tau tau2_4
+        && stlc_measure tau2_4 num m3_0
+        && hd _x_48 tau1_4 && tl _x_48 gamma
+        && num_app body_2 == num
+        && stlc_abs_ty v tau1_4 && stlc_abs_body v body_2 )
+
+(** Old *)
+
+(* let[@axiom] stlc_num_arr_geq_0 (tau : stlc_ty) (n : int) = *)
+(*   (num_arr tau n)#==>(n >= 0) *)
+
+(* let[@axiom] stlc_num_arr_arr (tau : stlc_ty) (tau_body : stlc_ty) (m : int) = *)
+(*   (stlc_ty_arr2 tau tau_body)#==>(iff *)
+(*                                     (num_arr tau_body (m - 1)) *)
+(*                                     (num_arr tau m)) *)
+
+(* let[@axiom] stlc_const_num_app_0 (v : stlc_term) (n : int) = *)
+(*   (is_const v && num_app v n)#==>(n == 0) *)
+
+(* let[@axiom] stlc_app_num_app_geq_0 (v : stlc_term) (n : int) = *)
+(*   (is_app v && num_app v n)#==>(n > 0) *)
+
+(* let[@axiom] stlc_var_num_app_0 (v : stlc_term) (n : int) = *)
+(*   (is_var v && num_app v n)#==>(n == 0) *)
+
+(* let[@axiom] stlc_num_app_gt_0_is_abs_or_app (v : stlc_term) (n : int) = *)
+(*   (num_app v n && n > 0)#==>(is_abs v || is_app v) *)
+
+(* let[@axiom] stlc_typing_num_arr (gamma : stlc_tyctx) (v : stlc_term) *)
+(*     (tau : stlc_ty) ((n [@exists]) : int) = *)
+(*   (typing gamma v tau)#==>(num_arr tau n) *)
+
+(* let[@axiom] stlc_term_4_cases (v : stlc_term) = *)
+(*   is_const v || is_var v || is_abs v || is_app v *)
+
+(* let[@axiom] stlc_term_disjoint1 (v : stlc_term) = not (is_const v && is_var v) *)
+(* let[@axiom] stlc_term_disjoint2 (v : stlc_term) = not (is_const v && is_abs v) *)
+(* let[@axiom] stlc_term_disjoint3 (v : stlc_term) = not (is_const v && is_app v) *)
+(* let[@axiom] stlc_term_disjoint4 (v : stlc_term) = not (is_var v && is_abs v) *)
+(* let[@axiom] stlc_term_disjoint5 (v : stlc_term) = not (is_var v && is_app v) *)
+(* let[@axiom] stlc_term_disjoint6 (v : stlc_term) = not (is_abs v && is_app v) *)
+
+(* let[@axiom] stlc_term_const_typing_nat (gamma : stlc_tyctx) (v : stlc_term) *)
+(*     (tau : stlc_ty) = *)
+(*   (is_const v && typing gamma v tau)#==>(stlc_ty_nat tau) *)
+
+(* let[@axiom] stlc_id_is_var (v : stlc_term) (id : int) = *)
+(*   (stlc_id v id)#==>(is_var v) *)
+
+(* let[@axiom] stlc_const_is_const (v : stlc_term) (c : int) = *)
+(*   (stlc_const v c)#==>(is_const v) *)
+
+(* let[@axiom] stlc_term_destruct1 (term : stlc_term) ((c [@exists]) : int) = *)
+(*   (is_const term)#==>(stlc_const term c) *)
+
+(* let[@axiom] stlc_term_destruct2 (term : stlc_term) ((c [@exists]) : int) = *)
+(*   (is_var term)#==>(stlc_id term c) *)
+
+(* let[@axiom] stlc_term_destruct3 (term : stlc_term) ((t1 [@exists]) : stlc_term) *)
+(*     ((t2 [@exists]) : stlc_term) = *)
+(*   (is_app term)#==>(stlc_app1 term t1 && stlc_app2 term t2) *)
+
+(* let[@axiom] stlc_term_destruct4 (term : stlc_term) ((ty [@exists]) : stlc_ty) *)
+(*     ((body [@exists]) : stlc_term) = *)
+(*   (is_abs term)#==>(stlc_abs_ty term ty && stlc_abs_body term body) *)
+
+(* let[@axiom] stlc_term_abs_typing_arr (gamma : stlc_tyctx) (v : stlc_term) *)
+(*     (tau : stlc_ty) (ty : stlc_ty) (body : stlc_term) *)
+(*     ((body_ty [@exists]) : stlc_ty) = *)
+(*   (stlc_abs_ty v ty && stlc_abs_body v body && typing gamma v tau)#==>(stlc_ty_arr1 *)
+(*                                                                          tau ty *)
+(*                                                                      && stlc_ty_arr2 *)
+(*                                                                           tau *)
+(*                                                                           body_ty *)
+(*                                                                       ) *)
+
+(* let[@axiom] stlc_typing_app_tau_destruct (gamma : stlc_tyctx) (v : stlc_term) *)
+(*     (tau : stlc_ty) (t1 : stlc_term) (t2 : stlc_term) = *)
+(*   (typing gamma v tau && stlc_app1 v t1 && stlc_app2 v t2) *)
+(*   #==> (fun ((func_ty [@exists]) : stlc_ty) ((arg_ty [@exists]) : stlc_ty) -> *)
+(*   stlc_ty_arr1 func_ty arg_ty *)
+(*   && stlc_ty_arr2 func_ty tau && typing gamma t1 func_ty *)
+(*   && typing gamma t2 arg_ty) *)
+
+(* let[@axiom] stlc_tyctx_cons (ty : stlc_ty) (gamma : stlc_tyctx) *)
+(*     ((v [@exists]) : stlc_tyctx) = *)
+(*   stlc_tyctx_hd v ty && stlc_tyctx_tl v gamma *)
+
+(* let[@axiom] stlc_num_app_geq_0 (v : stlc_term) (n : int) = *)
+(*   (num_app v n)#==>(0 <= n) *)
+
+(* let[@axiom] stlc_num_app_abs_body_eq (v : stlc_term) (body : stlc_term) *)
+(*     (n : int) = *)
+(*   (stlc_abs_body v body && num_app v n)#==>(num_app body n) *)
+
+(* let[@axiom] stlc_num_app_abs_body_eq_rev (v : stlc_term) (body : stlc_term) *)
+(*     (n : int) = *)
+(*   (stlc_abs_body v body && num_app body n)#==>(num_app v n) *)
+
+(* let[@axiom] stlc_num_app_app_rev (v : stlc_term) (t1 : stlc_term) *)
+(*     (t2 : stlc_term) (n : int) = *)
+(*   (stlc_app1 v t1 && stlc_app2 v t2 && num_app v n) *)
+(*   #==> (fun ((m1 [@exists]) : int) ((m2 [@exists]) : int) -> *)
+(*   num_app t1 m1 && num_app t2 m2 && m1 + m2 == n - 1) *)
+
+(* let[@axiom] stlc_abd_typing_rev (gamma : stlc_tyctx) (v : stlc_term) *)
+(*     (tau : stlc_ty) (ty : stlc_ty) (body : stlc_term) (body_ty : stlc_ty) *)
+(*     (gamma1 : stlc_tyctx) = *)
+(*   (typing gamma v tau && stlc_abs_ty v ty && stlc_abs_body v body *)
+(*  && stlc_tyctx_hd gamma1 ty && stlc_tyctx_tl gamma1 gamma)#==>(typing gamma1 *)
+(*                                                                  body body_ty) *)
+
+(* let[@axiom] stlc_const_typing_nat (gamma : stlc_tyctx) (v : stlc_term) *)
+(*     (tau : stlc_ty) = *)
+(*   (is_const v && typing gamma v tau)#==>(stlc_ty_nat tau) *)
