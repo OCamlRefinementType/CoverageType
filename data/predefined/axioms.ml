@@ -13,27 +13,45 @@ let[@axiom] rational_zero_one =
 
 (** Priority *)
 
+let[@axiom] exists_priority_list_3 =
+ fun ((e1 [@ex]) : priority) ((e2 [@ex]) : priority) ((e3 [@ex]) : priority)
+     ((e3list [@ex]) : (int * int) list) ((lemp [@ex]) : priority list)
+     ((l3 [@ex]) : priority list) ((l23 [@ex]) : priority list)
+     ((l123 [@ex]) : priority list) ->
+  list_len lemp == 0
+  && hd l3 e3 && tl l3 lemp && hd l23 e2 && tl l23 l3 && hd l123 e1
+  && tl l123 l23 && is_high e1 && is_medium e2 && is_low e3 e3list
+  && list_len e3list == 0
+  && list_mem l123 e1 && list_mem l123 e2 && list_mem l123 e3
+
 let[@axiom] wf_priority =
  fun (v : priority) ->
-  implies (wf_priority v) (fun ((x_17 [@exists]) : priority list) ->
-      list_len x_17 == 0 && fun ((x_18 [@exists]) : (int * int) list) ->
-      list_len x_18 == 0 && fun ((x_19 [@exists]) : priority) ->
-      is_low x_19 x_18 && fun ((x_20 [@exists]) : priority list) ->
-      hd x_20 x_19 && tl x_20 x_17
-      && fun ((x_21 [@exists]) : priority) ->
-      is_medium x_21 && fun ((x_22 [@exists]) : priority list) ->
-      hd x_22 x_21 && tl x_22 x_20
-      && fun ((x_23 [@exists]) : priority) ->
-      is_high x_23 && fun ((x_24 [@exists]) : priority list) ->
-      hd x_24 x_23 && tl x_24 x_22
-      && fun ((x_44 [@exists]) : priority) ->
-      list_mem x_24 x_44
-      && ((is_high x_44 && is_high v)
-         || (is_medium x_44 && is_medium v)
-            && fun ((lowl [@exists]) : (int * int) list) ->
-            is_low x_44 lowl && fun ((x_50 [@exists]) : (int * int) list) ->
-            rational_zero_one_list x_50 && list_len x_50 <= 100 && is_low v x_50
-         ))
+  implies (wf_priority v)
+    (is_high v
+    || is_medium v && fun ((wl [@exists]) : (int * int) list) ->
+       rational_zero_one_list wl && list_len wl <= 100 && is_low v wl)
+
+(* let[@axiom] wf_priority_2 = *)
+(*  fun (v : priority) -> *)
+(*   implies (wf_priority v) (fun ((x_17 [@exists]) : priority list) -> *)
+(*       list_len x_17 == 0 && fun ((x_18 [@exists]) : (int * int) list) -> *)
+(*       list_len x_18 == 0 && fun ((x_19 [@exists]) : priority) -> *)
+(*       is_low x_19 x_18 && fun ((x_20 [@exists]) : priority list) -> *)
+(*       hd x_20 x_19 && tl x_20 x_17 *)
+(*       && fun ((x_21 [@exists]) : priority) -> *)
+(*       is_medium x_21 && fun ((x_22 [@exists]) : priority list) -> *)
+(*       hd x_22 x_21 && tl x_22 x_20 *)
+(*       && fun ((x_23 [@exists]) : priority) -> *)
+(*       is_high x_23 && fun ((x_24 [@exists]) : priority list) -> *)
+(*       hd x_24 x_23 && tl x_24 x_22 *)
+(*       && fun ((x_44 [@exists]) : priority) -> *)
+(*       list_mem x_24 x_44 *)
+(*       && ((is_high x_44 && is_high v) *)
+(*          || (is_medium x_44 && is_medium v) *)
+(*             && fun ((lowl [@exists]) : (int * int) list) -> *)
+(*             is_low x_44 lowl && fun ((x_50 [@exists]) : (int * int) list) -> *)
+(*             rational_zero_one_list x_50 && list_len x_50 <= 100 && is_low v x_50 *)
+(*          )) *)
 
 (** Tezos *)
 
@@ -60,13 +78,10 @@ let[@axiom] tezos =
            || (fun ((x_127 [@exists]) : 'a tezosTree) ->
                 l2t_pre xs x_127 && tezos_node1 v x x_127)
               && fun ((x_130 [@exists]) : int) ->
-              0 <= list_len xs
-              && 0 <= x_130
-              && x_130 <= list_len xs
-              && fun ((x_131 [@exists]) : 'a list * 'a list) ->
               0 <= x_130
               && x_130 <= list_len xs
-              && list_concat (fst x_131) (snd x_131) xs
+              && fun ((x_131 [@exists]) : 'a list * 'a list) ->
+              list_concat (fst x_131) (snd x_131) xs
               && ( list_len (fst x_131) == 0
                  && ( (list_len (snd x_131) == 0 && tezos_leaf v x)
                     || fun ((x_133 [@exists]) : 'a tezosTree) ->
