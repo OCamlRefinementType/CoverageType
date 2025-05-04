@@ -2,15 +2,28 @@ open Language
 open Zutils
 open Zdatatype
 
-let _log = Myconfig._log_preprocess
+let _log = Myconfig._log "inline"
 
-let inline_record { x; ty = args, record_ty } =
+type constructor_type = string list * Nt.nt
+
+let layout_constructor_type x =
+  spf "%s (%s) = %s" x.x (StrList.to_string (fst x.ty)) (Nt.layout (snd x.ty))
+
+let layout_alias l = split_by "\n" layout_constructor_type l
+
+let inline_record { x; ty = args, record_ty } ty =
   let f ts =
     let m = StrMap.of_list @@ _safe_combine [%here] args ts in
     let record_ty = Nt.msubst_nt m record_ty in
     record_ty
   in
-  Nt.subst_constructor_nt (x, f)
+  let ty = Nt.subst_constructor_nt (x, f) ty in
+  let core =
+    match record_ty with
+    | Nt.Ty_record { alias; fds } -> (List.map _get_x fds, alias)
+    | _ -> _die [%here]
+  in
+  Nt.subst_alias_in_record_nt core ty
 
 let self_inline l =
   let rec aux l =
@@ -45,12 +58,13 @@ let item_mk_type_alias_ctx items =
   self_inline l
 
 let item_inline decls items =
-  let minline nt =
+  let inline nt =
     let res = List.fold_right inline_record decls nt in
-    (* let () = *)
-    (*   Printf.printf "decls %s \n" (List.split_by_comma _get_x decls); *)
-    (*   Printf.printf "minline %s ==> %s\n" (Nt.layout nt) (Nt.layout res) *)
-    (* in *)
+    let () =
+      _log @@ fun () ->
+      Printf.printf "decls %s \n" (List.split_by_comma _get_x decls);
+      Printf.printf "inline %s ==> %s\n" (Nt.layout nt) (Nt.layout res)
+    in
     res
   in
   let f e =
@@ -59,7 +73,7 @@ let item_inline decls items =
         let decls =
           List.map
             (fun { constr_name; argsty } ->
-              { constr_name; argsty = List.map minline argsty })
+              { constr_name; argsty = List.map inline argsty })
             decls
         in
         let res =
@@ -70,24 +84,24 @@ let item_inline decls items =
     | MTyDecl { type_name; type_params; type_decl = Decl_record fds } ->
         (* if List.exists (fun x -> String.equal type_name x.x) decls then Some e *)
         (* else *)
-        let fds = List.map (fun x -> x#=>minline) fds in
+        let fds = List.map (fun x -> x#=>inline) fds in
         let res =
           MTyDecl { type_name; type_params; type_decl = Decl_record fds }
         in
         Some res
-    | MValDecl x -> Some (MValDecl x#=>minline)
-    | MMethodPred x -> Some (MMethodPred x#=>minline)
+    | MValDecl x -> Some (MValDecl x#=>inline)
+    | MMethodPred x -> Some (MMethodPred x#=>inline)
     | MAxiom { name; tasks; prop } ->
-        Some (MAxiom { name; tasks; prop = map_prop minline prop })
+        Some (MAxiom { name; tasks; prop = map_prop inline prop })
     | MLocalRty { host_name; name; rty; captured } ->
-        let rty = map_rty minline rty in
+        let rty = map_rty inline rty in
         Some (MLocalRty { host_name; name; rty; captured })
     | MRty { is_assumption; name; rty } ->
-        let rty = map_rty minline rty in
+        let rty = map_rty inline rty in
         Some (MRty { is_assumption; name; rty })
     | MFuncImpRaw { name; if_rec; body } ->
-        let name = name#=>minline in
-        let body = typed_map_raw_term minline body in
+        let name = name#=>inline in
+        let body = typed_map_raw_term inline body in
         Some (MFuncImpRaw { name; if_rec; body })
     | MFuncImp _ -> _failatwith [%here] "die"
   in

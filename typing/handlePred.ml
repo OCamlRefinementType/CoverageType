@@ -119,8 +119,15 @@ let unification_rtys poly_preds cs =
     | (t1, t2) :: cs -> (
         match (t1, t2) with
         | RtyBase { cty = cty1; _ }, RtyBase { cty = cty2; _ } -> (
-            _assert [%here] "instantiate: basic type should be equal"
-              (Nt.equal_nt cty1.nty cty2.nty);
+            if not (Nt.equal_nt cty1.nty cty2.nty) then (
+              Printf.printf
+                "instantiate: basic type should be equal\n\
+                 %s != %s\n\
+                 Precisely:\n\
+                 %s != %s"
+                (Nt.layout_nt cty1.nty) (Nt.layout_nt cty2.nty)
+                (Nt.show_nt cty1.nty) (Nt.show_nt cty2.nty);
+              _die [%here]);
             match as_poly_pred_quafilied_cty poly_preds cty2 with
             | None -> (
                 match as_poly_pred_quafilied_cty poly_preds cty1 with

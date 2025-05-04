@@ -36,9 +36,15 @@ let[@library] ( >= ) =
 
 let[@library] ( + ) = fun ?r:(a : int) ?r:(b : int) -> (v == a + b : [%v: int])
 let[@library] ( - ) = fun ?r:(a : int) ?r:(b : int) -> (v == a - b : [%v: int])
+let[@library] ( * ) = fun ?r:(a : int) ?r:(b : int) -> (v == a * b : [%v: int])
+
+let[@library] ( / ) =
+ fun ?r:(a : int) ?r:(b = ((v != 0 : [%v: int]) [@over])) ->
+  (v == a / b : [%v: int])
 
 let[@library] ( mod ) =
- fun ?r:(a : int) ?r:(b : int) -> (v == a mod b : [%v: int])
+ fun ?r:(a : int) ?r:(b = ((v != 0 : [%v: int]) [@over])) ->
+  (v == a mod b : [%v: int])
 
 let[@library] not = fun ?r:(a : bool) -> (v == not a : [%v: bool])
 

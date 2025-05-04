@@ -8,7 +8,7 @@ let bind (gen : 'a1 gen) (f : 'a1 -> 'a2 gen) : 'a2 gen =
  fun () -> f (gen ()) ()
 
 let[@assert] return (b1 : baseType) ?r:(x = ((true : [%v: 'b1]) [@over])) =
-  M (v == x : [%v: 'b2])
+  M (v == x : [%v: 'b1])
 
 let[@assert] bind (b1 : baseType) (b2 : baseType) (p1 : 'b1 -> bool)
     (p2 : 'b1 -> 'b2 -> bool) ?r:(_ = M (p1 v : [%v: 'b1]))
