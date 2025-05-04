@@ -23,6 +23,8 @@ val ( > ) : int -> int -> bool
 val ( >= ) : int -> int -> bool
 val ( + ) : int -> int -> int
 val ( - ) : int -> int -> int
+val ( * ) : int -> int -> int
+val ( / ) : int -> int -> int
 val ( mod ) : int -> int -> int
 val not : bool -> bool
 val ( && ) : bool -> bool -> bool
@@ -198,3 +200,40 @@ val sum_fst_int : (int * 'a) list -> int (* for frequency *)
 val choose_by_fq : int list -> int (* for frequency *)
 val char_of_int : int -> char
 val swap : 'a list -> int -> int -> 'a list (* for shuffle *)
+
+(** Xen API *)
+
+(** enum type encoded as int; *)
+
+(* type file_kind = *)
+(*   | S_BLK = 0 *)
+(*   | S_CHR = 1 *)
+(*   | S_DIR = 2 *)
+(*   | S_FIFO = 3 *)
+(*   | S_LNK = 4 *)
+(*   | S_REG = 5 *)
+(*   | S_SOCK = 6 *)
+
+type fd = {
+  size : int;
+  delay_read : Delay.t option;
+  delay_write : Delay.t option;
+  kind : int;
+}
+
+(** [select_fd_spec] defines a behaviour for a select input: a file descriptor
+    kind and how long before any event happens on it *)
+
+type select_fd_spec = { kind : int; wait : float }
+
+val wf_file_kind : int -> bool
+val is_testable_kind : int -> bool
+val has_immediate_timeout : int -> bool
+val wf_timeouts : float -> bool
+val wf_total_delay : float -> bool
+val wf_size_bound : int -> bool
+val wf_select_fd_spec : select_fd_spec -> bool
+val wf_select_fd_spec_list : select_fd_spec list -> bool
+val wf_fd_size : int -> bool
+val wf_delay_size : Delay.t option -> float -> int -> bool
+val wf_fd : fd -> bool

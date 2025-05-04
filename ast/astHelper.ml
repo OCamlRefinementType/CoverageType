@@ -296,9 +296,12 @@ let mk_unit_underrty phi =
 
 open Prop
 
-let value_to_lit loc = function
+let rec value_to_lit loc = function
   | VVar x -> AVar x
   | VConst c -> AC c
+  | VTuple vs ->
+      let lits = List.map (fun x -> lit_to_tlit @@ value_to_lit loc x.x) vs in
+      ATu lits
   | _ -> _die loc
 
 let mk_eq_lit_prop lit =

@@ -199,8 +199,11 @@ let type_check_group (bctx : built_in_ctx) =
       (apparg : (Nt.t rty, Nt.t value) typed) : Nt.t rty option =
     let argrty, arg, retty = destruct_arr_rty [%here] appf_rty in
     let () =
-      _assert [%here] "application basic type check"
-        (Nt.equal_nt (erase_rty argrty) (erase_rty apparg.ty))
+      let _nt1 = erase_rty argrty in
+      let _nt2 = erase_rty apparg.ty in
+      if not (Nt.equal_nt _nt1 _nt2) then (
+        Printf.printf "%s != %s\n" (Nt.layout _nt1) (Nt.layout _nt2);
+        _assert [%here] "application basic type check" false)
     in
     match argrty with
     | RtyArr _ ->

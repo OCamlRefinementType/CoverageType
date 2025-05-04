@@ -47,7 +47,7 @@
         ],
         [
             "show_var_type_in_term",
-            false
+            true
         ],
         [
             "instantiate_poly_type_var_in_smt",
