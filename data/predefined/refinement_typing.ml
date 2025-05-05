@@ -178,6 +178,37 @@ let[@library] Stlc_abs =
  fun ?r:(ty : stlc_ty) ?r:(body : stlc_term) ->
   (stlc_abs_ty v ty && stlc_abs_body v body : [%v: stlc_term])
 
+(** VeLLVM *)
+
+let[@library] TYPE_I = fun ?r:(i : int) -> (type_i v i : [%v: typ])
+let[@library] TYPE_Void = (type_void v : [%v: typ])
+
+let[@library] TYPE_Vector =
+ fun ?r:(i : int) ?r:(ty : typ) ->
+  (type_vector1 v i && type_vector2 v ty : [%v: typ])
+
+let[@library] TYPE_Array =
+ fun ?r:(i : int) ?r:(ty : typ) ->
+  (type_array1 v i && type_array2 v ty : [%v: typ])
+
+let[@library] TYPE_Others = (type_others v : [%v: typ])
+
+let[@library] DVALUE_I =
+ fun ?r:(s : int) ?r:(i : int) ->
+  (dvalue_int_size v s && dvalue_int_content v i : [%v: dvalue])
+
+let[@library] DVALUE_None = (dvalue_none v : [%v: dvalue])
+
+let[@library] DVALUE_Vector =
+ fun ?r:(ty : typ) ?r:(cnt : dvalue list) ->
+  (dvalue_vector_typ v ty && dvalue_vector_content v cnt : [%v: dvalue])
+
+let[@library] DVALUE_Array =
+ fun ?r:(ty : typ) ?r:(cnt : dvalue list) ->
+  (dvalue_array_typ v ty && dvalue_array_content v cnt : [%v: dvalue])
+
+let[@library] DVALUE_Others = (dvalue_others v : [%v: dvalue])
+
 (** Aux functions *)
 
 (** For frequency *)

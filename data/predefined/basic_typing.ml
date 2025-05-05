@@ -25,6 +25,7 @@ val ( + ) : int -> int -> int
 val ( - ) : int -> int -> int
 val ( * ) : int -> int -> int
 val ( / ) : int -> int -> int
+val ( ^ ) : int -> int -> int
 val ( mod ) : int -> int -> int
 val not : bool -> bool
 val ( && ) : bool -> bool -> bool
@@ -237,3 +238,81 @@ val wf_select_fd_spec_list : select_fd_spec list -> bool
 val wf_fd_size : int -> bool
 val wf_delay_size : Delay.t option -> float -> int -> bool
 val wf_fd : fd -> bool
+
+(** Vellvm *)
+
+(* LLVM types *)
+type typ =
+  | TYPE_I of int
+  | TYPE_Void
+  | TYPE_Vector of int * typ
+  | TYPE_Array of int * typ
+  | TYPE_Others
+
+(* LLVM dynamic values *)
+type dvalue =
+  | DVALUE_I of int * int
+  | DVALUE_None
+  | DVALUE_Vector of typ * dvalue list
+  | DVALUE_Array of typ * dvalue list
+  | DVALUE_Others
+
+val type_i : typ -> int -> bool
+val type_void : typ -> bool
+val type_vector1 : typ -> int -> bool
+val type_array1 : typ -> int -> bool
+val type_vector2 : typ -> typ -> bool
+val type_array2 : typ -> typ -> bool
+val type_others : typ -> bool
+val dvalue_int_content : dvalue -> int -> bool
+val dvalue_int_size : dvalue -> int -> bool
+val dvalue_none : dvalue -> bool
+val dvalue_vector_typ : dvalue -> typ -> bool
+val dvalue_vector_content : dvalue -> dvalue list -> bool
+val dvalue_array_typ : dvalue -> typ -> bool
+val dvalue_array_content : dvalue -> dvalue list -> bool
+val dvalue_others : dvalue -> bool
+
+(* val wf_dvalue : dvalue -> bool *)
+(* val wf_dvalue_list : dvalue list -> bool *)
+val llvm_typing : dvalue -> typ -> bool
+val dvalue_list : dvalue list -> dvalue -> bool
+
+(** Herdtools7 *)
+
+type literal =
+  | L_Int of int
+  | L_Bool of bool
+  | L_Real of float
+  | L_BitVector of Bitvector.t
+  | L_String of string
+
+type expr =
+  | E_Literal of literal
+  | E_Var of string
+  | E_Binop of string * expr * expr
+  | E_Unop of string * expr
+  | E_Slice of expr * slice list
+  | E_Cond of expr * expr * expr
+  | E_Tuple of expr list
+  | E_Others
+
+type slice =
+  | Slice_Single of expr
+      (** [Slice_Single i] is the slice of length [1] at position [i]. *)
+  | Slice_Range of expr * expr
+      (** [Slice_Range (j, i)] denotes the slice from [i] to [j - 1]. *)
+  | Slice_Length of expr * expr
+      (** [Slice_Length (i, n)] denotes the slice starting at [i] of length [n].
+      *)
+  | Slice_Star of expr * expr
+      (** [Slice_Start (factor, length)] denotes the slice starting at
+          [factor * length] of length [n]. *)
+
+val wf_slice : slice -> bool
+val wf_slice_list : slice list -> bool
+val wf_expr : expr -> bool
+val wf_expr_list : expr list -> bool
+val is_printable : string -> bool
+val is_binop : string -> bool
+val is_unop : string -> bool

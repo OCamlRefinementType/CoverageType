@@ -591,7 +591,7 @@ let[@axiom] stlc_typing =
         && num_app body_2 == num
         && stlc_abs_ty v tau1_4 && stlc_abs_body v body_2 )
 
-(** Xen Api*)
+(** Xen Api *)
 
 let[@axiom] wf_file_kind_list_6_ex =
  fun (v : int) ->
@@ -701,6 +701,74 @@ let[@axiom] wf_fd =
          || (not (v.kind == 0))
             && wf_delay_size v.delay_read total_delay x_56
             && v.kind == v.kind && v.size == x_56))
+
+(** VeLLVM *)
+
+let[@axiom] llvm_int_size_implies_content =
+ fun (v : dvalue) (s : int) ->
+  (dvalue_int_size v s)#==>( 0 <= s && fun ((y [@ex]) : int) ->
+                             0 <= y && y < 2 ^ s && dvalue_int_content v y )
+
+let[@axiom] llvm_int_content_limit =
+ fun (v : dvalue) (y : int) -> (dvalue_int_content v y)#==>(0 <= y && y <= 1000)
+
+let[@axiom] llvm_typ_vector_decreasing =
+ fun (v : typ) (t2 : typ) -> (type_vector2 v t2)#==>(decreasing t2 v)
+
+let[@axiom] llvm_typ_array_decreasing =
+ fun (v : typ) (t2 : typ) -> (type_array2 v t2)#==>(decreasing t2 v)
+
+let[@axiom] llvm_typing_int =
+ fun (t : typ) (v : dvalue) (i : int) ->
+  (llvm_typing v t && type_i t i)#==>(dvalue_int_size v i
+                                     && (i == 1 || i == 8 || i == 32 || i == 64)
+                                     )
+
+let[@axiom] llvm_typing_none =
+ fun (t : typ) (v : dvalue) ->
+  (llvm_typing v t && type_void t)#==>(dvalue_none v)
+
+let[@axiom] llvm_typing_vector =
+ fun (t : typ) (v : dvalue) (sz : int) (ty : typ) ->
+  (llvm_typing v t && type_vector1 t sz && type_vector2 t ty)
+  #==> (fun ((dvec [@ex]) : dvalue) ->
+  llvm_typing dvec ty && fun ((x_22 [@ex]) : dvalue list) ->
+  dvalue_list x_22 dvec
+  && list_len x_22 == sz
+  && dvalue_vector_typ v t
+  && dvalue_vector_content v x_22)
+
+let[@axiom] llvm_typing_array =
+ fun (t : typ) (v : dvalue) (sz' : int) (ty' : typ) ->
+  (llvm_typing v t && type_array1 t sz' && type_array2 t ty')
+  #==> (fun ((darr [@ex]) : dvalue) ->
+  llvm_typing darr ty' && fun ((x_29 [@ex]) : dvalue list) ->
+  dvalue_list x_29 darr
+  && list_len x_29 == sz'
+  && dvalue_array_typ v t
+  && dvalue_array_content v x_29)
+
+let[@axiom] llvm_typing_others =
+ fun (t : typ) (v : dvalue) -> not (llvm_typing v t && type_others t)
+
+let[@axiom] llvm_typ_destruct =
+ fun (t : typ) (v : dvalue) ->
+  implies (llvm_typing v t)
+    ((fun ((i [@ex]) : int) -> type_i t i)
+    || type_void t
+    || (fun ((sz [@ex]) : int) ((ty [@ex]) : typ) ->
+      type_vector1 t sz && type_vector2 t ty)
+    || fun ((sz' [@ex]) : int) ->
+    fun ((ty' [@ex]) : typ) -> type_array1 t sz' && type_array2 t ty')
+
+(* let[@axiom] llvm_int_1 = *)
+(*  fun (v : dvalue) -> *)
+(*   (dvalue_int_size v 1)#==>(dvalue_int_content v 1 || dvalue_int_content v 0) *)
+
+(* let[@axiom] llvm_int_8 = *)
+(*  fun (v : dvalue) -> *)
+(*   (dvalue_int_size v 8) #==> (fun ((y [@ex]) : int) -> *)
+(*   0 <= x_6 && x_6 <= 255 && dvalue_int_content v y) *)
 
 (** Old *)
 
