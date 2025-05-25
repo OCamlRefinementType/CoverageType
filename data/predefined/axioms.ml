@@ -370,25 +370,25 @@ let[@axiom] rbtree_no_rb_leaf_ex_rb_root_color (l : int rbtree)
     ((x [@ex]) : bool) =
   (not (rb_leaf l))#==>(rb_root_color l x)
 
-let[@axiom] rbtree_rb_root_no_rb_leaf (l : int rbtree) (x : int) =
-  (rb_root l x)#==>(not (rb_leaf l))
+(* let[@axiom] rbtree_rb_root_no_rb_leaf (l : int rbtree) (x : int) = *)
+(*   (rb_root l x)#==>(not (rb_leaf l)) *)
 
-let[@axiom] rbtree_rb_root_color_no_rb_leaf (l : int rbtree) (x : bool) =
-  (rb_root_color l x)#==>(not (rb_leaf l))
+(* let[@axiom] rbtree_rb_root_color_no_rb_leaf (l : int rbtree) (x : bool) = *)
+(*   (rb_root_color l x)#==>(not (rb_leaf l)) *)
 
-let[@axiom] rbtree_ch_no_rb_leaf (l : int rbtree) (l1 : int rbtree) =
-  (rb_lch l l1 || rb_rch l l1)#==>(not (rb_leaf l))
+(* let[@axiom] rbtree_ch_no_rb_leaf (l : int rbtree) (l1 : int rbtree) = *)
+(*   (rb_lch l l1 || rb_rch l l1)#==>(not (rb_leaf l)) *)
 
 let[@axiom] rbtree_num_black_0_rb_leaf (l : int rbtree) =
   (num_black l == 0 && not (rb_root_color l true))#==>(rb_leaf l)
 
-let[@axiom] rbtree_num_black_geq_0 (l : int rbtree) = num_black l >= 0
+(* let[@axiom] rbtree_num_black_geq_0 (l : int rbtree) = num_black l >= 0 *)
 
 let[@axiom] rbtree_rb_leaf_num_black_0 (l : int rbtree) (n : int) =
   (rb_leaf l && num_black l == n)#==>(n == 0)
 
-let[@axiom] rbtree_positive_num_black_is_not_rb_leaf (l : int rbtree) =
-  (num_black l > 0)#==>(not (rb_leaf l))
+(* let[@axiom] rbtree_positive_num_black_is_not_rb_leaf (l : int rbtree) = *)
+(*   (num_black l > 0)#==>(not (rb_leaf l)) *)
 
 let[@axiom] num_black_root_black_lt_minus_1 (v : int rbtree) (lt : int rbtree) =
   (rb_root_color v false && rb_lch v lt)#==>(1 + num_black lt == num_black v)
@@ -402,14 +402,14 @@ let[@axiom] num_black_root_red_lt_same (v : int rbtree) (lt : int rbtree) =
 let[@axiom] num_black_root_red_rt_same (v : int rbtree) (rt : int rbtree) =
   (rb_root_color v true && rb_rch v rt)#==>(num_black rt == num_black v)
 
-let[@axiom] num_black_root_black_0_lt_leaf (v : int rbtree) (lt : int rbtree) =
-  (num_black v == 0 && rb_lch v lt)#==>(rb_leaf lt)
+(* let[@axiom] num_black_root_black_0_lt_leaf (v : int rbtree) (lt : int rbtree) = *)
+(*   (num_black v == 0 && rb_lch v lt)#==>(rb_leaf lt) *)
 
-let[@axiom] num_black_root_black_0_rt_leaf (v : int rbtree) (rt : int rbtree) =
-  (num_black v == 0 && rb_rch v rt)#==>(rb_leaf rt)
+(* let[@axiom] num_black_root_black_0_rt_leaf (v : int rbtree) (rt : int rbtree) = *)
+(*   (num_black v == 0 && rb_rch v rt)#==>(rb_leaf rt) *)
 
-let[@axiom] num_black_root_black_0_rt_red (v : int rbtree) (rt : int rbtree) =
-  (num_black v == 0 && rb_rch v rt)#==>(rb_root_color v true)
+(* let[@axiom] num_black_root_black_0_rt_red (v : int rbtree) (rt : int rbtree) = *)
+(*   (num_black v == 0 && rb_rch v rt)#==>(rb_root_color v true) *)
 
 let[@axiom] no_red_red_lt (v : int rbtree) (lt : int rbtree) =
   (no_red_red v && rb_lch v lt)#==>(no_red_red lt)
@@ -427,13 +427,13 @@ let[@axiom] no_red_red_root_red_rt_not_red (v : int rbtree) (rt : int rbtree) =
                                                               (rb_root_color rt
                                                                  true))
 
-let[@axiom] black_lt_black_num_black_gt_1 (v : int rbtree) (lt : int rbtree) =
-  (rb_lch v lt && rb_root_color v false && rb_root_color lt false)#==>(num_black
-                                                                         v > 1)
+(* let[@axiom] black_lt_black_num_black_gt_1 (v : int rbtree) (lt : int rbtree) = *)
+(*   (rb_lch v lt && rb_root_color v false && rb_root_color lt false)#==>(num_black *)
+(*                                                                          v > 1) *)
 
-let[@axiom] black_rt_black_num_black_gt_1 (v : int rbtree) (rt : int rbtree) =
-  (rb_rch v rt && rb_root_color v false && rb_root_color rt false)#==>(num_black
-                                                                         v > 1)
+(* let[@axiom] black_rt_black_num_black_gt_1 (v : int rbtree) (rt : int rbtree) = *)
+(*   (rb_rch v rt && rb_root_color v false && rb_root_color rt false)#==>(num_black *)
+(*                                                                          v > 1) *)
 
 (** stlc *)
 

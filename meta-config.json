@@ -15,7 +15,7 @@
         // "axiom",
         // "unification",
         // "instantiateRty",
-        "auxtyping",
+        // "auxtyping",
         // "simplProp",
         "preprocess",
         "typing",
@@ -25,6 +25,7 @@
         "never-use"
     ],
     "bool_options": [
+        ["if_sort_record", true],
         [
             "show_type_infer_pre_judgement",
             false

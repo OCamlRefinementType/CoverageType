@@ -2,7 +2,7 @@
  (public_name CoverageType.typing)
  (name typing)
  (wrapped true)
- (libraries core zutils language auxtyping)
+ (libraries core zutils language auxtyping statistic)
  (modules
    common
    handlePred

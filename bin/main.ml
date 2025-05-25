@@ -35,6 +35,8 @@ let type_check source_file () =
   let () = Pp.printf "@{<bold>result:@} %s\n" (layout_structure code) in
   (* let () = _die [%here] in *)
   let _ = Typing.struc_check (Preprocess.load_bctx ()) code in
+  let stat_file = "/tmp/coverage_type_stat.json" in
+  let () = Statistic.store_stat stat_file in
   ()
 
 let one_param_file message f =

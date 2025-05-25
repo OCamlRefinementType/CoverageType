@@ -2,13 +2,13 @@ open Language
 open Zutils
 open Zdatatype
 
-(* let _simp_prop x = x *)
-let _simp_prop p =
-  let res = SimplProp.eval_arithmetic p in
-  let () =
-    Pp.printf "@{<bold>SIMP@} %s =====> %s\n" (layout_prop p) (layout_prop res)
-  in
-  res
+let _simp_prop x = x
+(* let _simp_prop p = *)
+(*   let res = SimplProp.eval_arithmetic p in *)
+(*   let () = *)
+(*     Pp.printf "@{<bold>SIMP@} %s =====> %s\n" (layout_prop p) (layout_prop res) *)
+(*   in *)
+(*   res *)
 
 let exists_cty (x : string) ({ nty; phi } : 't cty) (cty : 't cty) : 't cty =
   if Nt.equal_nt Nt.unit_ty nty then { cty with phi = smart_add_to phi cty.phi }
@@ -18,10 +18,11 @@ let exists_cty (x : string) ({ nty; phi } : 't cty) (cty : 't cty) : 't cty =
     let () = Pp.printf "@{<bold>exists_cty@} %s\n" (layout_prop phi) in
     let phi, cty_phi = map2 _simp_prop (phi, cty.phi) in
     let () = Pp.printf "@{<bold>exists_cty@} %s\n" (layout_prop phi) in
-    let phi = smart_exists [ x#:nty ] (smart_add_to phi cty_phi) in
+    (* let phi = smart_exists [ x#:nty ] (smart_add_to phi cty_phi) in *)
+    let phi = Exists { qv = x#:nty; body = smart_add_to phi cty_phi } in
     let () = Pp.printf "@{<bold>exists_cty@} %s\n" (layout_prop phi) in
-    let phi' = SimplProp.simpl_query_by_eq phi in
-    { cty with phi = phi' }
+    (* let phi = SimplProp.simpl_query_by_eq phi in *)
+    { cty with phi }
 
 let exists_rty (x : string) (xrty : 't rty) (rty : 't rty) : 't rty =
   match xrty with

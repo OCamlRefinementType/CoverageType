@@ -529,3 +529,63 @@ let raw_term_to_str_list e =
 
 let mk_capture captured_ts captured_preds captured_vars =
   { captured_ts; captured_preds; captured_vars }
+
+(* stat *)
+
+let rec counter_branch_value (value_e : 't value) =
+  match value_e with
+  | VConst _ | VVar _ -> 0
+  | VLam { body; _ } -> counter_branch_term body.x
+  | VFix { body; _ } -> counter_branch_term body.x
+  | VTuple vs ->
+      List.fold_left (fun res x -> res + counter_branch_value x.x) 0 vs
+
+and counter_branch_term (term_e : 't term) : int =
+  match term_e with
+  | CErr | CRecord _ | CField _ -> 0
+  | CVal v -> counter_branch_value v.x
+  | CLetE { rhs; body; _ } ->
+      counter_branch_term rhs.x + counter_branch_term body.x
+  | CLetDeTuple { turhs; body; _ } ->
+      counter_branch_value turhs.x + counter_branch_term body.x
+  | CApp { appf; apparg } ->
+      counter_branch_value appf.x + counter_branch_value apparg.x
+  | CAppOp { op; appopargs } ->
+      List.fold_left (fun res x -> res + counter_branch_value x.x) 0 appopargs
+  | CMatch { matched; match_cases } ->
+      let new_adding = List.length match_cases - 1 in
+      List.fold_left
+        (fun res -> function
+          | CMatchcase { exp; _ } -> res + counter_branch_term exp.x)
+        new_adding match_cases
+
+let counter_branch_from_term e = 1 + counter_branch_term e.x
+let counter_branch_from_value e = 1 + counter_branch_value e.x
+
+let rec counter_lvar_value (value_e : 't value) =
+  match value_e with
+  | VConst _ | VVar _ -> 0
+  | VLam { body; _ } -> 1 + counter_lvar_term body.x
+  | VFix { body; _ } -> 2 + counter_lvar_term body.x
+  | VTuple vs -> List.fold_left (fun res x -> res + counter_lvar_value x.x) 0 vs
+
+and counter_lvar_term (term_e : 't term) : int =
+  match term_e with
+  | CErr | CRecord _ | CField _ -> 0
+  | CVal v -> counter_lvar_value v.x
+  | CLetE { rhs; body; _ } ->
+      1 + counter_lvar_term rhs.x + counter_lvar_term body.x
+  | CLetDeTuple { turhs; tulhs; body } ->
+      List.length tulhs + counter_lvar_value turhs.x + counter_lvar_term body.x
+  | CApp { appf; apparg } ->
+      counter_lvar_value appf.x + counter_lvar_value apparg.x
+  | CAppOp { op; appopargs } ->
+      List.fold_left (fun res x -> res + counter_lvar_value x.x) 0 appopargs
+  | CMatch { matched; match_cases } ->
+      List.fold_left
+        (fun res -> function
+          | CMatchcase { exp; _ } -> res + counter_lvar_term exp.x)
+        0 match_cases
+
+let if_rec_value = function VFix _ -> true | _ -> false
+let if_rec_term = function CVal v -> if_rec_value v.x | _ -> false
