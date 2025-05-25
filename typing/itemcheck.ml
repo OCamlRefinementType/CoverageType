@@ -55,11 +55,17 @@ let item_check bctx inv_m imp_m (name, rty) =
       imp_m name
   in
   let () = Pp.printf "@{<bold>imp_m(%s)@}\n%s\n" name (layout_typed_term imp) in
+  let () = Statistic.create_stat name imp in
   let invs = match StrMap.find_opt inv_m name with None -> [] | Some l -> l in
   let sol, rty = instantiate_rty_by_nty [%here] rty imp.ty in
   let invs = List.map (fun x -> x#=>(map_rty (Nt.msubst_nt sol))) invs in
-  _task_info name rty;
-  match term_type_check bctx (Common.Rctx.emp name [] invs) (imp, rty) with
+  let () = _task_info name rty in
+  let time, res =
+    clock (fun () ->
+        term_type_check bctx (Common.Rctx.emp name [] invs) (imp, rty))
+  in
+  let () = Statistic.stat_total_time (name, time) in
+  match res with
   | Some _ ->
       _task_succ name;
       Suc (rty_add_to_right bctx name#:rty)
