@@ -184,7 +184,6 @@ val is_abs : stlc_term -> bool
 val is_app : stlc_term -> bool
 val typing : stlc_ty list -> stlc_term -> stlc_ty -> bool
 val num_app : stlc_term -> int
-val stlc_ty_nat : stlc_ty -> bool
 val stlc_ty_arr1 : stlc_ty -> stlc_ty -> bool
 val stlc_ty_arr2 : stlc_ty -> stlc_ty -> bool
 val stlc_const : stlc_term -> int -> bool
@@ -284,7 +283,7 @@ type literal =
   | L_Int of int
   | L_Bool of bool
   | L_Real of float
-  | L_BitVector of Bitvector.t
+  | L_BitVector of char list
   | L_String of string
 
 type expr =
@@ -309,10 +308,30 @@ type slice =
       (** [Slice_Start (factor, length)] denotes the slice starting at
           [factor * length] of length [n]. *)
 
+val herd_l_int : literal -> int -> bool
+val herd_l_bool : literal -> bool -> bool
+val herd_l_real : literal -> float -> bool
+val herd_l_bitvector : literal -> char list -> bool
+val herd_l_string : literal -> string -> bool
+val wf_literal : literal -> bool
 val wf_slice : slice -> bool
 val wf_slice_list : slice list -> bool
 val wf_expr : expr -> bool
+val expr_size : expr -> int
 val wf_expr_list : expr list -> bool
 val is_printable : string -> bool
 val is_binop : string -> bool
 val is_unop : string -> bool
+
+(** Zipperposition *)
+
+type pt_term =
+  | PT_Var of string
+  | PT_Ite of pt_term * pt_term * pt_term
+  | PT_App of pt_term * pt_term list
+
+val pt_var : pt_term -> string -> bool
+val pt_ite : pt_term -> pt_term -> pt_term -> pt_term -> bool
+val pt_app : pt_term -> pt_term -> pt_term list -> bool
+val wf_fol_pt_term : pt_term -> bool
+val pt_term_size : pt_term -> int

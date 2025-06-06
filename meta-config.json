@@ -15,7 +15,7 @@
         // "axiom",
         // "unification",
         // "instantiateRty",
-        // "auxtyping",
+        "auxtyping",
         // "simplProp",
         "preprocess",
         "typing",

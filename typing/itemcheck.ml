@@ -56,6 +56,7 @@ let item_check bctx inv_m imp_m (name, rty) =
   in
   let () = Pp.printf "@{<bold>imp_m(%s)@}\n%s\n" name (layout_typed_term imp) in
   let () = Statistic.create_stat name imp in
+  let () = Statistic.stat_update_rty (name, counter_rty_qt_qpred rty) in
   let invs = match StrMap.find_opt inv_m name with None -> [] | Some l -> l in
   let sol, rty = instantiate_rty_by_nty [%here] rty imp.ty in
   let invs = List.map (fun x -> x#=>(map_rty (Nt.msubst_nt sol))) invs in
@@ -65,12 +66,14 @@ let item_check bctx inv_m imp_m (name, rty) =
         term_type_check bctx (Common.Rctx.emp name [] invs) (imp, rty))
   in
   let () = Statistic.stat_total_time (name, time) in
+  let () = Statistic.store_stat stat_file in
   match res with
   | Some _ ->
       _task_succ name;
       Suc (rty_add_to_right bctx name#:rty)
   | None ->
       _task_fail name;
+      (* let () = _die [%here] in *)
       Fai name
 
 let struc_check bctx items =

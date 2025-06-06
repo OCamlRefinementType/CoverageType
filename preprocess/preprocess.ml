@@ -7,6 +7,7 @@ let parse file =
   ocaml_structure_to_items
   @@ OcamlParser.Oparse.parse_imp_from_file ~sourcefile:file
 
+let multi_parse files = List.concat_map parse files
 let _ctxs = ref None
 let _log = Myconfig._log_preprocess
 
@@ -18,11 +19,10 @@ let load_ctxs () =
   | Some ctxs -> ctxs
   | None ->
       let prim_path = Myconfig.get_prim_path () in
-      let items =
-        List.concat_map
-          (fun file -> parse (spf "%s/%s" prim_path.predefined_path file))
-          predefined_files
+      let files =
+        List.map (spf "%s/%s" prim_path.predefined_path) predefined_files
       in
+      let items = multi_parse files in
       let alias = Type_alias.item_mk_type_alias_ctx items in
       let items = Type_alias.item_inline alias items in
       let basic_ctx, items = struct_check Typectx.emp items in
@@ -46,8 +46,8 @@ let load_alias () =
   let alias, _, _ = load_ctxs () in
   alias
 
-let preproress source_file =
-  let items = parse source_file in
+let preproress source_files =
+  let items = multi_parse source_files in
   let items' = Type_alias.item_inline (load_alias ()) items in
   let alias = Type_alias.item_mk_type_alias_ctx items' in
   let items' = Type_alias.item_inline alias items' in

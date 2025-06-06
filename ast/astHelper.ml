@@ -589,3 +589,11 @@ and counter_lvar_term (term_e : 't term) : int =
 
 let if_rec_value = function VFix _ -> true | _ -> false
 let if_rec_term = function CVal v -> if_rec_value v.x | _ -> false
+
+let counter_rty_qt_qpred (rty : Nt.t rty) : int * int =
+  let rec aux (qt, qpred) = function
+    | RtyPolyType { rty; _ } -> aux (1 + qt, qpred) rty
+    | RtyPolyPred { rty; _ } -> aux (qt, 1 + qpred) rty
+    | _ -> (qt, qpred)
+  in
+  aux (0, 0) rty

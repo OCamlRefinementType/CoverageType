@@ -8,6 +8,8 @@ type stat = {
   branchs : int;
   if_rec : bool;
   lvar : int;
+  num_qt : int;
+  num_qpred : int;
   method_prdicates : string list;
   mp : int;
   query_times : float list;
@@ -28,6 +30,12 @@ let update_stat name f =
   | Some stat -> Hashtbl.replace _stat_tab name (f stat)
   | None -> _die [%here]
 
+let stat_update_rty (name, (num_qt, num_qpred)) =
+  update_stat name (fun stat -> { stat with num_qt; num_qpred })
+
+let stat_count_qeury name =
+  update_stat name (fun stat -> { stat with num_query = stat.num_query + 1 })
+
 let stat_query_time (name, time) =
   update_stat name (fun stat ->
       { stat with query_times = stat.query_times @ [ time ] })
@@ -47,11 +55,11 @@ let stat_total_time (name, total_time) =
   update_stat name (fun stat -> { stat with total_time })
 
 let calcutale_stat stat =
-  let num_query = List.length stat.query_times in
-  let query_time = List.fold_left ( +. ) 0.0 stat.query_times in
-  let avg_time = query_time /. float_of_int num_query in
+  (* let num_query = List.length stat.query_times in *)
+  (* let query_time = List.fold_left ( +. ) 0.0 stat.query_times in *)
+  let avg_time = stat.total_time /. float_of_int stat.num_query in
   let mp = List.length stat.method_prdicates in
-  { stat with num_query; avg_time; mp }
+  { stat with avg_time; mp }
 
 let store_stat filename =
   let j =
@@ -71,6 +79,8 @@ let create_stat function_name (imp : (Nt.t, Nt.t term) typed) =
       branchs;
       if_rec;
       lvar;
+      num_qt = 0;
+      num_qpred = 0;
       method_prdicates = [];
       mp;
       query_times = [];
