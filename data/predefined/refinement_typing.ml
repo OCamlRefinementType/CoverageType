@@ -209,6 +209,30 @@ let[@library] DVALUE_Array =
 
 let[@library] DVALUE_Others = (dvalue_others v : [%v: dvalue])
 
+(** Herdtool7 *)
+
+let[@library] L_Int = fun ?r:(i : int) -> (herd_l_int v i : [%v: literal])
+let[@library] L_Bool = fun ?r:(i : bool) -> (herd_l_bool v i : [%v: literal])
+let[@library] L_Real = fun ?r:(i : float) -> (herd_l_real v i : [%v: literal])
+
+let[@library] L_BitVector =
+ fun ?r:(i : char list) -> (herd_l_bitvector v i : [%v: literal])
+
+let[@library] L_String =
+ fun ?r:(i : string) -> (herd_l_string v i : [%v: literal])
+
+(** Zipperposition *)
+
+let[@library] PT_Var = fun ?r:(s : string) -> (pt_var v s : [%v: pt_term])
+
+let[@library] PT_App =
+ fun ?r:(tr1 : pt_term) ?r:(tr2 : pt_term list) ->
+  (pt_app v tr1 tr2 : [%v: pt_term])
+
+let[@library] PT_Ite =
+ fun ?r:(tr1 : pt_term) ?r:(tr2 : pt_term) ?r:(tr3 : pt_term) ->
+  (pt_ite v tr1 tr2 tr3 : [%v: pt_term])
+
 (** Aux functions *)
 
 (** For frequency *)

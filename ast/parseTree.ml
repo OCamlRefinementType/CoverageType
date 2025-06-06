@@ -5,6 +5,7 @@ open Sexplib.Std
 let _return = "return"
 let _bind = "bind"
 let _fmap = "fmap"
+let stat_file = "/tmp/coverage_type_stat.json"
 
 type 't value =
   | VConst of constant

@@ -68,30 +68,30 @@ let[@axiom] l2t_pre_singleton =
                                             (list_len xs == 0)
                                             (tezos_leaf tr x))
 
-let[@axiom] tezos =
- fun (blocks : 'a list) ->
-  fun (v : 'a tezosTree) ->
-   implies (l2t_pre blocks v) (fun ((x [@ex]) : 'a) ->
-       fun ((xs [@ex]) : 'a list) ->
-        hd blocks x && tl blocks xs
-        && (list_len xs == 0
-           || (fun ((x_127 [@ex]) : 'a tezosTree) ->
-                l2t_pre xs x_127 && tezos_node1 v x x_127)
-              && fun ((x_130 [@ex]) : int) ->
-              0 <= x_130
-              && x_130 <= list_len xs
-              && fun ((x_131 [@ex]) : 'a list * 'a list) ->
-              list_concat (fst x_131) (snd x_131) xs
-              && ( list_len (fst x_131) == 0
-                 && ( (list_len (snd x_131) == 0 && tezos_leaf v x)
-                    || fun ((x_133 [@ex]) : 'a tezosTree) ->
-                      l2t_pre (snd x_131) x_133 && tezos_node1 v x x_133 )
-                 || fun ((x_132 [@ex]) : 'a tezosTree) ->
-                   l2t_pre (fst x_131) x_132
-                   && ( (list_len (snd x_131) == 0 && tezos_node1 v x x_132)
-                      || fun ((x_134 [@ex]) : 'a tezosTree) ->
-                        l2t_pre (snd x_131) x_134 && tezos_node2 v x x_132 x_134
-                      ) )))
+(* let[@axiom] tezos = *)
+(*  fun (blocks : 'a list) -> *)
+(*   fun (v : 'a tezosTree) -> *)
+(*    implies (l2t_pre blocks v) (fun ((x [@ex]) : 'a) -> *)
+(*        fun ((xs [@ex]) : 'a list) -> *)
+(*         hd blocks x && tl blocks xs *)
+(*         && (list_len xs == 0 *)
+(*            || (fun ((x_127 [@ex]) : 'a tezosTree) -> *)
+(*                 l2t_pre xs x_127 && tezos_node1 v x x_127) *)
+(*               && fun ((x_130 [@ex]) : int) -> *)
+(*               0 <= x_130 *)
+(*               && x_130 <= list_len xs *)
+(*               && fun ((x_131 [@ex]) : 'a list * 'a list) -> *)
+(*               list_concat (fst x_131) (snd x_131) xs *)
+(*               && ( list_len (fst x_131) == 0 *)
+(*                  && ( (list_len (snd x_131) == 0 && tezos_leaf v x) *)
+(*                     || fun ((x_133 [@ex]) : 'a tezosTree) -> *)
+(*                       l2t_pre (snd x_131) x_133 && tezos_node1 v x x_133 ) *)
+(*                  || fun ((x_132 [@ex]) : 'a tezosTree) -> *)
+(*                    l2t_pre (fst x_131) x_132 *)
+(*                    && ( (list_len (snd x_131) == 0 && tezos_node1 v x x_132) *)
+(*                       || fun ((x_134 [@ex]) : 'a tezosTree) -> *)
+(*                         l2t_pre (snd x_131) x_134 && tezos_node2 v x x_132 x_134 *)
+(*                       ) ))) *)
 
 (** String *)
 
@@ -169,6 +169,12 @@ let[@axiom] list_tl_sorted (l : int list) (l1 : int list) =
 let[@axiom] list_hd_sorted (l : int list) (l1 : int list) (x : int) (y : int) =
   (tl l l1 && sorted l)#==>(list_len l1 == 0
                            || ((hd l1 y && hd l x)#==>(x <= y)))
+
+(** List :: mem *)
+
+let[@axiom] list_mem_destruct =
+ fun (v : 'a list) (h : 'a) (l : 'a list) (x : 'a) ->
+  implies (hd v h && tl v l) (iff (list_mem v x) (h == x || list_mem l x))
 
 (** Tree *)
 
@@ -370,11 +376,11 @@ let[@axiom] rbtree_no_rb_leaf_ex_rb_root_color (l : int rbtree)
     ((x [@ex]) : bool) =
   (not (rb_leaf l))#==>(rb_root_color l x)
 
-(* let[@axiom] rbtree_rb_root_no_rb_leaf (l : int rbtree) (x : int) = *)
-(*   (rb_root l x)#==>(not (rb_leaf l)) *)
+let[@axiom] rbtree_rb_root_no_rb_leaf (l : int rbtree) (x : int) =
+  (rb_root l x)#==>(not (rb_leaf l))
 
-(* let[@axiom] rbtree_rb_root_color_no_rb_leaf (l : int rbtree) (x : bool) = *)
-(*   (rb_root_color l x)#==>(not (rb_leaf l)) *)
+let[@axiom] rbtree_rb_root_color_no_rb_leaf (l : int rbtree) (x : bool) =
+  (rb_root_color l x)#==>(not (rb_leaf l))
 
 (* let[@axiom] rbtree_ch_no_rb_leaf (l : int rbtree) (l1 : int rbtree) = *)
 (*   (rb_lch l l1 || rb_rch l l1)#==>(not (rb_leaf l)) *)
@@ -437,6 +443,23 @@ let[@axiom] no_red_red_root_red_rt_not_red (v : int rbtree) (rt : int rbtree) =
 
 (** stlc *)
 
+let[@axiom] type_eq_0 =
+ fun (tau_a : stlc_ty) ->
+  fun (tau_b : stlc_ty) ->
+   implies (num_arr tau_a == 0) (iff (tau_a == tau_b) (num_arr tau_b == 0))
+
+let[@axiom] type_eq_geq_0 =
+ fun (tau_a : stlc_ty) ->
+  fun (tau_b : stlc_ty) ->
+   fun (tau_a_1 : stlc_ty) ->
+    fun (tau_b_3 : stlc_ty) ->
+     fun (tau_a_2 : stlc_ty) ->
+      fun (tau_b_4 : stlc_ty) ->
+       implies
+         (stlc_ty_arr1 tau_a tau_a_1 && stlc_ty_arr2 tau_a tau_a_2
+        && stlc_ty_arr1 tau_b tau_b_3 && stlc_ty_arr2 tau_b tau_b_4)
+         (iff (tau_a == tau_b) (tau_a_1 == tau_b_3 && tau_a_2 == tau_b_4))
+
 let[@axiom] stlc_const_gen =
  fun (v : stlc_term) ->
   (is_const v) #==> (fun ((n2 [@ex]) : int) -> 0 <= n2 && stlc_const v n2)
@@ -484,7 +507,7 @@ let[@axiom] stlc_ty_arr1_wf_decreasing =
  fun (v : stlc_ty) (t1 : stlc_ty) -> (stlc_ty_arr1 v t1)#==>(decreasing t1 v)
 
 let[@axiom] stlc_ty_arr2_wf_decreasing =
- fun (v : stlc_ty) (t2 : stlc_ty) -> (stlc_ty_arr1 v t2)#==>(decreasing t2 v)
+ fun (v : stlc_ty) (t2 : stlc_ty) -> (stlc_ty_arr2 v t2)#==>(decreasing t2 v)
 
 let[@axiom] stlc_typing_no_app_no_arr_is_const_var =
  fun (tau : stlc_ty) (gamma : stlc_ty list) (v : stlc_term) ->
@@ -668,27 +691,27 @@ let[@axiom] wf_select_fd_spec_list =
   (wf_select_fd_spec_list v) #==> (fun ((x_33 [@ex]) : int) ->
   wf_size_bound x_33 && list_len v <= x_33)
 
-let[@axiom] wf_fd_size =
- fun (v : int) ->
-  implies (wf_fd_size v)
-    (fun
-      ((_x [@ex]) : int list)
-      ((_x_4 [@ex]) : int list)
-      ((_x_7 [@ex]) : int list)
-      ((_x_10 [@ex]) : int list)
-      ((_x_11 [@ex]) : int list)
-      ((_x_14 [@ex]) : int list)
-      ((_x_15 [@ex]) : int list)
-      ((_x_16 [@ex]) : int list)
-      ((_x_17 [@ex]) : int list)
-      ((_x_18 [@ex]) : int list)
-    ->
-      list_len _x == 0
-      && hd _x_4 655363 && tl _x_4 _x && hd _x_7 131072 && tl _x_7 _x_4
-      && hd _x_10 65537 && tl _x_10 _x_7 && hd _x_11 65536 && tl _x_11 _x_10
-      && hd _x_14 65535 && tl _x_14 _x_11 && hd _x_15 4096 && tl _x_15 _x_14
-      && hd _x_16 100 && tl _x_16 _x_15 && hd _x_17 1 && tl _x_17 _x_16
-      && hd _x_18 0 && tl _x_18 _x_17 && list_mem _x_18 v)
+(* let[@axiom] wf_fd_size = *)
+(*  fun (v : int) -> *)
+(*   implies (wf_fd_size v) *)
+(*     (fun *)
+(*       ((_x [@ex]) : int list) *)
+(*       ((_x_4 [@ex]) : int list) *)
+(*       ((_x_7 [@ex]) : int list) *)
+(*       ((_x_10 [@ex]) : int list) *)
+(*       ((_x_11 [@ex]) : int list) *)
+(*       ((_x_14 [@ex]) : int list) *)
+(*       ((_x_15 [@ex]) : int list) *)
+(*       ((_x_16 [@ex]) : int list) *)
+(*       ((_x_17 [@ex]) : int list) *)
+(*       ((_x_18 [@ex]) : int list) *)
+(*     -> *)
+(*       list_len _x == 0 *)
+(*       && hd _x_4 655363 && tl _x_4 _x && hd _x_7 131072 && tl _x_7 _x_4 *)
+(*       && hd _x_10 65537 && tl _x_10 _x_7 && hd _x_11 65536 && tl _x_11 _x_10 *)
+(*       && hd _x_14 65535 && tl _x_14 _x_11 && hd _x_15 4096 && tl _x_15 _x_14 *)
+(*       && hd _x_16 100 && tl _x_16 _x_15 && hd _x_17 1 && tl _x_17 _x_16 *)
+(*       && hd _x_18 0 && tl _x_18 _x_17 && list_mem _x_18 v) *)
 
 let[@axiom] wf_fd =
  fun (v : fd) ->
@@ -704,13 +727,13 @@ let[@axiom] wf_fd =
 
 (** VeLLVM *)
 
-let[@axiom] llvm_int_size_implies_content =
- fun (v : dvalue) (s : int) ->
-  (dvalue_int_size v s)#==>( 0 <= s && fun ((y [@ex]) : int) ->
-                             0 <= y && y < 2 ^ s && dvalue_int_content v y )
+(* let[@axiom] llvm_int_size_implies_content = *)
+(*  fun (v : dvalue) (s : int) -> *)
+(*   (dvalue_int_size v s)#==>( 0 <= s && fun ((y [@ex]) : int) -> *)
+(*                              0 <= y && y < 2 ^ s && dvalue_int_content v y ) *)
 
 let[@axiom] llvm_int_content_limit =
- fun (v : dvalue) (y : int) -> (dvalue_int_content v y)#==>(0 <= y && y <= 1000)
+ fun (v : dvalue) (y : int) -> (dvalue_int_content v y)#==>(0 <= y && y <= 10000)
 
 let[@axiom] llvm_typ_vector_decreasing =
  fun (v : typ) (t2 : typ) -> (type_vector2 v t2)#==>(decreasing t2 v)
@@ -761,6 +784,27 @@ let[@axiom] llvm_typ_destruct =
     || fun ((sz' [@ex]) : int) ->
     fun ((ty' [@ex]) : typ) -> type_array1 t sz' && type_array2 t ty')
 
+let[@axiom] llvm_typ_destruct2 =
+ fun (t : typ) ->
+  fun (v : dvalue) ->
+   implies (llvm_typing v t) (fun ((i [@exists]) : int) ->
+       type_i t i && dvalue_int_size v i
+       && (( i == 1 && fun ((_x_1 [@exists]) : bool list) ->
+             list_len _x_1 == 0 && fun ((_x_2 [@exists]) : bool list) ->
+             hd _x_2 false && tl _x_2 _x_1
+             && fun ((_x_3 [@exists]) : bool list) ->
+             hd _x_3 true && tl _x_3 _x_2
+             && (list_mem _x_3 true && dvalue_int_size v 1
+                 && dvalue_int_content v 1
+                || list_mem _x_3 false && dvalue_int_size v 1
+                   && dvalue_int_content v 0) )
+          || (i == 8 && dvalue_int_size v 8
+             && fun ((x_8 [@exists]) : int) -> dvalue_int_content v x_8)
+          || ( i == 32 && fun ((x_12 [@exists]) : int) ->
+               dvalue_int_content v x_12 )
+          || i == 64 && fun ((x_16 [@exists]) : int) ->
+             dvalue_int_content v x_16))
+
 (* let[@axiom] llvm_int_1 = *)
 (*  fun (v : dvalue) -> *)
 (*   (dvalue_int_size v 1)#==>(dvalue_int_content v 1 || dvalue_int_content v 0) *)
@@ -769,6 +813,20 @@ let[@axiom] llvm_typ_destruct =
 (*  fun (v : dvalue) -> *)
 (*   (dvalue_int_size v 8) #==> (fun ((y [@ex]) : int) -> *)
 (*   0 <= x_6 && x_6 <= 255 && dvalue_int_content v y) *)
+
+(** Herdtool7 *)
+
+let[@axiom] Herdtool7_literal =
+ fun (v : literal) ->
+  implies (wf_literal v)
+    ((fun ((x_51 [@exists]) : int) -> herd_l_int v x_51)
+    || herd_l_bool v true || herd_l_bool v false
+    || (fun ((x_53 [@exists]) : char list) ->
+      (fun (x_54 : char) ->
+        implies (list_mem x_53 x_54) (x_54 == '0' || x_54 == '1'))
+      && herd_l_bitvector v x_53)
+    || (fun ((x_55 [@exists]) : float) -> herd_l_real v x_55)
+    || fun ((x_56 [@exists]) : string) -> herd_l_string v x_56)
 
 (** Old *)
 

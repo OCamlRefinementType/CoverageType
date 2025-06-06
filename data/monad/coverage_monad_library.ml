@@ -177,19 +177,21 @@ let[@assert] numeral = M (char_is_digit v : [%v: char])
 
 (* List *)
 
-let rec list_repeat (n : int) (gen : 'a gen) : 'a list =
-  if n <= 0 then [] else gen () :: list_repeat (n - 1) gen
+let rec list_repeat (n : int) (gen : 'a gen) : 'a list gen =
+ fun () -> if n <= 0 then [] else gen () :: list_repeat (n - 1) gen ()
 
-let[@assert] list_repeat (b1 : baseType) ?r:(n = ((0 <= v : [%v: int]) [@over]))
-    ?r:(_ = M (true : [%v: 'b1])) =
-  (list_len v == n : [%v: 'b1 list])
+let[@assert] list_repeat (b1 : baseType) (p1 : 'b1 -> bool)
+    ?r:(n = ((0 <= v : [%v: int]) [@over])) ?r:(_ = M (p1 v : [%v: 'b1])) =
+  M
+    (list_len v == n && fun ((x [@fa]) : 'b1) -> (list_mem v x)#==>(p1 x)
+      : [%v: 'b1 list])
 
-let list_size (size_gen : int gen) (gen : 'a gen) : 'a list gen =
-  fmap (fun (n : int) -> list_repeat n gen) size_gen
+(* let list_size (size_gen : int gen) (gen : 'a gen) : 'a list gen = *)
+(*   fmap (fun (n : int) -> list_repeat n gen) size_gen *)
 
-let[@assert] list_size (b1 : baseType) ?r:(_ = M (0 <= v : [%v: int]))
-    ?r:(_ = M (true : [%v: 'b1])) =
-  M (true : [%v: 'b1 list])
+(* let[@assert] list_size (b1 : baseType) (p1 : int -> bool) (p2 : 'b1 -> bool) *)
+(*     ?r:(_ = M (0 <= v : [%v: int])) ?r:(_ = M (p v : [%v: 'b1])) = *)
+(*   M (true : [%v: 'b1 list]) *)
 
 (* Pair *)
 

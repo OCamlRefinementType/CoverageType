@@ -1,4 +1,16 @@
-let[@library] type_eq ?r:(t1 : stlc_ty) ?r:(t2 : stlc_ty) =
+let rec type_eq (tau_a : stlc_ty) (tau_b : stlc_ty) : bool =
+  match tau_a with
+  | Stlc_ty_nat -> (
+      match tau_b with
+      | Stlc_ty_nat -> true
+      | Stlc_ty_arr (tau_b_1, tau_b_2) -> false)
+  | Stlc_ty_arr (tau_a_1, tau_a_2) -> (
+      match tau_b with
+      | Stlc_ty_nat -> false
+      | Stlc_ty_arr (tau_b_1, tau_b_2) ->
+          if type_eq tau_a_1 tau_b_1 then type_eq tau_a_2 tau_b_2 else false)
+
+let[@assert] type_eq ?r:(t1 : stlc_ty) ?r:(t2 : stlc_ty) =
   (v == (t1 == t2) : [%v: bool])
 
 let[@library] stlc_ty_num_arr ?r:(t1 : stlc_ty) = (num_arr t1 == v : [%v: int])

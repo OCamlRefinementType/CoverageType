@@ -57,7 +57,7 @@ let simplify_sub_typectx ctx (rty1, rty2) =
                 let rty2 = subst_cty_instance x lit rty2 in
                 let rest =
                   List.map
-                    (fun { x; ty } -> { x; ty = subst_rty_instance x lit ty })
+                    (fun y -> { x = y.x; ty = subst_rty_instance x lit y.ty })
                     rest
                 in
                 aux (prefix, rest) (rty1, rty2)
@@ -68,6 +68,9 @@ let simplify_sub_typectx ctx (rty1, rty2) =
 
 let sub_cty ou rctx cty1 cty2 =
   let ctx_list, cty1, cty2 = simplify_sub_typectx rctx.rty_ctx (cty1, cty2) in
+  let () =
+    Printf.printf "ctx_list: %s\n" (List.split_by_comma _get_x ctx_list)
+  in
   let overctx, underctx = build_wf_ctx ctx_list in
   let () =
     _log_auxtyping @@ fun _ ->
@@ -135,12 +138,12 @@ let sub_cty ou rctx cty1 cty2 =
         in
         let () =
           _log_auxtyping @@ fun _ ->
-          Printf.printf "let[@axiom] %s\n" (layout_prop__raw query)
+          Printf.printf "let[@axiom] tmp = %s\n" (layout_prop__raw query)
         in
         check_valid (Some rctx.task_name, query))
   in
   let () = Statistic.stat_query_time (rctx.task_name, time) in
-  let () = if not res then _die [%here] in
+  (* let () = if not res then _die [%here] in *)
   res
 
 (* NOTE: after exists the constraints into the return type, the emptiness can be checked final stage;
