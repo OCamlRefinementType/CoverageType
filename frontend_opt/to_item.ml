@@ -61,6 +61,12 @@ let ocaml_structure_item_to_item structure =
              | "library" | "assume" ->
                  let rty = rty_of_expr value_binding.pvb_expr in
                  MRty { is_assumption = true; name; rty }
+             | "valid" ->
+                 let prop = prop_of_expr value_binding.pvb_expr in
+                 MCheckValid { name; prop }
+             | "sat" ->
+                 let prop = prop_of_expr value_binding.pvb_expr in
+                 MCheckSat { name; prop }
              | _ ->
                  _failatwith [%here]
                    "syntax error: non known rty kind, not axiom | assert | \
@@ -106,5 +112,8 @@ let layout_item = function
       spf "let[@library] %s = %s" name (layout_rty rty)
   | MLocalRty { name; rty; _ } ->
       spf "let[@assert] %s = %s" name (layout_rty rty)
+  | MCheckValid { name; prop } ->
+      spf "let[@valid] %s = %s" name (layout_prop prop)
+  | MCheckSat { name; prop } -> spf "let[@sat] %s = %s" name (layout_prop prop)
 
 let layout_structure l = spf "%s\n" (List.split_by "\n" layout_item l)

@@ -51,6 +51,8 @@ let item_mk_type_alias_ctx items =
     | MRty _ -> []
     | MLocalRty _ -> []
     | MFuncImpRaw _ | MFuncImp _ -> []
+    | MCheckValid _ -> []
+    | MCheckSat _ -> []
   in
   let l = List.concat_map f items in
   self_inline l
@@ -102,6 +104,10 @@ let item_inline decls items =
         let body = typed_map_raw_term inline body in
         Some (MFuncImpRaw { name; if_rec; body })
     | MFuncImp _ -> _failatwith [%here] "die"
+    | MCheckValid { name; prop } ->
+        Some (MCheckValid { name; prop = map_prop inline prop })
+    | MCheckSat { name; prop } ->
+        Some (MCheckSat { name; prop = map_prop inline prop })
   in
   List.filter_map f items
 

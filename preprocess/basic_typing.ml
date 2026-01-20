@@ -266,6 +266,7 @@ let item_mk_ctx (e : t item) =
   | MRty _ -> []
   | MLocalRty _ -> []
   | MFuncImpRaw _ | MFuncImp _ -> _failatwith [%here] "not predefine"
+  | MCheckValid _ | MCheckSat _ -> []
 
 let item_erase (e : 'a item) =
   match e with
@@ -334,6 +335,10 @@ let item_check (checked : t item list) ctx (e : t item) : t ctx * t item =
       let body = body.x#:(Nt.construct_poly_nt (pt, t)) in
       (ctx', MFuncImpRaw { name; if_rec = true; body })
   | MFuncImp _ -> _failatwith [%here] "die"
+  | MCheckValid { name; prop } ->
+      (ctx, MCheckValid { name; prop = prop_type_check ctx [] prop })
+  | MCheckSat { name; prop } ->
+      (ctx, MCheckSat { name; prop = prop_type_check ctx [] prop })
 
 let struct_mk_basic_ctx ctx l =
   add_to_rights ctx @@ List.concat @@ List.map item_mk_ctx l
