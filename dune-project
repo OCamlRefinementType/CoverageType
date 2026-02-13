@@ -7,6 +7,11 @@
 (source
  (github username/reponame))
 
+(pin
+ (package
+  (name zutils))
+ (url "git+https://github.com/OCamlRefinementType/zutils.git"))
+
 (authors "Author Name")
 
 (maintainers "Maintainer Name")
@@ -19,7 +24,20 @@
  (name CoverageType)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune)
+ (depends
+  ocaml
+  dune
+  core
+  ppx_optcomp
+  ppx_compare
+  ppx_sexp_conv
+  ppx_inline_test
+  ppx_assert
+  ppx_deriving
+  ppx_here
+  ppx_deriving_yojson
+  zutils
+  spectrum)
  (tags
   (topics "to describe" your project)))
 
