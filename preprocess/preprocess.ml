@@ -48,7 +48,7 @@ let load_alias () =
   let alias, _, _ = load_ctxs () in
   alias
 
-let preproress source_files =
+let preprocess source_files =
   let items = multi_parse source_files in
   let items' = Type_alias.item_inline (load_alias ()) items in
   let alias = Type_alias.item_mk_type_alias_ctx items' in

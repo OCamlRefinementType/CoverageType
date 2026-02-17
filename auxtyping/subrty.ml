@@ -37,7 +37,7 @@ let rec sub_rty rctx (rty1, rty2) =
         _failatwith [%here]
           (spf "die: %s <: %s" (layout_rty rty1) (layout_rty rty2))
   in
-  let () = Statistic.stat_count_query rctx.task_name in
+  let () = try Statistic.stat_count_query rctx.task_name with _ -> () in
   aux rctx (rty1, rty2)
 
 let non_emptiness_rty rctx rty =
