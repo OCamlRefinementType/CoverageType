@@ -18,6 +18,8 @@ output/*
 *.cmxs
 *.cmxa
 
+.vscode
+
 # ocamlbuild working directory
 _build/
 
