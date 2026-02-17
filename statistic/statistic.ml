@@ -33,7 +33,7 @@ let update_stat name f =
 let stat_update_rty (name, (num_qt, num_qpred)) =
   update_stat name (fun stat -> { stat with num_qt; num_qpred })
 
-let stat_count_qeury name =
+let stat_count_query name =
   update_stat name (fun stat -> { stat with num_query = stat.num_query + 1 })
 
 let stat_query_time (name, time) =

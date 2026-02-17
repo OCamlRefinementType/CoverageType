@@ -37,11 +37,11 @@ let rec sub_rty rctx (rty1, rty2) =
         _failatwith [%here]
           (spf "die: %s <: %s" (layout_rty rty1) (layout_rty rty2))
   in
-  let () = Statistic.stat_count_qeury rctx.task_name in
+  let () = Statistic.stat_count_query rctx.task_name in
   aux rctx (rty1, rty2)
 
 let non_emptiness_rty rctx rty =
-  let () = Statistic.stat_count_qeury rctx.task_name in
+  let () = Statistic.stat_count_query rctx.task_name in
   match rty with
   | RtyBase { ou = Under; cty } -> non_emptiness_cty rctx cty
   | RtyArr _ -> true
