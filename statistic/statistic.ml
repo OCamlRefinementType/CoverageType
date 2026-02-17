@@ -54,7 +54,7 @@ let stat_query_formula (name, prop) =
 let stat_total_time (name, total_time) =
   update_stat name (fun stat -> { stat with total_time })
 
-let calcutale_stat stat =
+let calculate_stat stat =
   (* let num_query = List.length stat.query_times in *)
   (* let query_time = List.fold_left ( +. ) 0.0 stat.query_times in *)
   let avg_time = stat.total_time /. float_of_int stat.num_query in
@@ -63,7 +63,7 @@ let calcutale_stat stat =
 
 let store_stat filename =
   let j =
-    stat_list_to_yojson @@ List.map calcutale_stat @@ List.of_seq
+    stat_list_to_yojson @@ List.map calculate_stat @@ List.of_seq
     @@ Hashtbl.to_seq_values _stat_tab
   in
   Yojson.Safe.to_file filename j
