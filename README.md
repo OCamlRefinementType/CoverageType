@@ -43,11 +43,11 @@ opam install ocaml-lsp-server ocamlformat
 ```
 The rest proceeds as usual; assuming `CoverageType` and `zutils` are cloned, simply `opam install .` to automatically pull in required dependencies (I've updated the `dune-project` files so that the listed dependencies are accurate):
 ```bash
-cd zutils
+cd ../zutils
 git checkout pasiv
 opam install .
 
-cd CoverageType
+cd ../CoverageType
 git checkout jfp
 opam install . --deps-only
 ```
@@ -72,8 +72,17 @@ to run a subtyping check.
 Currently, the files which CoverageType pulls axioms, type definitions, and refinement type definitions from are hard-coded in `./preprocess/preprocess.ml`; to customize axioms or typedefs these files can be overridden, or `preprocess.ml` can be edited to point to different files.
 
 Note that if axioms or typedefs change, you may also want to edit the predefined proofs (for axioms) and definitions (for type predicates) that `zutils` generates in the Rocq file in case of an SMT failure. These are currently hard-coded in `../zutils/rocqParser/defs.ml`:
-- `built_in_type_sigs` defines a list of custom type signatures (`list` and `option` are Rocq builtins, but all other types need to be defined here).
+- `built_in_type_sigs` defines a list of custom type signatures (`list` and `option` are Rocq builtins, but other inductive types referenced by axioms or typedefs need to be defined here).
+```rocq
+Parameter tree : forall (a : Type), Type.
+```
 - `built_in_type_defs` defines the implementations for the types listed in `built_in_type_sigs`.
+```rocq
+Inductive tree' (a : Type) : Type :=
+| Leaf : tree' a
+| Node : a -> tree' a -> tree' a -> tree' a.
+Definition tree := tree'.
+```
 - `built_in_defs` maps type predicates e.g.
 ```ocaml
 val hd : 'a list -> 'a -> bool
