@@ -6,7 +6,6 @@ type bool = True | False
 type 'a option = None | Some of 'a
 type 'a list = Nil | Cons of 'a * 'a list
 type 'a tree = Leaf | Node of 'a * 'a tree * 'a tree
-type 'a set = Sempty | Snode of 'a * 'a set * 'a set
 
 (** Arithmatic operators *)
 

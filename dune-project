@@ -28,6 +28,7 @@
   ocaml
   dune
   core
+  core_unix
   ppx_optcomp
   ppx_compare
   ppx_sexp_conv
