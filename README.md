@@ -19,6 +19,7 @@ let[@assert] unique_list_gen ?r:(s = ((v >= 0 : [%v: int]) [@over])) =
 where `let unique_list_gen ...` defines the generator impementation and `let[@assert] unique_list_gen ...` specifies a coverage type `s:{v:int | v >= 0} -> [v: int list | list_len(v) = s /\ uniq(v)]`.
 
 ## Compiling CoverageType for Pasiv
+<!--
 Because of naming conflicts in the `rocq-runtime` library, building the project is a little more involved than it ideally should be.
 
 We need to build Rocq from source from a custom fork that patches out the `rocq-runtime` naming issues. Since the Rocq fork is off of `master`, this also introduces a compilation error in `stdlib` v9.0.0 (the version on `opam`) and we also need to build *that* from source. In order to not pollute any external Rocq packages / versions, it's probably recommended to create a new `opam` switch first.
@@ -42,7 +43,19 @@ make install
 opam install ocaml-lsp-server ocamlformat
 ```
 The rest proceeds as usual; assuming `CoverageType` and `zutils` are cloned, simply `opam install .` to automatically pull in required dependencies (I've updated the `dune-project` files so that the listed dependencies are accurate):
+-->
+Clone repositories
 ```bash
+git clone https://github.com/ky28059/CoverageType
+git clone https://github.com/ky28059/zutils
+git clone https://github.com/ky28059/rocqconv
+```
+and install dependencies with
+```bash
+# You can optionally create an opam switch to avoid polluting another workspace
+opam switch create pasiv 5.2.1
+eval $(opam env)
+
 cd ../zutils
 git checkout pasiv
 opam install .
@@ -50,7 +63,11 @@ opam install .
 cd ../CoverageType
 git checkout jfp
 opam install . --deps-only
+
+cd ../rocqconv
+opam install . --deps-only
 ```
+<!--
 (currently, the recompiled `rocq-runtime` doesn't automatically figure out where the standard library is; you can instead run
 ```bash
 ky28059@ky28059:~/CoverageType$ rocq c -where
@@ -61,12 +78,19 @@ to find the correct path and manually export
 export ROCQLIB=/home/ky28059/.opam/rocq_fork/lib/coq
 ```
 to fix this. I'm hopeful to fix this programmatically in the future.)
+-->
 
 Afterwards, you can run
 ```bash
+cd ../CoverageType
 dune exec ./bin/main.exe subtype-check [path to subtype file]
 ```
-to run a subtyping check.
+to run a subtyping check. In case of a failed query, a Rocq file will be written to `/tmp/query.v`; after adding axioms / proving the query, you can translate these axioms back to `let[@axiom]` syntax by calling
+```bash
+cd ../rocqconv
+dune exec ./bin/main.exe
+```
+(currently, it only prints the translated axioms to `stdout`; eventually, they can hopefully automatically be outputted to a file as well).
 
 ### Customizing axioms / definitions
 Currently, the files which CoverageType pulls axioms, type definitions, and refinement type definitions from are hard-coded in `./preprocess/preprocess.ml`; to customize axioms or typedefs these files can be overridden, or `preprocess.ml` can be edited to point to different files.
