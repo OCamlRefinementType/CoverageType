@@ -6,7 +6,7 @@
         "Lemma list_len_0_emp : forall (l : list Z), emp l -> len l 0.",
         "Proof.",
         "  intros [| x] H.",
-        "  - simpl. reflexivity.",
+        "  - reflexivity.",
         "  - contradiction.",
         "Qed."
     ]],

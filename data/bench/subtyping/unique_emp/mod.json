@@ -1,0 +1,19 @@
+{
+    "axioms": [
+        "Axiom list_emp_unique : forall (l : list Z), emp l -> uniq l."
+    ],
+    "axiom_proofs": [[
+        "Lemma list_emp_unique : forall (l : list Z), emp l -> uniq l.",
+        "Proof.",
+        "  intros [| x] H.",
+        "  - reflexivity.",
+        "  - contradiction.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros s Hs v He.",
+        "split.",
+        "apply (list_len_0_emp v He).",
+        "apply (list_emp_unique v He)."
+    ]
+}

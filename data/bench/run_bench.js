@@ -13,7 +13,7 @@ function execAsync(cmd) {
 
 async function runBench() {
     const tests = (await readdir('./data/bench/subtyping', { withFileTypes: true }))
-        .filter((s) => s.isDirectory())
+        .filter((s) => s.isDirectory() && !s.name.startsWith('_'))
         .map((s) => s.name);
 
     for (const test of tests) {
