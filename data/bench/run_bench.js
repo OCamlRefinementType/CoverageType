@@ -37,7 +37,7 @@ async function runBench() {
                 ]);
 
                 const out = await execAsync(`dune exec ./bin/main.exe subtype-check ./data/bench/subtyping/${test}/test.ml`);
-                console.log(out.split('\n').at(-2)); // Assert that this is `result: false`
+                console.log('->', out.split('\n').at(-2)); // Assert that this is `result: false`
 
                 return readFile('/tmp/query.v', 'utf-8');
             })(),
@@ -56,9 +56,14 @@ async function runBench() {
         await writeFile(`./data/bench/subtyping/${test}/query.v`, proven);
         await execAsync(`rocq c ./data/bench/subtyping/${test}/query.v`);
 
-        // Convert new axioms back to OCaml syntax
-        const out = await execAsync(`cd ../rocqconv && dune exec ./bin/main.exe ../CoverageType/data/bench/subtyping/${test}/query.v`);
-        console.log(out);
+        // Convert new axioms back to OCaml syntax and verify that typecheck now passes
+        await execAsync(`cd ../rocqconv && dune exec ./bin/main.exe "../CoverageType/data/bench/subtyping/${test}/query.v" "../CoverageType/data/bench/subtyping/${test}/axioms_post.ml"`);
+        await cp(
+            `./data/bench/subtyping/${test}/axioms_post.ml`,
+            './data/predefined/axioms_bench.ml'
+        );
+        const out = await execAsync(`dune exec ./bin/main.exe subtype-check ./data/bench/subtyping/${test}/test.ml`);
+        console.log('->', out.split('\n').at(-2));
     }
 }
 
