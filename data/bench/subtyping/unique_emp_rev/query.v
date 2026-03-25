@@ -11,9 +11,11 @@ Parameter tree : forall (a : Type), Type.
   Parameter emp : forall {a : Type}, list a -> Prop.
   Parameter hd : forall {a : Type}, list a -> a -> Prop.
   Parameter tl : forall {a : Type}, list a -> list a -> Prop.
+  Parameter list_mem : forall {a : Type}, list a -> a -> Prop.
+  Parameter uniq : forall {a : Type}, list a -> Prop.
 
-
-  Axiom list_len_0_emp : forall (l : list Z), emp l -> len l 0.
+  Axiom list_emp_unique : forall (l : list Z), emp l -> uniq l.
+  Axiom list_len_0_emp_iff : forall (l : list Z), emp l <-> len l 0.
 End Signatures.
 
 Module Axioms : Signatures.
@@ -42,24 +44,40 @@ Module Axioms : Signatures.
     | nil => False
     | cons _ xs' => xs = xs'
     end.
+  Fixpoint list_mem {a : Type} (l : list a) (x : a) : Prop :=
+    match l with
+    | nil => False
+    | cons x' xs => (x = x') \/ list_mem xs x
+    end.
+  Fixpoint uniq {a : Type} (l : list a) : Prop :=
+    match l with
+    | nil => True
+    | cons x xs => ~(list_mem xs x) /\ uniq xs
+    end.
 
-
-  Lemma list_len_0_emp : forall (l : list Z), emp l -> len l 0.
+  Lemma list_emp_unique : forall (l : list Z), emp l -> uniq l.
   Proof.
     intros [| x] H.
     - reflexivity.
     - contradiction.
+  Qed.
+  Lemma list_len_0_emp_iff : forall (l : list Z), emp l <-> len l 0.
+  Proof.
+  intros [| x]; split.
+    - reflexivity.
+    - reflexivity.
+    - contradiction.
+    - simpl. intuition.
   Qed.
 End Axioms.
 
 Module Goal.
   Import Axioms.
 
-  Theorem goal : forall (s : Z), 0 <= s -> forall (v : list Z), emp v -> exists (n : Z), len v n /\ n <= s.
+  Theorem goal : forall (s : Z), 0 <= s -> forall (v : list Z), len v 0 /\ uniq v -> emp v.
   Proof.
-    intros s Hs v He.
-    exists 0.
+    intros s Hs v [Hl Hu].
+    destruct (list_len_0_emp_iff v).
     intuition.
-    apply (list_len_0_emp v He).
   Qed.
 End Goal.

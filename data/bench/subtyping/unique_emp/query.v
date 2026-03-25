@@ -19,64 +19,48 @@ Parameter tree : forall (a : Type), Type.
 End Signatures.
 
 Module Axioms : Signatures.
-
   Inductive tree' (a : Type) : Type :=
   | Leaf : tree' a
   | Node : a -> tree' a -> tree' a -> tree' a.
   Definition tree := tree'.
-  
-
 
   Fixpoint len {a : Type} (l : list a) (n : Z) : Prop :=
     match l with
     | nil => n = 0
-    | cons _ xs => len xs (n - 1)
+    | cons _ xs => n > 0 /\ len xs (n - 1)
     end.
-  
-
   Definition emp {a : Type} (l : list a) : Prop :=
     match l with
     | nil => True
     | cons _ _ => False
     end.
-  
-
   Definition hd {a : Type} (l : list a) (n : a) : Prop :=
     match l with
     | nil => False
     | cons n' _ => n = n'
     end.
-  
-
   Definition tl {a : Type} (l : list a) (xs : list a) : Prop :=
     match l with
     | nil => False
     | cons _ xs' => xs = xs'
     end.
-  
-
   Fixpoint list_mem {a : Type} (l : list a) (x : a) : Prop :=
     match l with
     | nil => False
     | cons x' xs => (x = x') \/ list_mem xs x
     end.
-  
-
   Fixpoint uniq {a : Type} (l : list a) : Prop :=
     match l with
     | nil => True
     | cons x xs => ~(list_mem xs x) /\ uniq xs
     end.
-  
-
 
   Lemma list_len_0_emp : forall (l : list Z), emp l -> len l 0.
   Proof.
     intros [| x] H.
-    - simpl. reflexivity.
+    - reflexivity.
     - contradiction.
   Qed.
-  
   Lemma list_emp_unique : forall (l : list Z), emp l -> uniq l.
   Proof.
     intros [| x] H.
