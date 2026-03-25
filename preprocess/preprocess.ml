@@ -12,7 +12,7 @@ let _ctxs = ref None
 let _log = Myconfig._log_preprocess
 
 let predefined_files =
-  [ "basic_typing.ml.simple"; "refinement_typing.ml.simple"; "axioms_simple.ml" ]
+  [ "basic_typing.ml.simple"; "refinement_typing.ml.simple"; "axioms_bench.ml" ]
 
 let load_ctxs () =
   match !_ctxs with

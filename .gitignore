@@ -39,3 +39,10 @@ setup.log
 
 # Local OPAM switch
 _opam/
+
+# Compiled rocq files
+*.aux
+*.glob
+*.vo
+*.vok
+*.vos

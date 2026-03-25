@@ -1,0 +1,19 @@
+{
+    "axioms": [
+        "Axiom list_len_0_emp : forall (l : list Z), emp l -> len l 0."
+    ],
+    "axiom_proofs": [[
+        "Lemma list_len_0_emp : forall (l : list Z), emp l -> len l 0.",
+        "Proof.",
+        "  intros [| x] H.",
+        "  - simpl. reflexivity.",
+        "  - contradiction.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros s Hs v He.",
+        "exists 0.",
+        "intuition.",
+        "apply (list_len_0_emp v He)."
+    ]
+}
