@@ -21,10 +21,20 @@ async function runBench() {
 
         const [gen, raw] = await Promise.all([
             (async () => {
-                await cp(
-                    `./data/bench/subtyping/${test}/axioms_pre.ml`,
-                    './data/predefined/axioms_bench.ml'
-                );
+                await Promise.all([
+                    cp(
+                        `./data/bench/subtyping/${test}/axioms_pre.ml`,
+                        './data/predefined/axioms_bench.ml'
+                    ),
+                    cp(
+                        `./data/bench/subtyping/${test}/basic_typing.ml`,
+                        './data/predefined/basic_typing_bench.ml'
+                    ),
+                    cp(
+                        `./data/bench/subtyping/${test}/refinement_typing.ml`,
+                        './data/predefined/refinement_typing_bench.ml'
+                    )
+                ]);
 
                 const out = await execAsync(`dune exec ./bin/main.exe subtype-check ./data/bench/subtyping/${test}/test.ml`);
                 console.log(out.split('\n').at(-2)); // Assert that this is `result: false`
