@@ -1,0 +1,45 @@
+{
+    "axioms": [
+        "Axiom list_tl_len_plus_1 : forall (l : list Z) (l1 : list Z) (n : Z), tl l l1 -> (len l1 n <-> len l (n + 1)).",
+        "Axiom list_tl_unique_parent : forall (l : list Z) (l1 : list Z) (n : Z), uniq l1 /\\ tl l l1 /\\ hd l n /\\ ~(list_mem l1 n) -> uniq l."
+    ],
+    "axiom_proofs": [[
+        "Lemma list_tl_len_plus_1 : forall (l : list Z) (l1 : list Z) (n : Z),",
+        "  tl l l1 -> (len l1 n <-> len l (n + 1)).",
+        "Proof.",
+        "  intros [| x] l1 n Ht; split;",
+        "  try contradiction;",
+        "  inversion Ht; intros Hl.",
+        "  - simpl. split.",
+        "    * apply list_len_geq_0 in Hl.",
+        "      intuition.",
+        "    * replace (n + 1 - 1) with n by intuition.",
+        "      assumption.",
+        "  - simpl in Hl. destruct Hl.",
+        "    replace (n + 1 - 1) with n in H1 by intuition.",
+        "    assumption.",
+        "Qed."
+    ], [
+        "Lemma list_tl_unique_parent : forall (l : list Z) (l1 : list Z) (n : Z),",
+        "  uniq l1 /\\ tl l l1 /\\ hd l n /\\ ~(list_mem l1 n) -> uniq l.",
+        "Proof.",
+        "  intros [| x] l1 n [Htu [Ht [Hh Hm]]].",
+        "  - contradiction.",
+        "  - simpl. inversion Ht. subst. split.",
+        "    * inversion Hh. subst. assumption.",
+        "    * assumption.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros s Hs v [x [l H]].",
+        "intuition.",
+        "exists x. exists (s - 1). exists l.",
+        "intuition.",
+        "- apply (list_hd_no_emp _ _ H5) in H6. contradiction.",
+        "- destruct (list_tl_len_plus_1 _ _ (s - 1) H7).",
+        "  replace (s - 1 + 1) with s in H6 by intuition.",
+        "  apply (H6 H2).",
+        "- eapply list_tl_unique_parent.",
+        "  intuition. apply H3. apply H7. apply H5. intuition."
+    ]
+}

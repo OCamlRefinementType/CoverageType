@@ -55,7 +55,7 @@ End Axioms.
 Module Goal.
   Import Axioms.
 
-  Theorem goal : forall (s : Z), 0 <= s -> forall (v : list Z), emp v -> exists (n : Z), len v n /\ n <= s.
+  Theorem goal : forall (s : Z), 0 <= s -> (forall (v : list Z), emp v -> (exists (n : Z), len v n /\ n <= s)).
   Proof.
     intros s Hs v He.
     exists 0.

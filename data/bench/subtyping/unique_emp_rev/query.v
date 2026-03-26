@@ -74,7 +74,7 @@ End Axioms.
 Module Goal.
   Import Axioms.
 
-  Theorem goal : forall (s : Z), 0 <= s -> forall (v : list Z), len v 0 /\ uniq v -> emp v.
+  Theorem goal : forall (s : Z), 0 <= s -> (forall (v : list Z), (len v 0 /\ uniq v) -> emp v).
   Proof.
     intros s Hs v [Hl Hu].
     destruct (list_len_0_emp_iff v).
