@@ -1,0 +1,28 @@
+{
+    "axioms": [
+        "Axiom list_hd_even_all_evens : forall (l : list Z) (x : Z) (l1 : list Z), hd l x /\\ (exists (n : Z), x = 2 * n) /\\ tl l l1 /\\ all_evens l1 -> all_evens l."
+    ],
+    "axiom_proofs": [[
+        "Lemma list_hd_even_all_evens : forall (l : list Z) (x : Z) (l1 : list Z),",
+        "  hd l x /\\ (exists (n : Z), x = 2 * n) /\\ tl l l1 /\\ all_evens l1 -> all_evens l.",
+        "Proof.",
+        "  intros [| x] x1 l1 [Hh [[n Hev] [Ht He]]].",
+        "  - reflexivity.",
+        "  - inversion Ht. rewrite H in He. simpl. intuition.",
+        "    inversion Hh. rewrite H0 in Hev.",
+        "    exists n. intuition.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros s Hs v [Hse [x [x2 [l H]]]].",
+        "intuition.",
+        "exists 1.",
+        "intuition.",
+        "- apply list_len_0_emp in H3.",
+        "  destruct (list_tl_len_plus_1 _ _ 0 H1).",
+        "  intuition.",
+        "- eapply list_hd_even_all_evens. intuition.",
+        "  apply H0. exists x2. intuition.",
+        "  apply H1. apply (list_emp_all_even _ H3)."
+    ]
+}

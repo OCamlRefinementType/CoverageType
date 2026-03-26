@@ -1,0 +1,5 @@
+let[@axiom] list_len_0_emp = fun (l : (int list)) -> ((emp l) #==> (len l 0))
+let[@axiom] list_emp_all_even = fun (l : (int list)) -> ((emp l) #==> (all_evens l))
+let[@axiom] list_len_geq_0 = fun (l : (int list)) -> fun (n : int) -> ((len l n) #==> (n >= 0))
+let[@axiom] list_tl_len_plus_1 = fun (l : (int list)) -> fun (l1 : (int list)) -> fun (n : int) -> ((tl l l1) #==> (iff (len l1 n) (len l (n + 1))))
+let[@axiom] list_hd_even_all_evens = fun (l : (int list)) (x : int) (l1 : (int list)) -> (((hd l x) && (fun ((n [@ex]) : int) -> (x == (2 * n)) && ((tl l l1) && (all_evens l1)))) #==> (all_evens l))

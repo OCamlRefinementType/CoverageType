@@ -1,0 +1,20 @@
+{
+    "axioms": [
+        "Axiom list_emp_all_even : forall (l : list Z), emp l -> all_evens l."
+    ],
+    "axiom_proofs": [[
+        "Lemma list_emp_all_even : forall (l : list Z), emp l -> all_evens l.",
+        "Proof.",
+        "  intros [| x] He.",
+        "  - reflexivity.",
+        "  - contradiction.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros s Hs v [Hse He].",
+        "exists 0.",
+        "intuition.",
+        "apply (list_len_0_emp v He).",
+        "apply (list_emp_all_even v He)."
+    ]
+}
