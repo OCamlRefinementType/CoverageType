@@ -19,6 +19,6 @@ let[@assert] rty2 =
   (((not (emp v))
     && len v s
     && sorted v (*    && fun (u : int) -> (hd v u) #==> (x <= u) *)
-    && (not (emp v)) #==> (fun ((u [@exists]) : int) -> hd v u && x <= u)
+    && (not (emp v)) #==> (fun ((u2 [@exists]) : int) -> hd v u2 && x <= u2)
     : [%v: int list])
     [@under])

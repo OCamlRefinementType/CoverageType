@@ -1,0 +1,53 @@
+{
+    "axioms": [
+        "Axiom list_no_emp_pos_len : forall (l : list Z) (s : Z), ~ emp l /\\ len l s -> s > 0.",
+        "Axiom list_hd_sorted : forall (l : list Z) (l1 : list Z) (x : Z) (y : Z), tl l l1 /\\ sorted l -> emp l1 \\/ ((hd l1 y /\\ hd l x) -> (x <= y)).",
+        "Axiom list_tl_sorted : forall (l : list Z) (l1 : list Z), tl l l1 /\\ sorted l -> sorted l1."
+    ],
+    "axiom_proofs": [[
+        "Lemma list_no_emp_pos_len : forall (l : list Z) (s : Z), ~ emp l /\\ len l s -> s > 0.",
+        "Proof.",
+        "  intros [| x] s [He Hl].",
+        "  - simpl in He. contradiction.",
+        "  - inversion Hl. apply list_len_geq_0 in H0. intuition.",
+        "Qed."
+    ], [
+        "Lemma list_hd_sorted : forall (l : list Z) (l1 : list Z) (x : Z) (y : Z),",
+        "  tl l l1 /\\ sorted l -> emp l1 \\/ ((hd l1 y /\\ hd l x) -> (x <= y)).",
+        "Proof.",
+        "  intros [| x1] [| y1] x y [Htl Hs]; try contradiction.",
+        "  - left. reflexivity.",
+        "  - right. intros [Hht Hhp].",
+        "    inversion Htl. inversion Hht. inversion Hhp.",
+        "    subst. simpl in Hs. intuition.",
+        "Qed."
+    ], [
+        "Lemma list_tl_sorted : forall (l : list Z) (l1 : list Z), tl l l1 /\\ sorted l -> sorted l1.",
+        "Proof.",
+        "  intros [| x] [| y] [Ht Hs];",
+        "  try contradiction.",
+        "  - reflexivity.",
+        "  - inversion Ht. subst. simpl in Hs. destruct l0.",
+        "    * reflexivity.",
+        "    * simpl. intuition.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros s Hs x v [He [Hl [Hsr [u [Hh Hle]]]]].",
+        "assumption.",
+        "destruct (list_no_emp_exists_tl v) as [v1 Htli].",
+        "exists u. exists (s - 1). exists v1.",
+        "intuition.",
+        "- apply (list_no_emp_pos_len v). intuition.",
+        "- assert (s > 0) by (apply (list_no_emp_pos_len v s); intuition). intuition.",
+        "- destruct (list_tl_len_plus_1 v v1 (s - 1) H).",
+        "  apply H1. replace (s - 1 + 1) with s by intuition.",
+        "  assumption.",
+        "- apply (list_tl_sorted v v1). intuition.",
+        "- destruct (list_no_emp_exists_hd v1) as [u1 Htli].",
+        "  destruct (list_hd_sorted v v1 u u1).",
+        "  * intuition.",
+        "  * intuition.",
+        "  * exists u1. intuition."
+    ]
+}
