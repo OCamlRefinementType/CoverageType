@@ -36,7 +36,9 @@ let type_check source_file () =
   let code = Preprocess.preprocess [ source_file ] in
   let () = Pp.printf "@{<bold>result:@} %s\n" (layout_structure code) in
   (* let () = _die [%here] in *)
-  let _ = Typing.struc_check (Preprocess.load_bctx ()) code in
+  let _, basic_ctx, bctx = Preprocess.load_ctxs () in
+  let () = Prover.register_type_ctx basic_ctx in
+  let _ = Typing.struc_check (bctx) code in
   ()
 
 let one_param_file message f =

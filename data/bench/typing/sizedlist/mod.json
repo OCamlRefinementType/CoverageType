@@ -1,0 +1,55 @@
+{
+    "axioms": [
+        "Axiom list_no_emp_exists_hd : forall (l : list Z), exists (x : Z), ~emp l -> hd l x.",
+        "Axiom list_no_emp_exists_tl : forall (l : list Z), exists (l1 : list Z), ~emp l -> tl l l1.",
+        "Axiom list_positive_len_is_not_emp : forall (l : list Z), forall (n : Z), len l n /\\ n > 0 -> ~emp l."
+    ],
+    "axiom_proofs": [[
+        "Lemma list_no_emp_exists_hd : forall (l : list Z), exists (x : Z), ~emp l -> hd l x.",
+        "Proof.",
+        "  intros [| x'].",
+        "  - exists 1. intros []. reflexivity.",
+        "  - exists x'. intros H. simpl. reflexivity.",
+        "Qed."
+    ], [
+        "Lemma list_no_emp_exists_tl : forall (l : list Z), exists (l1 : list Z), ~emp l -> tl l l1.",
+        "Proof.",
+        "  intros [| x xs].",
+        "  - exists nil. intros []. reflexivity.",
+        "  - exists xs. intros H. simpl. reflexivity.",
+        "Qed."
+    ], [
+        "Lemma list_positive_len_is_not_emp : forall (l : list Z), forall (n : Z), len l n /\\ n > 0 -> ~emp l.",
+        "Proof.",
+        "  intros [| x] n [Hl Hn].",
+        "  - inversion Hl as [Hn']. rewrite Hn' in Hn. inversion Hn.",
+        "  - intros H. contradiction.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros s Hs v [n [Hl Hnl]].",
+        "apply list_len_geq_0 in Hl as Hnl1.",
+        "split.",
+        "- intuition.",
+        "- destruct (s =? 0) eqn:Hse.",
+        "  * left.",
+        "    assert (n = 0) by intuition. subst.",
+        "    destruct (list_len_0_emp_iff v).",
+        "    intuition.",
+        "  * right. intuition. destruct (n =? 0) eqn:Hne.",
+        "    + left. assert (n = 0) by intuition. subst.",
+        "      destruct (list_len_0_emp_iff v).",
+        "      intuition.",
+        "    + right.",
+        "      assert (n > 0) by intuition.",
+        "      assert (~emp v) by (apply (list_positive_len_is_not_emp v n); intuition).",
+        "      destruct (list_no_emp_exists_tl v) as [v1 Htl].",
+        "      destruct (list_no_emp_exists_hd v) as [x Hh].",
+        "      exists v1. intuition.",
+        "      -- exists (n - 1).",
+        "         destruct (list_tl_len_plus_1 v v1 (n - 1)); try assumption.",
+        "         replace (n - 1 + 1) with n in H4 by intuition.",
+        "         intuition.",
+        "      -- exists x. intuition."
+    ]
+}
