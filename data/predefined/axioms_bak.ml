@@ -66,7 +66,7 @@ let[@axiom] list_tl_unique (l : int list) (l1 : int list) =
   (tl l l1 && uniq l) #==> (uniq l1)
 
 let[@axiom] list_hd_unique (l : int list) (l1 : int list) (x : int) =
-  (tl l l1 && uniq l && hd l1 x) #==> (not (list_mem l1 x))
+  (tl l l1 && uniq l && hd l x) #==> (not (list_mem l1 x))
 
 (** int tree *)
 
