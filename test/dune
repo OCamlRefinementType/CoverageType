@@ -1,2 +1,5 @@
-(test
- (name test_CoverageType))
+(library
+  (name test_CoverageType)
+  (inline_tests)
+  (libraries preprocess typing)
+  (preprocess (pps ppx_inline_test)))
