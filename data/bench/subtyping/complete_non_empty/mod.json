@@ -1,0 +1,52 @@
+{
+    "axioms": [
+        "Axiom tree_root_no_leaf : forall (l : tree Z) (x : Z), (root l x) -> ~(leaf l).",
+        "Axiom tree_depth_node_lch : forall (l : tree Z) (l1 : tree Z) (l2 : tree Z) (n1 : Z) (n2 : Z), (depth l1 n1 /\\ depth l2 n2 /\\ lch l l1 /\\ rch l l2 /\\ n1 >= n2) -> (depth l (n1 + 1)).",
+        "Axiom tree_complete_node : forall (l : tree Z) (l1 : tree Z) (l2 : tree Z) (n : Z), (complete l1 /\\ complete l2 /\\ depth l1 n /\\ depth l2 n /\\ lch l l1 /\\ rch l l2) -> (complete l)."
+    ],
+    "axiom_proofs": [[
+        "Lemma tree_root_no_leaf : forall (l : tree Z) (x : Z), (root l x) -> ~(leaf l).",
+        "Proof.",
+        "  intros [] x Hr.",
+        "  - contradiction.",
+        "  - intros [].",
+        "Qed."
+    ], [
+        "Lemma tree_depth_node_lch : forall (l : tree Z) (l1 : tree Z) (l2 : tree Z)",
+        "  (n1 : Z) (n2 : Z), (depth l1 n1 /\\ depth l2 n2 /\\ lch l l1 /\\ rch l l2 /\\ n1 >= n2)",
+        "  -> (depth l (n1 + 1)).",
+        "Proof.",
+        "  intros [] l1 l2 n1 n2 H;",
+        "  decompose [and] H;",
+        "  try contradiction.",
+        "  simpl. exists n1. exists n2.",
+        "  inversion H1. inversion H3. subst.",
+        "  intuition.",
+        "Qed."
+    ], [
+        "Lemma tree_complete_node : forall (l : tree Z) (l1 : tree Z) (l2 : tree Z) (n : Z),",
+        "  (complete l1 /\\ complete l2 /\\ depth l1 n /\\ depth l2 n /\\ lch l l1 /\\ rch l l2)",
+        "  -> (complete l).",
+        "Proof.",
+        "  intros [] l1 l2 n H;",
+        "  decompose [and] H;",
+        "  try contradiction.",
+        "  simpl. inversion H4. inversion H6. subst.",
+        "  intuition. exists n. intuition.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros s Hs v.",
+        "intuition;",
+        "destruct H as [x [s' [r [l H1]]]];",
+        "decompose [and] H1; subst.",
+        "- apply tree_root_no_leaf in H10. contradiction.",
+        "- replace s with (s - 1 + 1) by intuition.",
+        "  eapply tree_depth_node_lch.",
+        "  intuition. apply H5. apply H7.",
+        "  assumption. assumption. intuition.",
+        "- eapply tree_complete_node.",
+        "  intuition. apply H6. apply H8. apply H5.",
+        "  assumption. assumption. assumption."
+    ]
+}

@@ -1,0 +1,3 @@
+let[@axiom] tree_root_no_leaf = fun (l : (int tree)) (x : int) -> ((root l x) #==> (not (leaf l)))
+let[@axiom] tree_depth_node_lch = fun (l : (int tree)) (l1 : (int tree)) (l2 : (int tree)) (n1 : int) (n2 : int) -> (((depth l1 n1) && ((depth l2 n2) && ((lch l l1) && ((rch l l2) && (n1 >= n2))))) #==> (depth l (n1 + 1)))
+let[@axiom] tree_complete_node = fun (l : (int tree)) (l1 : (int tree)) (l2 : (int tree)) (n : int) -> (((complete l1) && ((complete l2) && ((depth l1 n) && ((depth l2 n) && ((lch l l1) && (rch l l2)))))) #==> (complete l))
