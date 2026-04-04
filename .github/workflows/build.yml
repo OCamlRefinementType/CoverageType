@@ -1,0 +1,28 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: "5.2"
+          dune-cache: true
+
+      - name: Cache opam dependencies
+        id: opam-cache
+        uses: actions/cache@v4
+        with:
+          path: _opam
+          key: opam-deps-${{ runner.os }}-${{ hashFiles('CoverageType.opam') }}
+
+      - if: steps.opam-cache.outputs.cache-hit != 'true'
+        run: opam install . --deps-only --with-test
+      - run: opam exec -- dune build

@@ -26,9 +26,6 @@ depends: [
   "spectrum"
   "odoc" {with-doc}
 ]
-pin-depends: [
-  ["zutils.dev" "git+https://github.com/OCamlRefinementType/zutils.git"]
-]
 build: [
   ["dune" "subst"] {dev}
   [
@@ -44,3 +41,6 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/username/reponame.git"
+pin-depends: [
+  ["zutils.dev" "git+https://github.com/Pat-Lafon/zutils.git"]
+]
