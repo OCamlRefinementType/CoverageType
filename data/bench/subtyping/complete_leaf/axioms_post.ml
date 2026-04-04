@@ -1,0 +1,1 @@
+let[@axiom] tree_complete_leaf = fun (l : (int tree)) -> ((leaf l) #==> (complete l))

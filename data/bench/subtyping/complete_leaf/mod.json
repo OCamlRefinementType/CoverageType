@@ -1,0 +1,19 @@
+{
+    "axioms": [
+        "Axiom tree_complete_leaf : forall (l : tree Z), leaf l -> complete l."
+    ],
+    "axiom_proofs": [[
+        "Lemma tree_complete_leaf : forall (l : tree Z), leaf l -> complete l.",
+        "Proof.",
+        "  intros [] Hl.",
+        "  - reflexivity.",
+        "  - contradiction.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros v Hl.",
+        "split; try assumption.",
+        "apply tree_complete_leaf.",
+        "assumption."
+    ]
+}
