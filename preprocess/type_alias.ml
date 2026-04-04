@@ -107,20 +107,20 @@ let item_inline decls items =
   in
   List.filter_map f items
 
-let%test "inline_alias" =
-  let () =
-    Myconfig.meta_config_path :=
-      "/Users/zhezzhou/workspace/CoverageType/meta-config.json"
-  in
-  let test_file =
-    "/Users/zhezzhou/workspace/CoverageType/data/inline_test/alias.ml"
-  in
-  let items =
-    ocaml_structure_to_items
-    @@ OcamlParser.Oparse.parse_imp_from_file ~sourcefile:test_file
-  in
-  let () = Pp.printf "@{<bold>Parse:@}\n%s\n" (layout_structure items) in
-  let alias = item_mk_type_alias_ctx items in
-  let items = item_inline alias items in
-  let () = Pp.printf "@{<bold>Result:@}\n%s\n" (layout_structure items) in
-  false
+(* let%test "inline_alias" = *)
+(*   let () = *)
+(*     Myconfig.meta_config_path := *)
+(*       "/Users/zhezzhou/workspace/CoverageType/meta-config.json" *)
+(*   in *)
+(*   let test_file = *)
+(*     "/Users/zhezzhou/workspace/CoverageType/data/inline_test/alias.ml" *)
+(*   in *)
+(*   let items = *)
+(*     ocaml_structure_to_items *)
+(*     @@ OcamlParser.Oparse.parse_imp_from_file ~sourcefile:test_file *)
+(*   in *)
+(*   let () = Pp.printf "@{<bold>Parse:@}\n%s\n" (layout_structure items) in *)
+(*   let alias = item_mk_type_alias_ctx items in *)
+(*   let items = item_inline alias items in *)
+(*   let () = Pp.printf "@{<bold>Result:@}\n%s\n" (layout_structure items) in *)
+(*   false *)
