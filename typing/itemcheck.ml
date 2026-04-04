@@ -80,22 +80,22 @@ let struc_check bctx items =
   let bctx, imp_m = mk_imp_m bctx items in
   let inv_m = mk_invs items in
   let tasks = mk_tasks items in
-  let _, res =
+  let _, passed, failed =
     List.fold_left
-      (fun (bctx, failed) (name, rty) ->
+      (fun (bctx, passed, failed) (name, rty) ->
         match item_check bctx inv_m imp_m (name, rty) with
-        | Suc bctx -> (bctx, failed)
-        | Fai name -> (bctx, failed @ [ name ]))
-      (bctx, []) tasks
+        | Suc bctx -> (bctx, passed @ [ name ], failed)
+        | Fai name -> (bctx, passed, failed @ [ name ]))
+      (bctx, [], []) tasks
   in
   let () =
     _log @@ fun _ ->
     Pp.printf "@{<bold>Summary (total %i tasks):@}\n" (List.length tasks)
   in
   let () =
-    match res with
+    match failed with
     | [] ->
         _log @@ fun _ -> Pp.printf "@{<bold>@{<yellow>All tasks succeeded@}@}\n"
-    | _ -> _log @@ fun _ -> List.iter _task_fail res
+    | _ -> _log @@ fun _ -> List.iter _task_fail failed
   in
-  Some bctx
+  (Some bctx, passed, failed)
