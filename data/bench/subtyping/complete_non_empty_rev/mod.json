@@ -1,0 +1,87 @@
+{
+    "axioms": [
+        "Axiom tree_no_leaf_exists_lch : forall (l : tree Z), exists (l1 : tree Z), ~(leaf l) -> (lch l l1).",
+        "Axiom tree_no_leaf_exists_rch : forall (l : tree Z), exists (l1 : tree Z), ~(leaf l) -> (rch l l1).",
+        "Axiom tree_no_leaf_exists_root : forall (l : tree Z), exists (x : Z), ~(leaf l) -> (root l x).",
+        "Axiom tree_complete_lch_complete : forall (l : tree Z) (l1 : tree Z), (lch l l1 /\\ complete l) -> (complete l1).",
+        "Axiom tree_complete_rch_complete : forall (l : tree Z) (l1 : tree Z), (rch l l1 /\\ complete l) -> (complete l1).",
+        "Axiom tree_no_leaf_depth_pos : forall (l : tree Z) (s : Z), ~(leaf l) /\\ (depth l s) -> s > 0."
+    ],
+    "axiom_proofs": [[
+        "Lemma tree_no_leaf_exists_lch : forall (l : tree Z), exists (l1 : tree Z), ~(leaf l) -> (lch l l1).",
+        "Proof.",
+        "  intros [].",
+        "  - exists (Leaf Z). intros []. reflexivity.",
+        "  - exists t. intros Hl. reflexivity.",
+        "Qed."
+    ], [
+        "Lemma tree_no_leaf_exists_rch : forall (l : tree Z), exists (l1 : tree Z), ~(leaf l) -> (rch l l1).",
+        "Proof.",
+        "  intros [].",
+        "  - exists (Leaf Z). intros []. reflexivity.",
+        "  - exists t0. intros Hl. reflexivity.",
+        "Qed."
+    ], [
+        "Lemma tree_no_leaf_exists_root : forall (l : tree Z), exists (x : Z), ~(leaf l) -> (root l x).",
+        "Proof.",
+        "  intros [].",
+        "  - exists 0. intros []. reflexivity.",
+        "  - exists z. intros. reflexivity.",
+        "Qed."
+    ], [
+        "Lemma tree_complete_lch_complete : forall (l : tree Z) (l1 : tree Z), (lch l l1 /\\ complete l) -> (complete l1).",
+        "Proof.",
+        "  intros [] l1 [Hlch Hc].",
+        "  - contradiction.",
+        "  - inversion Hlch. subst.",
+        "    simpl in Hc.",
+        "    destruct Hc as [Hc' H].",
+        "    assumption.",
+        "Qed."
+    ], [
+        "Lemma tree_complete_rch_complete : forall (l : tree Z) (l1 : tree Z), (rch l l1 /\\ complete l) -> (complete l1).",
+        "Proof.",
+        "  intros [] l1 [Hrch Hc].",
+        "  - contradiction.",
+        "  - inversion Hrch. subst.",
+        "    simpl in Hc.",
+        "    destruct Hc as [Hc' [Hc'' H]].",
+        "    assumption.",
+        "Qed."
+    ], [
+        "Lemma tree_depth_geq_0 : forall (l : tree Z) (s : Z), (depth l s) -> s >= 0.",
+        "Proof.",
+        "  induction l; intros s Hd; simpl in Hd.",
+        "  - intuition.",
+        "  - destruct Hd as [nl [nr [Hld [Hrd Hs]]]].",
+        "    apply IHl1 in Hld.",
+        "    apply IHl2 in Hrd.",
+        "    intuition.",
+        "Qed.",
+        "",
+        "Lemma tree_no_leaf_depth_pos : forall (l : tree Z) (s : Z), ~(leaf l) /\\ (depth l s) -> s > 0.",
+        "Proof.",
+        "  intros [] s [Hl Hd].",
+        "  - simpl in Hl. contradiction.",
+        "  - simpl in Hd. destruct Hd as [nl [nr [Hld [Hrd Hs]]]].",
+        "    apply tree_depth_geq_0 in Hld.",
+        "    apply tree_depth_geq_0 in Hrd.",
+        "    intuition.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros s Hs v [Hl [Hd Hc]].",
+        "destruct (tree_no_leaf_exists_root v) as [x Hr].",
+        "destruct (tree_no_leaf_exists_lch v) as [l Hlch].",
+        "destruct (tree_no_leaf_exists_rch v) as [r Hrch].",
+        "exists x. exists (s - 1). exists r. exists l.",
+        "intuition.",
+        "- apply (tree_no_leaf_depth_pos v). intuition.",
+        "- assert (s > 0) by (apply (tree_no_leaf_depth_pos v s); intuition). intuition.",
+        "- assert (s > 0) by (apply (tree_no_leaf_depth_pos v s); intuition). intuition.",
+        "- apply (tree_complete_lch_depth_minus_1 v). intuition.",
+        "- apply (tree_complete_lch_complete v). intuition.",
+        "- apply (tree_complete_rch_depth_minus_1 v). intuition.",
+        "- apply (tree_complete_rch_complete v). intuition."
+    ]
+}

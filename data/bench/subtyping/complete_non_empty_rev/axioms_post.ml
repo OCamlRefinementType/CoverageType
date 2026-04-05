@@ -1,0 +1,8 @@
+let[@axiom] tree_complete_lch_depth_minus_1 = fun (l : (int tree)) -> fun (l1 : (int tree)) -> fun (n : int) -> (((lch l l1) && ((complete l) && (depth l n))) #==> (depth l1 (n - 1)))
+let[@axiom] tree_complete_rch_depth_minus_1 = fun (l : (int tree)) -> fun (l1 : (int tree)) -> fun (n : int) -> (((rch l l1) && ((complete l) && (depth l n))) #==> (depth l1 (n - 1)))
+let[@axiom] tree_no_leaf_exists_lch = fun (l : (int tree)) -> fun ((l1 [@ex]) : (int tree)) -> ((not (leaf l)) #==> (lch l l1))
+let[@axiom] tree_no_leaf_exists_rch = fun (l : (int tree)) -> fun ((l1 [@ex]) : (int tree)) -> ((not (leaf l)) #==> (rch l l1))
+let[@axiom] tree_no_leaf_exists_root = fun (l : (int tree)) -> fun ((x [@ex]) : int) -> ((not (leaf l)) #==> (root l x))
+let[@axiom] tree_complete_lch_complete = fun (l : (int tree)) (l1 : (int tree)) -> (((lch l l1) && (complete l)) #==> (complete l1))
+let[@axiom] tree_complete_rch_complete = fun (l : (int tree)) (l1 : (int tree)) -> (((rch l l1) && (complete l)) #==> (complete l1))
+let[@axiom] tree_no_leaf_depth_pos = fun (l : (int tree)) (s : int) -> (((not (leaf l)) && (depth l s)) #==> (s > 0))
