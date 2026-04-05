@@ -188,7 +188,7 @@ let typed_raw_term_of_expr expr =
             (* let () = *)
             (*   if String.equal (Prop.layout_op op.x) "None" then _die [%here] *)
             (* in *)
-            let () = Printf.printf "MK op: %s\n" (layout_op op.x) in
+            (* let () = Printf.printf "MK op: %s\n" (layout_op op.x) in *)
             (AppOp (op, args))#:Nt.Ty_unknown)
     | Pexp_constant _ -> (Const (expr_to_constant expr))#:Nt.Ty_unknown
     | Pexp_let (flag, vbs, e) ->

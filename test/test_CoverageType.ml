@@ -16,10 +16,12 @@ let run_test { source_file; passing_tasks; failing_tasks } =
   Printf.printf "Running test on %s...\n" source_file;
   let code = Preprocess.preproress [ source_file ] in
   let _, passed, failed = Typing.struc_check (Preprocess.load_bctx ()) code in
+  Printf.printf "Passed tasks: %s\n" (String.concat ", " passed);
+  Printf.printf "Failed tasks: %s\n" (String.concat ", " failed);
   equal_ignore_order passed passing_tasks
   && equal_ignore_order failed failing_tasks
 
-let%test "alias" =
+let%test "inline_test/alias" =
   run_test
     {
       source_file = "data/inline_test/alias.ml";
@@ -27,28 +29,38 @@ let%test "alias" =
       failing_tasks = [];
     }
 
-(*
-let%test "basic_int" =
+let%test "test_cases/basic_int" =
   run_test
     {
       source_file = "data/test_cases/basic_int.ml";
-      passing_tasks = [];
+      passing_tasks = [ "test1"; "test3" ];
       failing_tasks = [];
     }
 
-let%test "stlc/gen_term_size" =
-  run_test
-    {
-      source_file = "data/PLDI23/stlc/gen_term_size.ml";
-      passing_tasks = [];
-      failing_tasks = [];
-    }
+(* TODO: fix the test, need definitions for num_arr? *)
+(* let%test "stlc/gen_term_size" = *)
+(*   run_test *)
+(*     { *)
+(*       source_file = "data/PLDI23/stlc/gen_term_size.ml"; *)
+(*       passing_tasks = [ "gen_term_size" ]; *)
+(*       failing_tasks = []; *)
+(*     } *)
 
 let%test "stlc/stlc" =
   run_test
     {
       source_file = "data/PLDI23/stlc/stlc.ml";
-      passing_tasks = [];
+      passing_tasks =
+        [
+          "type_eq";
+          "gen_const";
+          "gen_type_size";
+          "gen_type";
+          "vars_with_type_rev_index";
+          "vars_with_type";
+          "gen_term_no_app";
+          "gen_term_size";
+        ];
       failing_tasks = [];
     }
 
@@ -56,10 +68,11 @@ let%test "basic/duplicate_list" =
   run_test
     {
       source_file = "data/PLDI23/basic/duplicate_list.ml";
-      passing_tasks = [];
+      passing_tasks = [ "duplicate_list_gen" ];
       failing_tasks = [];
     }
 
+(*
 let%test "basic/sortedlist_simpl" =
   run_test
     {

@@ -54,7 +54,10 @@ let item_check bctx inv_m imp_m (name, rty) =
       (spf "The source code of given refinement type '%s' is missing." name)
       imp_m name
   in
-  let () = Pp.printf "@{<bold>imp_m(%s)@}\n%s\n" name (layout_typed_term imp) in
+  let () =
+    _log @@ fun _ ->
+    Pp.printf "@{<bold>imp_m(%s)@}\n%s\n" name (layout_typed_term imp)
+  in
   let () = Statistic.create_stat name imp in
   let () = Statistic.stat_update_rty (name, counter_rty_qt_qpred rty) in
   let invs = match StrMap.find_opt inv_m name with None -> [] | Some l -> l in

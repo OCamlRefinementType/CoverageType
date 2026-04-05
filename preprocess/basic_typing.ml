@@ -78,7 +78,9 @@ let rec constraint_term_type_infer (ctx : t ctx) (bc : BC.bc) (e : t raw_term) =
   | Const c -> (bc, (Const c)#:(constant_to_nt c))
   | Var id ->
       let bc, id = constraint_id_type_check ctx bc id in
-      let () = Printf.printf "id: %s : %s\n" id.x (Nt.layout id.ty) in
+      let () =
+        _log @@ fun _ -> Printf.printf "id: %s : %s\n" id.x (Nt.layout id.ty)
+      in
       (bc, (Var id)#:id.ty)
   | Tuple es ->
       let bc, es = constraint_terms_type_check ctx bc es in
@@ -222,19 +224,25 @@ let raw_term_type_check ctx polyvars term =
   let solution = Normalty.type_unification StrMap.empty bc.cs in
   match solution with
   | None ->
-      Pp.printf "@{<bold>Before subst:@}\n%s\n" (layout_typed_raw_term term);
+      let () =
+        _log @@ fun _ ->
+        Pp.printf "@{<bold>Before subst:@}\n%s\n" (layout_typed_raw_term term)
+      in
       _die_with [%here] "raw term normal type error"
   | Some sol ->
       let res = typed_map_raw_term (Normalty.msubst_nt sol) term in
-      Pp.printf "@{<bold>Before subst:@}\n%s\n" (layout_typed_raw_term term);
-      Pp.printf "@{<bold>Solution:@}\n%s\n"
-        (List.split_by_comma (fun (x, ty) -> spf "%s -> %s" x (Nt.layout ty))
-        @@ StrMap.to_kv_list sol);
-      Pp.printf "@{<bold>After subst:@}\n%s\n"
-        (show_raw_term
-           (fun format t ->
-             OcamlParser.Pprintast.core_type format (Nt.t_to_core_type t))
-           res.x);
+      let () =
+        _log @@ fun _ ->
+        Pp.printf "@{<bold>Before subst:@}\n%s\n" (layout_typed_raw_term term);
+        Pp.printf "@{<bold>Solution:@}\n%s\n"
+          (List.split_by_comma (fun (x, ty) -> spf "%s -> %s" x (Nt.layout ty))
+          @@ StrMap.to_kv_list sol);
+        Pp.printf "@{<bold>After subst:@}\n%s\n"
+          (show_raw_term
+             (fun format t ->
+               OcamlParser.Pprintast.core_type format (Nt.t_to_core_type t))
+             res.x)
+      in
       res
 
 let constructor_declaration_mk_ (retty, { constr_name; argsty }) =
