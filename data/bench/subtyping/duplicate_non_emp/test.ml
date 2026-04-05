@@ -4,7 +4,7 @@ let[@assert] rty2 =
   ((s > 0
     && (not (emp v))
     && len v s
-    && fun (u : int) -> (list_mem v u)#==>(u == x)
+    && fun (u1 : int) -> (list_mem v u1)#==>(u1 == x)
     : [%v: int list])
     [@under])
 
@@ -21,7 +21,7 @@ let[@assert] rty1 =
       && (s_6 >= 0 && s_6 < s
          && s_6 == s - 1
          && len _x28 s_6
-         && (fun (u : int) -> (list_mem _x28 u)#==>(u == x))
+         && (fun (u2 : int) -> (list_mem _x28 u2)#==>(u2 == x))
          && _25 == _x28)
       && hd _x68 x && tl _x68 _25 && v == _x68
     : [%v: int list])

@@ -1,0 +1,6 @@
+let[@axiom] list_no_emp_exists_hd = fun (l : (int list)) -> fun ((x [@ex]) : int) -> ((not (emp l)) #==> (hd l x))
+let[@axiom] list_no_emp_exists_tl = fun (l : (int list)) -> fun ((l1 [@ex]) : (int list)) -> ((not (emp l)) #==> (tl l l1))
+let[@axiom] list_len_geq_0 = fun (l : (int list)) -> fun (n : int) -> ((len l n) #==> (n >= 0))
+let[@axiom] list_tl_len_plus_1 = fun (l : (int list)) -> fun (l1 : (int list)) -> fun (n : int) -> ((tl l l1) #==> (iff (len l1 n) (len l (n + 1))))
+let[@axiom] list_hd_is_mem = fun (l : (int list)) (u : int) -> ((hd l u) #==> (list_mem l u))
+let[@axiom] list_tl_mem = fun (l : (int list)) (l1 : (int list)) (u : int) -> (((tl l l1) && (list_mem l1 u)) #==> (list_mem l u))
