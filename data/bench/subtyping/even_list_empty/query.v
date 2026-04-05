@@ -2,6 +2,7 @@ From Stdlib Require Import BinInt.
 From Stdlib Require Import String.
 From Stdlib Require Import Ascii.
 From Stdlib Require Import Floats.
+From Stdlib Require Import Lia.
 Open Scope Z_scope.
 
 Module Type Signatures.
