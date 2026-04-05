@@ -69,6 +69,7 @@ let simplify_sub_typectx ctx (rty1, rty2) =
 let sub_cty ou rctx cty1 cty2 =
   let ctx_list, cty1, cty2 = simplify_sub_typectx rctx.rty_ctx (cty1, cty2) in
   let () =
+    _log_auxtyping @@ fun _ ->
     Printf.printf "ctx_list: %s\n" (List.split_by_comma _get_x ctx_list)
   in
   let overctx, underctx = build_wf_ctx ctx_list in
