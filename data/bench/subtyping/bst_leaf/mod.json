@@ -1,0 +1,19 @@
+{
+    "axioms": [
+        "Axiom tree_leaf_bst : forall (l : tree Z), (leaf l) -> (bst l)."
+    ],
+    "axiom_proofs": [[
+        "Lemma tree_leaf_bst : forall (l : tree Z), (leaf l) -> (bst l).",
+        "Proof.",
+        "  intros [] Hl.",
+        "  - reflexivity.",
+        "  - contradiction.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros d Hd lo hi Hlh v [Hl [Hd1 Hdep]].",
+        "intuition.",
+        "- apply tree_leaf_bst. assumption.",
+        "- exists 0. intuition."
+    ]
+}

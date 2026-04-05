@@ -1,0 +1,1 @@
+let[@axiom] tree_leaf_bst = fun (l : (int tree)) -> ((leaf l) #==> (bst l))
