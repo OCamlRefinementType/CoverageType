@@ -1,0 +1,37 @@
+{
+    "axioms": [
+        "Axiom list_cons_mem : forall (l : list Z) (l1 : list Z) (u : Z), (tl l l1 /\\ list_mem l u) -> (list_mem l1 u \\/ hd l u).",
+        "Axiom list_hd_unique : forall (l : list Z) (x : Z) (y : Z), (hd l x /\\ hd l y) -> x = y."
+    ],
+    "axiom_proofs": [[
+        "Lemma list_hd_unique : forall (l : list Z) (x : Z) (y : Z), (hd l x /\\ hd l y) -> x = y.",
+        "Proof.",
+        "  intros [| h] x y [Hh1 Hh2].",
+        "  - contradiction.",
+        "  - inversion Hh1. inversion Hh2. reflexivity.",
+        "Qed."
+    ], [
+        "Lemma list_cons_mem : forall (l : list Z) (l1 : list Z) (u : Z),",
+        "  (tl l l1 /\\ list_mem l u) -> (list_mem l1 u \\/ hd l u).",
+        "Proof.",
+        "  intros [| x] [| y] u [Ht Hm]; try contradiction;",
+        "  inversion Ht; subst; simpl in Hm.",
+        "  - right. simpl. intuition.",
+        "  - destruct (u =? x) eqn:Hu.",
+        "    * right. simpl. intuition.",
+        "    * left. simpl. intuition.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros s Hs x v [s1 [t H]].",
+        "decompose [and] H. subst.",
+        "destruct (list_tl_len_plus_1 v t (s - 1) H8).",
+        "replace (s - 1 + 1) with s in H3 by intuition.",
+        "intuition.",
+        "- apply (list_positive_len_is_not_emp v s) in H3; intuition.",
+        "- assert (tl v t /\\ list_mem v u2) as Hq by intuition.",
+        "  destruct (list_cons_mem v t u2 Hq).",
+        "  * apply (H5 _ H17).",
+        "  * apply (list_hd_unique v u2 x). intuition."
+    ]
+}

@@ -1,0 +1,5 @@
+let[@axiom] list_len_geq_0 = fun (l : (int list)) -> fun (n : int) -> ((len l n) #==> (n >= 0))
+let[@axiom] list_tl_len_plus_1 = fun (l : (int list)) -> fun (l1 : (int list)) -> fun (n : int) -> ((tl l l1) #==> (iff (len l1 n) (len l (n + 1))))
+let[@axiom] list_positive_len_is_not_emp = fun (l : (int list)) -> fun (n : int) -> (((len l n) && (n > 0)) #==> (not (emp l)))
+let[@axiom] list_cons_mem = fun (l : (int list)) (l1 : (int list)) (u : int) -> (((tl l l1) && (list_mem l u)) #==> ((list_mem l1 u) || (hd l u)))
+let[@axiom] list_hd_unique = fun (l : (int list)) (x : int) (y : int) -> (((hd l x) && (hd l y)) #==> (x == y))
