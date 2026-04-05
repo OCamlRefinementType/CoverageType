@@ -1,0 +1,46 @@
+{
+    "axioms": [
+        "Axiom list_hd_is_mem : forall (l : list Z) (u : Z), (hd l u) -> (list_mem l u).",
+        "Axiom list_tl_mem : forall (l : list Z) (l1 : list Z) (u : Z), (tl l l1 /\\ list_mem l1 u) -> (list_mem l u)."
+    ],
+    "axiom_proofs": [[
+        "Lemma list_hd_is_mem : forall (l : list Z) (u : Z), (hd l u) -> (list_mem l u).",
+        "Proof.",
+        "  intros [| x] u Hh.",
+        "  - contradiction.",
+        "  - inversion Hh. simpl. left. reflexivity.",
+        "Qed."
+    ], [
+        "Lemma list_tl_mem : forall (l : list Z) (l1 : list Z) (u : Z), (tl l l1 /\\ list_mem l1 u) -> (list_mem l u).",
+        "Proof.",
+        "  intros [| x] [| y] u [Ht Hm]; try contradiction.",
+        "  inversion Ht. subst.",
+        "  simpl. simpl in Hm.",
+        "  right. assumption.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros s Hs x v [Hl Hdup].",
+        "intuition.",
+        "destruct (s =? 0) eqn:Hse.",
+        "- left. assert (s = 0) by intuition.",
+        "  split; try assumption.",
+        "  subst.",
+        "  destruct (list_len_0_emp_iff v). intuition.",
+        "- right. assert (s > 0) by intuition.",
+        "  assert (len v s /\\ s > 0) as Hq by intuition.",
+        "  remember (list_positive_len_is_not_emp v s Hq) as Hne.",
+        "  destruct (list_no_emp_exists_hd v) as [x' Hh].",
+        "  destruct (list_no_emp_exists_tl v) as [t Ht].",
+        "  intuition.",
+        "  exists t. intuition.",
+        "  * destruct (list_tl_len_plus_1 v t (s - 1) H1).",
+        "    replace (s - 1 + 1) with s in H3 by intuition.",
+        "    intuition.",
+        "  * assert (list_mem v u_0) as Hu0 by (apply (list_tl_mem v t u_0); intuition).",
+        "    apply (Hdup u_0 Hu0).",
+        "  * set (Hm := (list_hd_is_mem _ _ H0)).",
+        "    apply Hdup in Hm. subst.",
+        "    assumption."
+    ]
+}
