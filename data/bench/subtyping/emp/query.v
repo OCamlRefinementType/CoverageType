@@ -6,7 +6,8 @@ From Stdlib Require Import Lia.
 Open Scope Z_scope.
 
 Module Type Signatures.
-Parameter tree : forall (a : Type), Type.
+  Parameter tree : forall (a : Type), Type.
+  Parameter rbtree : forall (a : Type), Type.
 
   Parameter len : forall {a : Type}, list a -> Z -> Prop.
   Parameter emp : forall {a : Type}, list a -> Prop.
@@ -22,6 +23,10 @@ Module Axioms : Signatures.
   | Leaf : tree' a
   | Node : a -> tree' a -> tree' a -> tree' a.
   Definition tree := tree'.
+  Inductive rbtree' (a : Type) : Type :=
+  | Rbtleaf : rbtree' a
+  | Rbtnode : bool -> rbtree' a -> a -> rbtree' a -> rbtree' a.
+  Definition rbtree := rbtree'.
 
   Fixpoint len {a : Type} (l : list a) (n : Z) : Prop :=
     match l with
