@@ -388,8 +388,8 @@ let type_check_group (bctx : built_in_ctx) =
         match e.x with
         | CVal _ -> _die [%here]
         | CErr ->
-            if sub_rty rctx (mk_bot_underrty (erase_rty rty), rty)
-            then Some CErr#:rty
+            if sub_rty rctx (mk_bot_underrty (erase_rty rty), rty) then
+              Some CErr#:rty
             else None
         | CLetDeTuple _ -> failwith "unimp"
         | CApp _ | CAppOp _ | CMatch _ | CLetE _ | CRecord _ | CField _ ->
