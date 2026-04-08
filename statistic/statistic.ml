@@ -97,3 +97,5 @@ let create_stat function_name (imp : (Nt.t, Nt.t term) typed) =
   match Hashtbl.find_opt _stat_tab function_name with
   | None -> Hashtbl.add _stat_tab function_name stat
   | Some _ -> _die [%here]
+
+let clear () = Hashtbl.clear _stat_tab
