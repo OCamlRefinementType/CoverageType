@@ -1,0 +1,2 @@
+let[@axiom] rbtree_num_black_geq_0 = fun (l : (int rbtree)) (n : int) -> ((num_black l n) #==> (n >= 0))
+let[@axiom] rbtree_num_black_0_rb_leaf = fun (l : (int rbtree)) -> (((num_black l 0) && (not (rb_root_color l false))) #==> (rb_leaf l))
