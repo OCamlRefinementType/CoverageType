@@ -1,27 +1,25 @@
+open Ppx_compare_lib.Builtin
+open Sexplib.Std
+
 type test = {
   source_file : string;
   passing_tasks : string list;
   failing_tasks : string list;
 }
 
-let equal_ignore_order xs ys =
-  List.sort String.compare xs = List.sort String.compare ys
-
 let run_test { source_file; passing_tasks; failing_tasks } =
+  Statistic.clear ();
   let root = Filename.concat (Sys.getcwd ()) "../../../../.." in
   let _ =
     Myconfig.meta_config_path := Filename.concat root "test/meta-config.json"
   in
   let source_file = Filename.concat root source_file in
-  Printf.printf "Running test on %s...\n" source_file;
   let code = Preprocess.preproress [ source_file ] in
   let _, passed, failed = Typing.struc_check (Preprocess.load_bctx ()) code in
-  Printf.printf "Passed tasks: %s\n" (String.concat ", " passed);
-  Printf.printf "Failed tasks: %s\n" (String.concat ", " failed);
-  equal_ignore_order passed passing_tasks
-  && equal_ignore_order failed failing_tasks
+  [%test_eq: string list] passing_tasks passed;
+  [%test_eq: string list] failing_tasks failed
 
-let%test "inline_test/alias" =
+let%test_unit "inline_test/alias" =
   run_test
     {
       source_file = "data/inline_test/alias.ml";
@@ -29,7 +27,7 @@ let%test "inline_test/alias" =
       failing_tasks = [];
     }
 
-let%test "test_cases/basic_int" =
+let%test_unit "test_cases/basic_int" =
   run_test
     {
       source_file = "data/test_cases/basic_int.ml";
@@ -38,7 +36,7 @@ let%test "test_cases/basic_int" =
     }
 
 (* TODO: fix the test, need definitions for num_arr? *)
-(* let%test "stlc/gen_term_size" = *)
+(* let%test_unit "stlc/gen_term_size" = *)
 (*   run_test *)
 (*     { *)
 (*       source_file = "data/PLDI23/stlc/gen_term_size.ml"; *)
@@ -47,7 +45,7 @@ let%test "test_cases/basic_int" =
 (*     } *)
 
 (* sometimes fails, not sure why... some kind of nondeterminism *)
-(* let%test "stlc/stlc" = *)
+(* let%test_unit "stlc/stlc" = *)
 (*   run_test *)
 (*     { *)
 (*       source_file = "data/PLDI23/stlc/stlc.ml"; *)
@@ -65,7 +63,7 @@ let%test "test_cases/basic_int" =
 (*       failing_tasks = []; *)
 (*     } *)
 
-let%test "basic/duplicate_list" =
+let%test_unit "basic/duplicate_list" =
   run_test
     {
       source_file = "data/PLDI23/basic/duplicate_list.ml";
@@ -73,7 +71,7 @@ let%test "basic/duplicate_list" =
       failing_tasks = [];
     }
 
-let%test "basic/sortedlist_simpl" =
+let%test_unit "basic/sortedlist_simpl" =
   run_test
     {
       source_file = "data/PLDI23/basic/sortedlist_simpl.ml";
@@ -81,7 +79,7 @@ let%test "basic/sortedlist_simpl" =
       failing_tasks = [];
     }
 
-let%test "basic/boundlist" =
+let%test_unit "basic/boundlist" =
   run_test
     {
       source_file = "data/PLDI23/basic/boundlist.ml";
@@ -89,7 +87,7 @@ let%test "basic/boundlist" =
       failing_tasks = [];
     }
 
-let%test "quickchick/SizedTree" =
+let%test_unit "quickchick/SizedTree" =
   run_test
     {
       source_file = "data/PLDI23/quickchick/SizedTree.ml";
@@ -97,7 +95,7 @@ let%test "quickchick/SizedTree" =
       failing_tasks = [];
     }
 
-let%test "quickchick/SizedList" =
+let%test_unit "quickchick/SizedList" =
   run_test
     {
       source_file = "data/PLDI23/quickchick/SizedList.ml";
@@ -105,7 +103,7 @@ let%test "quickchick/SizedList" =
       failing_tasks = [];
     }
 
-let%test "quickchick/RedBlackTree" =
+let%test_unit "quickchick/RedBlackTree" =
   run_test
     {
       source_file = "data/PLDI23/quickchick/RedBlackTree.ml";
@@ -113,7 +111,7 @@ let%test "quickchick/RedBlackTree" =
       failing_tasks = [];
     }
 
-let%test "quickchick/SortedList" =
+let%test_unit "quickchick/SortedList" =
   run_test
     {
       source_file = "data/PLDI23/quickchick/SortedList.ml";
@@ -121,7 +119,7 @@ let%test "quickchick/SortedList" =
       failing_tasks = [];
     }
 
-let%test "leonidas/SizedBST" =
+let%test_unit "leonidas/SizedBST" =
   run_test
     {
       source_file = "data/PLDI23/leonidas/SizedBST.ml";
@@ -129,7 +127,7 @@ let%test "leonidas/SizedBST" =
       failing_tasks = [];
     }
 
-let%test "leonidas/CompleteTree" =
+let%test_unit "leonidas/CompleteTree" =
   run_test
     {
       source_file = "data/PLDI23/leonidas/CompleteTree.ml";
@@ -137,7 +135,7 @@ let%test "leonidas/CompleteTree" =
       failing_tasks = [];
     }
 
-let%test "elrond/BatchedQueue" =
+let%test_unit "elrond/BatchedQueue" =
   run_test
     {
       source_file = "data/PLDI23/elrond/BatchedQueue.ml";
@@ -145,7 +143,7 @@ let%test "elrond/BatchedQueue" =
       failing_tasks = [];
     }
 
-let%test "elrond/UniqueList" =
+let%test_unit "elrond/UniqueList" =
   run_test
     {
       source_file = "data/PLDI23/elrond/UniqueList.ml";
@@ -153,7 +151,7 @@ let%test "elrond/UniqueList" =
       failing_tasks = [];
     }
 
-let%test "elrond/LeftistHeap" =
+let%test_unit "elrond/LeftistHeap" =
   run_test
     {
       source_file = "data/PLDI23/elrond/LeftistHeap.ml";
@@ -161,7 +159,7 @@ let%test "elrond/LeftistHeap" =
       failing_tasks = [];
     }
 
-let%test "elrond/UnbalanceSet" =
+let%test_unit "elrond/UnbalanceSet" =
   run_test
     {
       source_file = "data/PLDI23/elrond/UnbalanceSet.ml";
@@ -169,7 +167,7 @@ let%test "elrond/UnbalanceSet" =
       failing_tasks = [];
     }
 
-let%test "elrond/stream" =
+let%test_unit "elrond/stream" =
   run_test
     {
       source_file = "data/PLDI23/elrond/stream.ml";
@@ -177,7 +175,7 @@ let%test "elrond/stream" =
       failing_tasks = [];
     }
 
-let%test "elrond/BankersQueue" =
+let%test_unit "elrond/BankersQueue" =
   run_test
     {
       source_file = "data/PLDI23/elrond/BankersQueue.ml";
@@ -185,7 +183,7 @@ let%test "elrond/BankersQueue" =
       failing_tasks = [];
     }
 
-let%test "quickcheck/SizedHeap" =
+let%test_unit "quickcheck/SizedHeap" =
   run_test
     {
       source_file = "data/PLDI23/quickcheck/SizedHeap.ml";
@@ -193,7 +191,7 @@ let%test "quickcheck/SizedHeap" =
       failing_tasks = [];
     }
 
-let%test "quickcheck/SizedSet" =
+let%test_unit "quickcheck/SizedSet" =
   run_test
     {
       source_file = "data/PLDI23/quickcheck/SizedSet.ml";
@@ -201,7 +199,7 @@ let%test "quickcheck/SizedSet" =
       failing_tasks = [];
     }
 
-let%test "alias" =
+let%test_unit "alias" =
   run_test
     {
       source_file = "data/inline_test/alias.ml";
@@ -209,7 +207,7 @@ let%test "alias" =
       failing_tasks = [];
     }
 
-let%test "vellvm" =
+let%test_unit "vellvm" =
   run_test
     {
       source_file = "data/monad/vellvm.ml";
@@ -217,7 +215,7 @@ let%test "vellvm" =
       failing_tasks = [];
     }
 
-let%test "coverage_monad_library" =
+let%test_unit "coverage_monad_library" =
   run_test
     {
       source_file = "data/monad/coverage_monad_library.ml";
@@ -248,7 +246,7 @@ let%test "coverage_monad_library" =
       failing_tasks = [];
     }
 
-let%test "tezos" =
+let%test_unit "tezos" =
   run_test
     {
       source_file = "data/monad/tezos.ml";
@@ -257,7 +255,7 @@ let%test "tezos" =
       failing_tasks = [];
     }
 
-let%test "case1" =
+let%test_unit "case1" =
   run_test
     {
       source_file = "data/monad/case1.ml";
@@ -265,7 +263,7 @@ let%test "case1" =
       failing_tasks = [];
     }
 
-let%test "xen_api" =
+let%test_unit "xen_api" =
   run_test
     {
       source_file = "data/monad/xen_api.ml";
@@ -284,7 +282,7 @@ let%test "xen_api" =
       failing_tasks = [];
     }
 
-let%test "zipperposition" =
+let%test_unit "zipperposition" =
   run_test
     {
       source_file = "data/monad/zipperposition.ml";
@@ -292,7 +290,7 @@ let%test "zipperposition" =
       failing_tasks = [];
     }
 
-let%test "herdtools7" =
+let%test_unit "herdtools7" =
   run_test
     {
       source_file = "data/monad/herdtools7.ml";
@@ -300,7 +298,7 @@ let%test "herdtools7" =
       failing_tasks = [];
     }
 
-let%test "test" =
+let%test_unit "test" =
   run_test
     {
       source_file = "data/monad/test.ml";
@@ -308,7 +306,7 @@ let%test "test" =
       failing_tasks = [];
     }
 
-let%test "tree2list" =
+let%test_unit "tree2list" =
   run_test
     {
       source_file = "data/monad/tree2list.ml";
@@ -316,7 +314,7 @@ let%test "tree2list" =
       failing_tasks = [];
     }
 
-let%test "tezos_test" =
+let%test_unit "tezos_test" =
   run_test
     {
       source_file = "data/monad/tezos_test.ml";
@@ -324,7 +322,7 @@ let%test "tezos_test" =
       failing_tasks = [];
     }
 
-let%test "simple/ReturnError" =
+let%test_unit "simple/ReturnError" =
   run_test
     {
       source_file = "data/simple/ReturnError.ml";
