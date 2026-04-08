@@ -323,3 +323,11 @@ let%test "tezos_test" =
       passing_tasks = [ "operation_proto_gen"; "q_in_0_1"; "priority_gen" ];
       failing_tasks = [];
     }
+
+let%test "simple/ReturnError" =
+  run_test
+    {
+      source_file = "data/simple/ReturnError.ml";
+      passing_tasks = [];
+      failing_tasks = [ "sized_list_gen" ];
+    }
