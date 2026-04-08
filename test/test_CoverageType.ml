@@ -201,7 +201,6 @@ let%test "quickcheck/SizedSet" =
       failing_tasks = [];
     }
 
-(*
 let%test "alias" =
   run_test
     {
@@ -214,7 +213,7 @@ let%test "vellvm" =
   run_test
     {
       source_file = "data/monad/vellvm.ml";
-      passing_tasks = [];
+      passing_tasks = [ "gen_uvalue" ];
       failing_tasks = [];
     }
 
@@ -222,7 +221,30 @@ let%test "coverage_monad_library" =
   run_test
     {
       source_file = "data/monad/coverage_monad_library.ml";
-      passing_tasks = [];
+      passing_tasks =
+        [
+          "return";
+          "bind";
+          "fmap";
+          "fmap2";
+          "union";
+          "fix";
+          "int_bound";
+          "int_range";
+          "nat";
+          "pair";
+          "option";
+          "oneof";
+          "nil_gen";
+          "cons_gen";
+          "oneofl";
+          "frequencyl_aux";
+          "frequencyl";
+          "frequency";
+          "numeral";
+          "list_repeat";
+          "pos_split2";
+        ];
       failing_tasks = [];
     }
 
@@ -230,7 +252,8 @@ let%test "tezos" =
   run_test
     {
       source_file = "data/monad/tezos.ml";
-      passing_tasks = [];
+      passing_tasks =
+        [ "operation_proto_gen"; "q_in_0_1"; "priority_gen"; "tezos_tree_gen" ];
       failing_tasks = [];
     }
 
@@ -238,7 +261,7 @@ let%test "case1" =
   run_test
     {
       source_file = "data/monad/case1.ml";
-      passing_tasks = [];
+      passing_tasks = [ "union" ];
       failing_tasks = [];
     }
 
@@ -246,7 +269,18 @@ let%test "xen_api" =
   run_test
     {
       source_file = "data/monad/xen_api.ml";
-      passing_tasks = [];
+      passing_tasks =
+        [
+          "fd_size_gen";
+          "file_kind_gen";
+          "timeout_gen";
+          "total_delay_gen";
+          "size_bound_gen";
+          "testable_file_kind_gen";
+          "select_fd_spec_gen";
+          "file_list_gen";
+          "fd_gen";
+        ];
       failing_tasks = [];
     }
 
@@ -254,7 +288,7 @@ let%test "zipperposition" =
   run_test
     {
       source_file = "data/monad/zipperposition.ml";
-      passing_tasks = [];
+      passing_tasks = [ "default_fuel" ];
       failing_tasks = [];
     }
 
@@ -262,7 +296,7 @@ let%test "herdtools7" =
   run_test
     {
       source_file = "data/monad/herdtools7.ml";
-      passing_tasks = [];
+      passing_tasks = [ "literal" ];
       failing_tasks = [];
     }
 
@@ -270,7 +304,7 @@ let%test "test" =
   run_test
     {
       source_file = "data/monad/test.ml";
-      passing_tasks = [];
+      passing_tasks = [ "return" ];
       failing_tasks = [];
     }
 
@@ -278,7 +312,7 @@ let%test "tree2list" =
   run_test
     {
       source_file = "data/monad/tree2list.ml";
-      passing_tasks = [];
+      passing_tasks = [ "flatten"; "list_gen" ];
       failing_tasks = [];
     }
 
@@ -286,7 +320,6 @@ let%test "tezos_test" =
   run_test
     {
       source_file = "data/monad/tezos_test.ml";
-      passing_tasks = [];
+      passing_tasks = [ "operation_proto_gen"; "q_in_0_1"; "priority_gen" ];
       failing_tasks = [];
     }
-*)
