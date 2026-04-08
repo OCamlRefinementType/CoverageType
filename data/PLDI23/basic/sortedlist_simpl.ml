@@ -14,4 +14,4 @@ let rec sorted_list_gen (size : int) : int list =
 
 let[@assert] sorted_list_gen =
   let s = (0 <= v : [%v: int]) [@over] in
-  (len v s && sorted v : [%v: int list]) [@under]
+  (list_len v == s && sorted v : [%v: int list]) [@under]

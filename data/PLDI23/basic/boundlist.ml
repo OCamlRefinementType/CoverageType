@@ -6,6 +6,6 @@ let rec bound_list_gen (size : int) (x : int) : int list =
 
 let[@assert] bound_list_gen ?r:(s = ((0 <= v : [%v: int]) [@over])) ?r:(x : int)
     =
-  (len v s && fun (u : int) -> implies (list_mem v u) (x <= u)
+  (list_len v == s && fun (u : int) -> implies (list_mem v u) (x <= u)
     : [%v: int list])
     [@under]
