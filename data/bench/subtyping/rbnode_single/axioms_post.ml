@@ -1,0 +1,5 @@
+let[@axiom] rbtree_rb_leaf_num_black_0_second = fun (l : (int rbtree)) -> ((rb_leaf l) #==> (num_black l 0))
+let[@axiom] rbtree_rb_leaf_no_rb_root_color = fun (l : (int rbtree)) -> fun (x : bool) -> ((rb_leaf l) #==> (not (rb_root_color l x)))
+let[@axiom] rbtree_rb_leaf_no_red_red = fun (l : (int rbtree)) -> ((rb_leaf l) #==> (no_red_red l))
+let[@axiom] num_black_root_from_lt_rt = fun (v : (int rbtree)) (lt : (int rbtree)) (rt : (int rbtree)) (h : int) -> (((num_black lt h) && ((num_black rt h) && ((rb_rch v rt) && ((rb_lch v lt) && (rb_root_color v true))))) #==> (num_black v h))
+let[@axiom] no_red_red_given_lt_rt_red_root = fun (v : (int rbtree)) (lt : (int rbtree)) (rt : (int rbtree)) -> (((no_red_red lt) && ((no_red_red rt) && ((rb_lch v lt) && ((rb_rch v rt) && ((not (rb_root_color lt true)) && ((not (rb_root_color rt true)) && (rb_root_color v true))))))) #==> (no_red_red v))

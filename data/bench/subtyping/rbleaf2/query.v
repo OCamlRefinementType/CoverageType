@@ -37,8 +37,8 @@ Module Axioms : Signatures.
     match t with
     | Rbtleaf _ => h = 0
     | Rbtnode _ c l _ r =>
-      if c then num_black l (h - 1) /\ num_black r (h - 1)
-      else num_black l h /\ num_black r h
+      if c then num_black l h /\ num_black r h
+      else num_black l (h - 1) /\ num_black r (h - 1)
     end.
   Definition rb_leaf {a : Type} (t : rbtree a) : Prop :=
     match t with

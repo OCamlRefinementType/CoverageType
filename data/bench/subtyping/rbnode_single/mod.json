@@ -1,0 +1,52 @@
+{
+    "axioms": [
+        "Axiom num_black_root_from_lt_rt : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z) (h : Z), (num_black lt h /\\ num_black rt h /\\ rb_rch v rt /\\ rb_lch v lt /\\ rb_root_color v True) -> (num_black v h).",
+        "Axiom no_red_red_given_lt_rt_red_root : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z), (no_red_red lt /\\ no_red_red rt /\\ rb_lch v lt /\\ rb_rch v rt /\\ ~(rb_root_color lt True) /\\ ~(rb_root_color rt True) /\\ rb_root_color v True) -> (no_red_red v)."
+    ],
+    "axiom_proofs": [[
+        "Lemma num_black_root_from_lt_rt : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z) (h : Z),",
+        "  (num_black lt h /\\ num_black rt h /\\ rb_rch v rt /\\ rb_lch v lt /\\ rb_root_color v True)",
+        "  -> (num_black v h).",
+        "Proof.",
+        "  intros [] lt rt h [Hnbl [Hnbr [Hrch [Hlch Hrc]]]].",
+        "  - contradiction.",
+        "  - simpl in *. intuition. subst. intuition.",
+        "Qed."
+    ], [
+        "Lemma no_red_red_given_lt_rt_red_root : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z),",
+        "  (no_red_red lt /\\ no_red_red rt /\\ rb_lch v lt /\\ rb_rch v rt",
+        "  /\\ ~(rb_root_color lt True)",
+        "  /\\ ~(rb_root_color rt True)",
+        "  /\\ rb_root_color v True)",
+        "  -> (no_red_red v).",
+        "Proof.",
+        "  intros [] [] [] H; intuition; try contradiction;",
+        "  simpl in *; intuition; subst; simpl.",
+        "  - reflexivity.",
+        "  - destruct b0; try (intuition; contradiction).",
+        "  - destruct b0; try (intuition; contradiction).",
+        "  - destruct b0, b1; try (intuition; contradiction).",
+        "Qed."
+    ]],
+    "proof": [
+        "intros inv Hinv. split.",
+        "- intros h [Hh [Ht Hf]] v [t [Hlt [Hct1 [Hct2 [Hlct Hrct]]]]].",
+        "  intuition.",
+        "  * apply rbtree_rb_leaf_num_black_0_second in Hlt.",
+        "    apply (num_black_root_from_lt_rt v t t). intuition.",
+        "  * apply (no_red_red_given_lt_rt_red_root v t t). intuition.",
+        "    apply (rbtree_rb_leaf_no_red_red _ Hlt).",
+        "    apply (rbtree_rb_leaf_no_red_red _ Hlt).",
+        "    apply (rbtree_rb_leaf_no_rb_root_color _ _ Hlt) in H0. contradiction.",
+        "    apply (rbtree_rb_leaf_no_rb_root_color _ _ Hlt) in H0. contradiction.",
+        "- intros h0 [Hh0 [Hf Ht]] v0 [t0 Ht0].",
+        "  intuition.",
+        "  * apply rbtree_rb_leaf_num_black_0_second in H.",
+        "    apply (num_black_root_from_lt_rt v0 t0 t0). intuition.",
+        "  * apply (no_red_red_given_lt_rt_red_root v0 t0 t0). intuition.",
+        "    apply (rbtree_rb_leaf_no_red_red _ H).",
+        "    apply (rbtree_rb_leaf_no_red_red _ H).",
+        "    apply (rbtree_rb_leaf_no_rb_root_color _ _ H) in H5. contradiction.",
+        "    apply (rbtree_rb_leaf_no_rb_root_color _ _ H) in H5. contradiction."
+    ]
+}

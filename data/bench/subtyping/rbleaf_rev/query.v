@@ -19,7 +19,7 @@ Module Type Signatures.
 
 
   Axiom rbtree_num_black_geq_0 : forall (l : rbtree Z) (n : Z), (num_black l n) -> (n >= 0).
-  Axiom rbtree_num_black_0_rb_leaf : forall (l : rbtree Z), (num_black l 0 /\ ~(rb_root_color l False)) -> (rb_leaf l).
+  Axiom rbtree_num_black_0_rb_leaf : forall (l : rbtree Z), (num_black l 0 /\ ~(rb_root_color l True)) -> (rb_leaf l).
 End Signatures.
 
 Module Axioms : Signatures.
@@ -36,8 +36,8 @@ Module Axioms : Signatures.
     match t with
     | Rbtleaf _ => h = 0
     | Rbtnode _ c l _ r =>
-      if c then num_black l (h - 1) /\ num_black r (h - 1)
-      else num_black l h /\ num_black r h
+      if c then num_black l h /\ num_black r h
+      else num_black l (h - 1) /\ num_black r (h - 1)
     end.
   Definition rb_leaf {a : Type} (t : rbtree a) : Prop :=
     match t with
@@ -87,13 +87,13 @@ Module Axioms : Signatures.
     - destruct b; intuition. apply IHl1 in H. lia.
   Qed.
 
-  Lemma rbtree_num_black_0_rb_leaf : forall (l : rbtree Z), (num_black l 0 /\ ~(rb_root_color l False)) -> (rb_leaf l).
+  Lemma rbtree_num_black_0_rb_leaf : forall (l : rbtree Z), (num_black l 0 /\ ~(rb_root_color l True)) -> (rb_leaf l).
   Proof.
     intros [] [Hnb Hrr].
     - reflexivity.
     - simpl in Hnb. simpl in Hrr. destruct b.
-      * intuition. apply rbtree_num_black_geq_0 in H. contradiction.
       * intuition.
+      * intuition. apply rbtree_num_black_geq_0 in H. contradiction.
   Qed.
 End Axioms.
 
