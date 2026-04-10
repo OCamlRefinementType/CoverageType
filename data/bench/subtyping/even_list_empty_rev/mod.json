@@ -1,0 +1,22 @@
+{
+    "axioms": [
+        "Axiom list_len_0_emp_iff : forall (l : list Z), emp l <-> len l 0."
+    ],
+    "axiom_proofs": [[
+        "Lemma list_len_0_emp_iff : forall (l : list Z), emp l <-> len l 0.",
+        "Proof.",
+        "intros [| x]; split.",
+        "  - reflexivity.",
+        "  - reflexivity.",
+        "  - contradiction.",
+        "  - simpl. intuition.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros s Hs v [n H]. intuition.",
+        "set (Hng := (list_len_geq_0 _ _ H0)).",
+        "assert (n = 0) by lia. subst.",
+        "destruct (list_len_0_emp_iff v).",
+        "intuition."
+    ]
+}
