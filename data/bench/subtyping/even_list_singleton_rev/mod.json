@@ -1,0 +1,34 @@
+{
+    "axioms": [
+        "Axiom list_is_even_destruct : forall (l : list Z) (l1 : list Z) (x : Z), exists (x2 : Z), (tl l l1 /\\ hd l x /\\ all_evens l) -> (all_evens l1 /\\ x2 * 2 = x)."
+    ],
+    "axiom_proofs": [[
+        "Lemma list_is_even_destruct : forall (l : list Z) (l1 : list Z) (x : Z), exists (x2 : Z),",
+        "  (tl l l1 /\\ hd l x /\\ all_evens l) -> (all_evens l1 /\\ x2 * 2 = x).",
+        "Proof.",
+        "  intros [] l1 x; exists (x / 2);",
+        "  intros [Ht [Hh Hev]].",
+        "  - contradiction.",
+        "  - simpl in Hev. destruct Hev as [[n Hn] Hev1].",
+        "    assert (z = 2 * n) by intuition. clear Hn.",
+        "    inversion Ht. inversion Hh. subst. intuition.",
+        "    replace (2 * n) with (n * 2) by lia.",
+        "    rewrite Zdiv.Z_div_mult; intuition.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros s Hs v [n H]. intuition.",
+        "assert (len v n /\\ n > 0) as Hq by intuition.",
+        "apply list_positive_len_is_not_emp in Hq.",
+        "destruct (list_no_emp_exists_hd v) as [x Hh].",
+        "destruct (list_no_emp_exists_tl v) as [t Ht].",
+        "destruct (list_is_even_destruct v t x) as [x2 Hex].",
+        "exists x. exists x2. exists t.",
+        "intuition.",
+        "assert (n = 1) by lia. subst.",
+        "destruct (list_tl_len_plus_1 v t 0 H5).",
+        "replace (0 + 1) with 1 in H6 by lia.",
+        "destruct (list_len_0_emp_iff t).",
+        "intuition."
+    ]
+}
