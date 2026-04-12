@@ -1,9 +1,15 @@
+let[@library] fmap (b1 : baseType) (b2 : baseType) (p1 : 'b1 -> bool)
+    (p2 : 'b1 -> 'b2 -> bool)
+    ?r:(_ = fun ?r:(x = ((p1 v : [%v: 'b1]) [@over])) -> (p2 x v : [%v: 'b2]))
+    ?r:(_ = M (p1 v : [%v: 'b1])) =
+  M (fun ((x [@ex]) : 'b1) -> p1 x && p2 x v : [%v: 'b2])
+
 let[@library] tree_num_node ?l:(tr = ((true : [%v: int tree]) [@over])) =
-  (v == treeNumNode tr : [%v: int]) [@under]
+  (v == tree_num_node tr : [%v: int]) [@under]
 
 let[@library] list_concat ?l:(l1 = ((true : [%v: int list]) [@over]))
     ?l:(l2 = ((true : [%v: int list]) [@over])) =
-  (listLen v == listLen l1 + listLen l2 : [%v: int list]) [@under]
+  (list_len v == list_len l1 + list_len l2 : [%v: int list]) [@under]
 
 (* let rec flatten (n : int) (tr : int tree) : int list = *)
 (*   match tr with *)
@@ -21,12 +27,12 @@ let rec flatten (n : int) (tr : int tree) : int list =
       x :: l2
 
 let[@assert] flatten ?l:(n = ((v >= 0 : [%v: int]) [@over]))
-    ?l:(tr = ((n == treeNumNode v : [%v: int tree]) [@under])) =
-  (listLen v == n : [%v: int list]) [@under]
+    ?l:(tr = ((n == tree_num_node v : [%v: int tree]) [@over])) =
+  (list_len v == n : [%v: int list]) [@under]
 
 (* let[@library] flatten ?l:(n = ((v >= 0 : [%v: int]) [@over])) *)
-(*     ?l:(tr = ((treeNumNode v n : [%v: int tree]) [@under])) = *)
-(*   (listLen v == n : [%v: int list]) [@under] *)
+(*     ?l:(tr = ((tree_num_node v n : [%v: int tree]) [@under])) = *)
+(*   (list_len v == n : [%v: int list]) [@under] *)
 
 let list_gen (tree_gen : unit -> int tree) : unit -> int list =
   fmap
