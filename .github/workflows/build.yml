@@ -1,4 +1,4 @@
-name: Build
+name: Build and test
 
 on:
   push:
@@ -26,3 +26,4 @@ jobs:
       - if: steps.opam-cache.outputs.cache-hit != 'true'
         run: opam install . --deps-only --with-test
       - run: opam exec -- dune build
+      - run: opam exec -- dune test
