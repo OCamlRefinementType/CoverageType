@@ -36,32 +36,32 @@ let%test_unit "test_cases/basic_int" =
     }
 
 (* TODO: fix the test, need definitions for num_arr? *)
-(* let%test_unit "stlc/gen_term_size" = *)
-(*   run_test *)
-(*     { *)
-(*       source_file = "data/PLDI23/stlc/gen_term_size.ml"; *)
-(*       passing_tasks = [ "gen_term_size" ]; *)
-(*       failing_tasks = []; *)
-(*     } *)
+let%test_unit "stlc/gen_term_size" =
+  run_test
+    {
+      source_file = "data/PLDI23/stlc/gen_term_size.ml";
+      passing_tasks = [ "gen_term_size" ];
+      failing_tasks = [];
+    }
 
 (* sometimes fails, not sure why... some kind of nondeterminism *)
-(* let%test_unit "stlc/stlc" = *)
-(*   run_test *)
-(*     { *)
-(*       source_file = "data/PLDI23/stlc/stlc.ml"; *)
-(*       passing_tasks = *)
-(*         [ *)
-(*           "type_eq"; *)
-(*           "gen_const"; *)
-(*           "gen_type_size"; *)
-(*           "gen_type"; *)
-(*           "vars_with_type_rev_index"; *)
-(*           "vars_with_type"; *)
-(*           "gen_term_no_app"; *)
-(*           "gen_term_size"; *)
-(*         ]; *)
-(*       failing_tasks = []; *)
-(*     } *)
+let%test_unit "stlc/stlc" =
+  run_test
+    {
+      source_file = "data/PLDI23/stlc/stlc.ml";
+      passing_tasks =
+        [
+          "type_eq";
+          "gen_const";
+          "gen_type_size";
+          "gen_type";
+          "vars_with_type_rev_index";
+          "vars_with_type";
+          "gen_term_no_app";
+          "gen_term_size";
+        ];
+      failing_tasks = [];
+    }
 
 let%test_unit "basic/duplicate_list" =
   run_test
