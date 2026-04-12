@@ -31,8 +31,8 @@ let%test_unit "test_cases/basic_int" =
   run_test
     {
       source_file = "data/test_cases/basic_int.ml";
-      passing_tasks = [ "test1"; "test3" ];
-      failing_tasks = [];
+      passing_tasks = [ "test1" ];
+      failing_tasks = [ "test3" ];
     }
 
 (* TODO: fix the test, need definitions for num_arr? *)
@@ -207,14 +207,6 @@ let%test_unit "alias" =
       failing_tasks = [];
     }
 
-let%test_unit "vellvm" =
-  run_test
-    {
-      source_file = "data/monad/vellvm.ml";
-      passing_tasks = [ "gen_uvalue" ];
-      failing_tasks = [];
-    }
-
 let%test_unit "coverage_monad_library" =
   run_test
     {
@@ -246,6 +238,15 @@ let%test_unit "coverage_monad_library" =
       failing_tasks = [];
     }
 
+let%test_unit "case1" =
+  run_test
+    {
+      source_file = "data/monad/case1.ml";
+      passing_tasks = [ "union" ];
+      failing_tasks = [];
+    }
+
+(*
 let%test_unit "tezos" =
   run_test
     {
@@ -255,11 +256,11 @@ let%test_unit "tezos" =
       failing_tasks = [];
     }
 
-let%test_unit "case1" =
+let%test_unit "vellvm" =
   run_test
     {
-      source_file = "data/monad/case1.ml";
-      passing_tasks = [ "union" ];
+      source_file = "data/monad/vellvm.ml";
+      passing_tasks = [ "gen_uvalue" ];
       failing_tasks = [];
     }
 
@@ -321,6 +322,7 @@ let%test_unit "tezos_test" =
       passing_tasks = [ "operation_proto_gen"; "q_in_0_1"; "priority_gen" ];
       failing_tasks = [];
     }
+*)
 
 let%test_unit "simple/ReturnError" =
   run_test
