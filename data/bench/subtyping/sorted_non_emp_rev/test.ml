@@ -4,7 +4,7 @@ let[@assert] rty1 =
   (((not (emp v))
     && len v s
     && sorted v (*    && fun (u : int) -> (hd v u) #==> (x <= u) *)
-    && (not (emp v)) #==> (fun ((u [@exists]) : int) -> hd v u && x <= u)
+    && (not (emp v)) #==> (fun ((u1 [@exists]) : int) -> hd v u1 && x <= u1)
     : [%v: int list])
     [@under])
 
@@ -19,7 +19,7 @@ let[@assert] rty2 =
       && s1 == s - 1
       && len l s1 && sorted l && hd v y && tl v l
       (*    && fun (u : int) -> (hd l u) #==> (y <= u) *)
-      && (not (emp l)) #==> (fun ((u [@exists]) : int) -> hd l u && y <= u)
+      && (not (emp l)) #==> (fun ((u2 [@exists]) : int) -> hd l u2 && y <= u2)
     : [%v: int list])
     [@under])
 
