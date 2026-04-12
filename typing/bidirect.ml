@@ -113,7 +113,10 @@ let type_check_group (bctx : built_in_ctx) =
               _die_with [%here]
                 (spf "inductive invaraint of %s is missing" fixname.x)
           | Some rty ->
-              let () = Pp.printf "@{<bold>inv:@} %s\n" (layout_rty rty) in
+              let () =
+                _log @@ fun _ ->
+                Pp.printf "@{<bold>inv:@} %s\n" (layout_rty rty)
+              in
               value_type_check rctx v rty)
     in
     res
@@ -201,9 +204,10 @@ let type_check_group (bctx : built_in_ctx) =
     let () =
       let _nt1 = erase_rty argrty in
       let _nt2 = erase_rty apparg.ty in
-      if not (Nt.equal_nt _nt1 _nt2) then (
-        Printf.printf "%s != %s\n" (Nt.layout _nt1) (Nt.layout _nt2);
-        _assert [%here] "application basic type check" false)
+      _assert [%here]
+        (spf "application basic type check failed: %s != %s\n" (Nt.layout _nt1)
+           (Nt.layout _nt2))
+        (Nt.equal_nt _nt1 _nt2)
     in
     match argrty with
     | RtyArr _ ->
@@ -212,10 +216,10 @@ let type_check_group (bctx : built_in_ctx) =
           _warinning_typing_error [%here]
             (layout_typed_value @@ (apparg#=>erase_rty), argrty);
           None)
-        else if is_free_rty arg retty then (
-          Printf.printf "%s\n" (layout_rty retty);
+        else if is_free_rty arg retty then
           _die_with [%here]
-            (spf "arrow typed variable cannot be refered (%s)" arg))
+            (spf "arrow typed variable cannot be refered (arg: %s) (retty: %s)"
+               arg (layout_rty retty))
         else Some retty
     | _ -> _die [%here]
   and term_type_infer (rctx : rctx) (e : (Nt.t, Nt.t term) typed) :
@@ -299,11 +303,9 @@ let type_check_group (bctx : built_in_ctx) =
                 else if is_arr_arr_rty appf_ty then
                   arrow_arrow_type_apply rctx' appf_ty apparg.x#:apparg_rty
                 else
-                  let () =
-                    Printf.printf "cannot handle function type: %s\n"
-                      (layout_rty appf_ty)
-                  in
-                  _die [%here]
+                  _die_with [%here]
+                    (spf "cannot handle function type: %s\n"
+                       (layout_rty appf_ty))
               in
               (* let () = Printf.printf "retty : %s\n" (layout_rty retty) in *)
               let retty =
@@ -433,9 +435,7 @@ let type_check_group (bctx : built_in_ctx) =
                   phi
               in
               RtyBase { ou = Under; cty = { nty = Nt.unit_ty; phi } }
-          | _ ->
-              Printf.printf "retty: %s\n" (layout_rty retty);
-              _die [%here]
+          | _ -> _die_with [%here] (spf "retty %s" (layout_rty retty))
         in
         let rctx' =
           Rctx.add_vars rctx (args @ [ (Rename.fresh_var ())#:retty ])
