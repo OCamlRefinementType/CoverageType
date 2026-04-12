@@ -1,0 +1,38 @@
+{
+    "axioms": [
+        "Axiom list_tl_unique : forall (l : list Z) (l1 : list Z), (tl l l1 /\\ uniq l) -> (uniq l1).",
+        "Axiom list_hd_unique : forall (l : list Z) (l1 : list Z) (x : Z), tl l l1 /\\ uniq l /\\ hd l x -> ~ (list_mem l1 x)."
+    ],
+    "axiom_proofs": [[
+        "Lemma list_tl_unique : forall (l : list Z) (l1 : list Z), (tl l l1 /\\ uniq l) -> (uniq l1).",
+        "Proof.",
+        "  intros [] l1 [Ht Hu].",
+        "  - contradiction.",
+        "  - simpl in Ht. simpl in Hu. subst. intuition.",
+        "Qed."
+    ], [
+        "Lemma list_hd_unique : forall (l : list Z) (l1 : list Z) (x : Z),",
+        "  tl l l1 /\\ uniq l /\\ hd l x -> ~ (list_mem l1 x).",
+        "Proof.",
+        "  intros [| x] l1 x1 [Ht [Hu Hh]].",
+        "  - contradiction.",
+        "  - simpl in Hu. destruct Hu as [Htm Htu].",
+        "    inversion Hh. inversion Ht.",
+        "    assumption.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros s Hs v [x [s1 [l H]]].",
+        "intuition. subst.",
+        "destruct (list_no_emp_exists_hd v) as [x1 Hh].",
+        "destruct (list_no_emp_exists_tl v) as [t Ht].",
+        "exists x1. exists t. (* exists x. exists l. *)",
+        "intuition.",
+        "- apply (list_tl_len_plus_1 v t (s - 1) H8).",
+        "  replace (s - 1 + 1) with s by lia.",
+        "  assumption.",
+        "- apply (list_tl_unique v t). intuition.",
+        "- apply (list_hd_unique v t x1) in H10. contradiction.",
+        "  intuition."
+    ]
+}
