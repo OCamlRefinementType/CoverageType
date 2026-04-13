@@ -1,0 +1,80 @@
+{
+    "axioms": [
+        "Axiom tree_depth_geq_0 : forall (l : tree Z) (n : Z), (depth l n) -> (n >= 0).",
+        "Axiom tree_depth_0_is_leaf : forall (l : tree Z) (n : Z), (depth l n /\\ n = 0) -> (leaf l).",
+        "Axiom tree_positive_depth_is_not_leaf : forall (l : tree Z), forall (n : Z), (depth l n /\\ n > 0) -> ~leaf l.",
+        "Axiom tree_depth_exists : forall (l : tree Z), exists (n : Z), depth l n."
+    ],
+    "axiom_proofs": [[
+        "Lemma tree_depth_geq_0 : forall (l : tree Z) (n : Z), (depth l n) -> (n >= 0).",
+        "Proof.",
+        "  induction l; intros n Hd.",
+        "  - inversion Hd. lia.",
+        "  - simpl in Hd. destruct Hd as [nl [nr [Hd1 [Hd2 Hc]]]].",
+        "    apply IHl1 in Hd1.",
+        "    apply IHl2 in Hd2.",
+        "    intuition.",
+        "Qed."
+    ], [
+        "Lemma tree_depth_0_is_leaf : forall (l : tree Z) (n : Z), (depth l n /\\ n = 0) -> (leaf l).",
+        "Proof.",
+        "  induction l; intros n [Hd Hn].",
+        "  - reflexivity.",
+        "  - subst. simpl in Hd.",
+        "    destruct Hd as [nl [nr [Hd1 [Hd2 Hc]]]].",
+        "    apply tree_depth_geq_0 in Hd1.",
+        "    apply tree_depth_geq_0 in Hd2.",
+        "    lia.",
+        "Qed."
+    ], [
+        "Lemma tree_positive_depth_is_not_leaf : forall (l : tree Z), forall (n : Z), (depth l n /\\ n > 0) -> ~leaf l.",
+        "Proof.",
+        "  intros [] n [Hd Hn].",
+        "  - simpl in Hd. lia.",
+        "  - simpl. auto.",
+        "Qed."
+    ], [
+        "Lemma tree_depth_exists : forall (l : tree Z), exists (n : Z), depth l n.",
+        "Proof.",
+        "  induction l.",
+        "  - exists 0. reflexivity.",
+        "  - destruct IHl1 as [n1 Hd1].",
+        "    destruct IHl2 as [n2 Hd2].",
+        "    exists ((Z.max n1 n2) + 1). simpl.",
+        "    exists n1. exists n2. intuition.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros s Hs v [u [Hd Hu]]. intuition.",
+        "set (Hu1 := (tree_depth_geq_0 _ _ Hd)).",
+        "destruct (s =? 0) eqn:Heq.",
+        "- left.",
+        "  assert (u = 0) by lia.",
+        "  remember (tree_depth_0_is_leaf v u).",
+        "  intuition.",
+        "- right.",
+        "  assert (s > 0) by lia.",
+        "  split; try lia.",
+        "  destruct (u =? 0) eqn:Hequ.",
+        "  * left. assert (u = 0) by lia.",
+        "    apply (tree_depth_0_is_leaf v u).",
+        "    intuition.",
+        "  * right. assert (u > 0) by lia.",
+        "    destruct (tree_no_leaf_exists_root v) as [x Hrt].",
+        "    destruct (tree_no_leaf_exists_lch v) as [l Hl].",
+        "    destruct (tree_no_leaf_exists_rch v) as [r Hr].",
+        "    remember (tree_positive_depth_is_not_leaf v u).",
+        "    intuition.",
+        "    exists l. intuition.",
+        "    + destruct (tree_depth_exists l) as [nl Hn].",
+        "      exists nl. split; try assumption.",
+        "      assert (nl <= u - 1) by (apply (tree_lch_depth_minus_1 v l u nl); intuition).",
+        "      lia.",
+        "    + exists r. intuition.",
+        "      -- destruct (tree_depth_exists r) as [nr Hn].",
+        "          exists nr. split; try assumption.",
+        "          assert (nr <= u - 1) by (apply (tree_rch_depth_minus_1 v r u nr); intuition).",
+        "          lia.",
+        "      -- exists x. intuition."
+    ]
+}
