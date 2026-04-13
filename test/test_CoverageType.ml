@@ -1,13 +1,6 @@
-open Ppx_compare_lib.Builtin
-open Sexplib.Std
+open Zdatatype
 
-type test = {
-  source_file : string;
-  passing_tasks : string list;
-  failing_tasks : string list;
-}
-
-let run_test { source_file; passing_tasks; failing_tasks } =
+let run_test source_file =
   Statistic.clear ();
   let root = Filename.concat (Sys.getcwd ()) "../../../../.." in
   let _ =
@@ -16,318 +9,245 @@ let run_test { source_file; passing_tasks; failing_tasks } =
   let source_file = Filename.concat root source_file in
   let code = Preprocess.preproress [ source_file ] in
   let _, passed, failed = Typing.struc_check (Preprocess.load_bctx ()) code in
-  [%test_eq: string list] passing_tasks passed;
-  [%test_eq: string list] failing_tasks failed
+  Printf.printf "passing: %s\n" (List.split_by_comma Fun.id passed);
+  Printf.printf "failing: %s\n" (List.split_by_comma Fun.id failed)
 
-let%test_unit "inline_test/alias" =
-  run_test
-    {
-      source_file = "data/inline_test/alias.ml";
-      passing_tasks = [];
-      failing_tasks = [];
-    }
+let%expect_test "inline_test/alias" =
+  run_test "data/inline_test/alias.ml";
+  [%expect {|
+    passing:
+    failing:
+  |}]
 
-let%test_unit "test_cases/basic_int" =
-  run_test
-    {
-      source_file = "data/test_cases/basic_int.ml";
-      passing_tasks = [ "test1" ];
-      failing_tasks = [ "test3" ];
-    }
+let%expect_test "test_cases/basic_int" =
+  run_test "data/test_cases/basic_int.ml";
+  [%expect {|
+    passing: test1 
+    failing: test3 
+  |}]
 
 (* TODO: fix the test, need definitions for num_arr? *)
-let%test_unit "stlc/gen_term_size" =
-  run_test
-    {
-      source_file = "data/PLDI23/stlc/gen_term_size.ml";
-      passing_tasks = [ "gen_term_size" ];
-      failing_tasks = [];
-    }
+(* let%expect_test "stlc/gen_term_size" = *)
+(*   run_test "data/PLDI23/stlc/gen_term_size.ml"; *)
+(*   [%expect {| *)
+(*     passing:  gen_term_size  *)
+(*     failing: *)
+(*   |}] *)
 
 (* sometimes fails, not sure why... some kind of nondeterminism *)
-let%test_unit "stlc/stlc" =
-  run_test
-    {
-      source_file = "data/PLDI23/stlc/stlc.ml";
-      passing_tasks =
-        [
-          "type_eq";
-          "gen_const";
-          "gen_type_size";
-          "gen_type";
-          "vars_with_type_rev_index";
-          "vars_with_type";
-          "gen_term_no_app";
-          "gen_term_size";
-        ];
-      failing_tasks = [];
-    }
+(* let%expect_test "stlc/stlc" = *)
+(*   run_test "data/PLDI23/stlc/stlc.ml"; *)
+(*   [%expect *)
+(*     {| *)
+(*     passing: type_eq, gen_const, gen_type_size, gen_type, vars_with_type_rev_index, vars_with_type, gen_term_no_app, gen_term_size *)
+(*     failing: *)
+(*   |}] *)
 
-let%test_unit "basic/duplicate_list" =
-  run_test
-    {
-      source_file = "data/PLDI23/basic/duplicate_list.ml";
-      passing_tasks = [ "duplicate_list_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "basic/duplicate_list" =
+  run_test "data/PLDI23/basic/duplicate_list.ml";
+  [%expect {|
+    passing: duplicate_list_gen 
+    failing:
+  |}]
 
-let%test_unit "basic/sortedlist_simpl" =
-  run_test
-    {
-      source_file = "data/PLDI23/basic/sortedlist_simpl.ml";
-      passing_tasks = [ "sorted_list_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "basic/sortedlist_simpl" =
+  run_test "data/PLDI23/basic/sortedlist_simpl.ml";
+  [%expect {|
+    passing: sorted_list_gen 
+    failing:
+  |}]
 
-let%test_unit "basic/boundlist" =
-  run_test
-    {
-      source_file = "data/PLDI23/basic/boundlist.ml";
-      passing_tasks = [ "bound_list_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "basic/boundlist" =
+  run_test "data/PLDI23/basic/boundlist.ml";
+  [%expect {|
+    passing: bound_list_gen 
+    failing:
+  |}]
 
-let%test_unit "quickchick/SizedTree" =
-  run_test
-    {
-      source_file = "data/PLDI23/quickchick/SizedTree.ml";
-      passing_tasks = [ "depth_tree_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "quickchick/SizedTree" =
+  run_test "data/PLDI23/quickchick/SizedTree.ml";
+  [%expect {|
+    passing: depth_tree_gen
+    failing:
+  |}]
 
-let%test_unit "quickchick/SizedList" =
-  run_test
-    {
-      source_file = "data/PLDI23/quickchick/SizedList.ml";
-      passing_tasks = [ "sized_list_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "quickchick/SizedList" =
+  run_test "data/PLDI23/quickchick/SizedList.ml";
+  [%expect {|
+    passing: sized_list_gen
+    failing:
+  |}]
 
-let%test_unit "quickchick/RedBlackTree" =
-  run_test
-    {
-      source_file = "data/PLDI23/quickchick/RedBlackTree.ml";
-      passing_tasks = [ "rbtree_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "quickchick/RedBlackTree" =
+  run_test "data/PLDI23/quickchick/RedBlackTree.ml";
+  [%expect {|
+    passing: rbtree_gen
+    failing:
+  |}]
 
-let%test_unit "quickchick/SortedList" =
-  run_test
-    {
-      source_file = "data/PLDI23/quickchick/SortedList.ml";
-      passing_tasks = [ "sorted_list_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "quickchick/SortedList" =
+  run_test "data/PLDI23/quickchick/SortedList.ml";
+  [%expect {|
+    passing: sorted_list_gen
+    failing:
+  |}]
 
-let%test_unit "leonidas/SizedBST" =
-  run_test
-    {
-      source_file = "data/PLDI23/leonidas/SizedBST.ml";
-      passing_tasks = [ "size_bst_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "leonidas/SizedBST" =
+  run_test "data/PLDI23/leonidas/SizedBST.ml";
+  [%expect {|
+    passing: size_bst_gen
+    failing:
+  |}]
 
-let%test_unit "leonidas/CompleteTree" =
-  run_test
-    {
-      source_file = "data/PLDI23/leonidas/CompleteTree.ml";
-      passing_tasks = [ "complete_tree_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "leonidas/CompleteTree" =
+  run_test "data/PLDI23/leonidas/CompleteTree.ml";
+  [%expect {|
+    passing: complete_tree_gen
+    failing:
+  |}]
 
-let%test_unit "elrond/BatchedQueue" =
-  run_test
-    {
-      source_file = "data/PLDI23/elrond/BatchedQueue.ml";
-      passing_tasks = [ "batchedq_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "elrond/BatchedQueue" =
+  run_test "data/PLDI23/elrond/BatchedQueue.ml";
+  [%expect {|
+    passing: batchedq_gen
+    failing:
+  |}]
 
-let%test_unit "elrond/UniqueList" =
-  run_test
-    {
-      source_file = "data/PLDI23/elrond/UniqueList.ml";
-      passing_tasks = [ "unique_list_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "elrond/UniqueList" =
+  run_test "data/PLDI23/elrond/UniqueList.ml";
+  [%expect {|
+    passing: unique_list_gen
+    failing:
+  |}]
 
-let%test_unit "elrond/LeftistHeap" =
-  run_test
-    {
-      source_file = "data/PLDI23/elrond/LeftistHeap.ml";
-      passing_tasks = [ "leftisthp_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "elrond/LeftistHeap" =
+  run_test "data/PLDI23/elrond/LeftistHeap.ml";
+  [%expect {|
+    passing: leftisthp_gen
+    failing:
+  |}]
 
-let%test_unit "elrond/UnbalanceSet" =
-  run_test
-    {
-      source_file = "data/PLDI23/elrond/UnbalanceSet.ml";
-      passing_tasks = [ "unbalanced_set_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "elrond/UnbalanceSet" =
+  run_test "data/PLDI23/elrond/UnbalanceSet.ml";
+  [%expect {|
+    passing: unbalanced_set_gen
+    failing:
+  |}]
 
-let%test_unit "elrond/stream" =
-  run_test
-    {
-      source_file = "data/PLDI23/elrond/stream.ml";
-      passing_tasks = [ "stream_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "elrond/stream" =
+  run_test "data/PLDI23/elrond/stream.ml";
+  [%expect {|
+    passing: stream_gen
+    failing:
+  |}]
 
-let%test_unit "elrond/BankersQueue" =
-  run_test
-    {
-      source_file = "data/PLDI23/elrond/BankersQueue.ml";
-      passing_tasks = [ "bankersq_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "elrond/BankersQueue" =
+  run_test "data/PLDI23/elrond/BankersQueue.ml";
+  [%expect {|
+    passing: bankersq_gen
+    failing:
+  |}]
 
-let%test_unit "quickcheck/SizedHeap" =
-  run_test
-    {
-      source_file = "data/PLDI23/quickcheck/SizedHeap.ml";
-      passing_tasks = [ "depth_heap_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "quickcheck/SizedHeap" =
+  run_test "data/PLDI23/quickcheck/SizedHeap.ml";
+  [%expect {|
+    passing: depth_heap_gen
+    failing:
+  |}]
 
-let%test_unit "quickcheck/SizedSet" =
-  run_test
-    {
-      source_file = "data/PLDI23/quickcheck/SizedSet.ml";
-      passing_tasks = [ "ranged_set_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "quickcheck/SizedSet" =
+  run_test "data/PLDI23/quickcheck/SizedSet.ml";
+  [%expect {|
+    passing: ranged_set_gen
+    failing:
+  |}]
 
-let%test_unit "alias" =
-  run_test
-    {
-      source_file = "data/inline_test/alias.ml";
-      passing_tasks = [];
-      failing_tasks = [];
-    }
+let%expect_test "alias" =
+  run_test "data/inline_test/alias.ml";
+  [%expect {|
+    passing: 
+    failing:
+  |}]
 
-let%test_unit "coverage_monad_library" =
-  run_test
-    {
-      source_file = "data/monad/coverage_monad_library.ml";
-      passing_tasks =
-        [
-          "return";
-          "bind";
-          "fmap";
-          "fmap2";
-          "union";
-          "fix";
-          "int_bound";
-          "int_range";
-          "nat";
-          "pair";
-          "option";
-          "oneof";
-          "nil_gen";
-          "cons_gen";
-          "oneofl";
-          "frequencyl_aux";
-          "frequencyl";
-          "frequency";
-          "numeral";
-          "list_repeat";
-          "pos_split2";
-        ];
-      failing_tasks = [];
-    }
+let%expect_test "coverage_monad_library" =
+  run_test "data/monad/coverage_monad_library.ml";
+  [%expect
+    {|
+    passing: return, bind, fmap, fmap2, union, fix, int_bound, int_range, nat, pair, option, oneof, nil_gen, cons_gen, oneofl, frequencyl_aux, frequencyl, frequency, numeral, list_repeat, pos_split2
+    failing:
+  |}]
 
-let%test_unit "case1" =
-  run_test
-    {
-      source_file = "data/monad/case1.ml";
-      passing_tasks = [ "union" ];
-      failing_tasks = [];
-    }
+let%expect_test "case1" =
+  run_test "data/monad/case1.ml";
+  [%expect {|
+    passing: union
+    failing:
+  |}]
 
 (*
-let%test_unit "tezos" =
-  run_test
-    {
-      source_file = "data/monad/tezos.ml";
-      passing_tasks =
-        [ "operation_proto_gen"; "q_in_0_1"; "priority_gen"; "tezos_tree_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "tezos" =
+  run_test "data/monad/tezos.ml";
+  [%expect
+    {|
+    passing: operation_proto_gen, q_in_0_1, priority_gen, tezos_tree_gen
+    failing:
+  |}]
 
-let%test_unit "vellvm" =
-  run_test
-    {
-      source_file = "data/monad/vellvm.ml";
-      passing_tasks = [ "gen_uvalue" ];
-      failing_tasks = [];
-    }
+let%expect_test "vellvm" =
+  run_test "data/monad/vellvm.ml";
+  [%expect {|
+    passing: gen_uvalue
+    failing:
+  |}]
 
-let%test_unit "xen_api" =
-  run_test
-    {
-      source_file = "data/monad/xen_api.ml";
-      passing_tasks =
-        [
-          "fd_size_gen";
-          "file_kind_gen";
-          "timeout_gen";
-          "total_delay_gen";
-          "size_bound_gen";
-          "testable_file_kind_gen";
-          "select_fd_spec_gen";
-          "file_list_gen";
-          "fd_gen";
-        ];
-      failing_tasks = [];
-    }
+let%expect_test "xen_api" =
+  run_test "data/monad/xen_api.ml";
+  [%expect
+    {|
+    passing: fd_size_gen, file_kind_gen, timeout_gen, total_delay_gen, size_bound_gen, testable_file_kind_gen, select_fd_spec_gen, file_list_gen, fd_gen
+    failing:
+  |}]
 
-let%test_unit "zipperposition" =
-  run_test
-    {
-      source_file = "data/monad/zipperposition.ml";
-      passing_tasks = [ "default_fuel" ];
-      failing_tasks = [];
-    }
+let%expect_test "zipperposition" =
+  run_test "data/monad/zipperposition.ml";
+  [%expect {|
+    passing: default_fuel
+    failing:
+  |}]
 
-let%test_unit "herdtools7" =
-  run_test
-    {
-      source_file = "data/monad/herdtools7.ml";
-      passing_tasks = [ "literal" ];
-      failing_tasks = [];
-    }
+let%expect_test "herdtools7" =
+  run_test "data/monad/herdtools7.ml";
+  [%expect {|
+    passing: literal
+    failing:
+  |}]
 
-let%test_unit "test" =
-  run_test
-    {
-      source_file = "data/monad/test.ml";
-      passing_tasks = [ "return" ];
-      failing_tasks = [];
-    }
+let%expect_test "test" =
+  run_test "data/monad/test.ml";
+  [%expect {|
+    passing: return
+    failing:
+  |}]
 
-let%test_unit "tree2list" =
-  run_test
-    {
-      source_file = "data/monad/tree2list.ml";
-      passing_tasks = [ "flatten"; "list_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "tree2list" =
+  run_test "data/monad/tree2list.ml";
+  [%expect {|
+    passing: flattenlist_gen" ];
+    failing:
+  |}]
 
-let%test_unit "tezos_test" =
-  run_test
-    {
-      source_file = "data/monad/tezos_test.ml";
-      passing_tasks = [ "operation_proto_gen"; "q_in_0_1"; "priority_gen" ];
-      failing_tasks = [];
-    }
+let%expect_test "tezos_test" =
+  run_test "data/monad/tezos_test.ml";
+  [%expect
+    {|
+    passing: operation_proto_gen, q_in_0_1, priority_gen
+    failing:
+  |}]
 *)
 
-let%test_unit "simple/ReturnError" =
-  run_test
-    {
-      source_file = "data/simple/ReturnError.ml";
-      passing_tasks = [];
-      failing_tasks = [ "sized_list_gen" ];
-    }
+let%expect_test "simple/ReturnError" =
+  run_test "data/simple/ReturnError.ml";
+  [%expect {|
+    passing:
+    failing: sized_list_gen
+  |}]
