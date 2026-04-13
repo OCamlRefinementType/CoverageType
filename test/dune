@@ -1,5 +1,5 @@
 (library
   (name test_CoverageType)
   (inline_tests)
-  (libraries preprocess typing sexplib)
-  (preprocess (pps ppx_inline_test ppx_assert )))
+  (libraries preprocess typing zutils)
+  (preprocess (pps ppx_expect)))
