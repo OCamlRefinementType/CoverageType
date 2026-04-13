@@ -1,0 +1,5 @@
+let[@axiom] tree_depth_0_is_leaf = fun (l : (int tree)) (n : int) -> (((depth l n) && (n == 0)) #==> (leaf l))
+let[@axiom] tree_positive_depth_is_not_leaf = fun (l : (int tree)) -> fun (n : int) -> (((depth l n) && (n > 0)) #==> (not (leaf l)))
+let[@axiom] tree_no_leaf_exists_lch = fun (l : (int tree)) -> fun ((l1 [@ex]) : (int tree)) -> ((not (leaf l)) #==> (lch l l1))
+let[@axiom] tree_no_leaf_exists_rch = fun (l : (int tree)) -> fun ((l1 [@ex]) : (int tree)) -> ((not (leaf l)) #==> (rch l l1))
+let[@axiom] tree_no_leaf_exists_root = fun (l : (int tree)) -> fun ((x [@ex]) : int) -> ((not (leaf l)) #==> (root l x))
