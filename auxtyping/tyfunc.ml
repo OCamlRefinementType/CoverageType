@@ -9,6 +9,7 @@ let _simp_prop p =
   if if_opt then
     let res = SimplProp.eval_arithmetic p in
     let () =
+      _log @@ fun _ ->
       Pp.printf "@{<bold>SIMP@} %s =====> %s\n" (layout_prop p)
         (layout_prop res)
     in
@@ -104,6 +105,7 @@ let rec union_rtys = function
           RtyBase { ou = Under; cty = union_ctys ctys }
       | RtyArr { argrty; _ } when Nt.equal_nt (erase_rty argrty) Nt.unit_ty ->
           let () =
+            _log @@ fun _ ->
             List.iter (fun rty -> Printf.printf "%s\n" (layout_rty rty)) rtys
           in
           let rtys = List.map (ret_ty [%here]) rtys in
