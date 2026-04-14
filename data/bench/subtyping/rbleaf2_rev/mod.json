@@ -1,0 +1,27 @@
+{
+    "axioms": [
+        "Axiom rbtree_num_black_geq_0 : forall (l : rbtree Z) (n : Z), (num_black l n) -> (n >= 0).",
+        "Axiom rbtree_num_black_0_rb_leaf : forall (l : rbtree Z), (num_black l 0 /\\ ~(rb_root_color l True)) -> (rb_leaf l)."
+    ],
+    "axiom_proofs": [[
+        "Lemma rbtree_num_black_geq_0 : forall (l : rbtree Z) (n : Z), (num_black l n) -> (n >= 0).",
+        "Proof.",
+        "  induction l; intros n Hnb; simpl in Hnb.",
+        "  - lia.",
+        "  - destruct b; intuition. apply IHl1 in H. lia.",
+        "Qed."        
+    ], [
+        "Lemma rbtree_num_black_0_rb_leaf : forall (l : rbtree Z), (num_black l 0 /\\ ~(rb_root_color l True)) -> (rb_leaf l).",
+        "Proof.",
+        "  intros [] [Hnb Hrr].",
+        "  - reflexivity.",
+        "  - simpl in Hnb. simpl in Hrr. destruct b.",
+        "    * intuition.",
+        "    * intuition. apply rbtree_num_black_geq_0 in H. contradiction.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros inv Hinv. intuition. subst.",
+        "apply rbtree_num_black_0_rb_leaf. intuition."
+    ]
+}
