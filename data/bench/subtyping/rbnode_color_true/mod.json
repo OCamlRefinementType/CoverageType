@@ -1,0 +1,48 @@
+{
+    "axioms": [
+        "Axiom num_black_root_from_lt_rt_plus_1 : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z) (h : Z), (num_black lt h /\\ num_black rt h /\\ rb_rch v rt /\\ rb_lch v lt /\\ rb_root_color v False) -> (num_black v (h + 1)).",
+        "Axiom root_color_single : forall (v : rbtree Z), ~(rb_root_color v False /\\ rb_root_color v True).",
+        "Axiom no_red_red_given_lt_rt_black_root : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z), (no_red_red lt /\\ no_red_red rt /\\ rb_lch v lt /\\ rb_rch v rt /\\ rb_root_color v False) -> (no_red_red v)."
+    ],
+    "axiom_proofs": [[
+        "Lemma num_black_root_from_lt_rt_plus_1 : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z) (h : Z),",
+        "  (num_black lt h /\\ num_black rt h /\\ rb_rch v rt /\\ rb_lch v lt /\\ rb_root_color v False) -> (num_black v (h + 1)).",
+        "Proof.",
+        "  intros [] lt rt h H; intuition; try contradiction.",
+        "  simpl in *. intuition. subst.",
+        "  replace (h + 1 - 1) with h by lia.",
+        "  intuition.",
+        "Qed."
+    ], [
+        "Lemma root_color_single : forall (v : rbtree Z), ~(rb_root_color v False /\\ rb_root_color v True).",
+        "Proof.",
+        "  intros [] [Hcf Hct].",
+        "  - contradiction.",
+        "  - simpl in *. destruct b; lia.",
+        "Qed."
+    ], [
+        "Lemma no_red_red_given_lt_rt_black_root : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z),",
+        "  (no_red_red lt /\\ no_red_red rt /\\ rb_lch v lt /\\ rb_rch v rt /\\ rb_root_color v False) -> (no_red_red v).",
+        "Proof.",
+        "  intros [] lt rt H; intuition; try contradiction.",
+        "  simpl in *. intuition. subst.",
+        "  simpl. intuition.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros inv Hinv. intuition;",
+        "destruct H8 as [l Hl]; intuition.",
+        "- destruct H15 as [r Hr]. intuition.",
+        "  destruct H18 as [rt Hrt]. intuition.",
+        "  replace h with (h - 1 + 1) by lia.",
+        "  apply (num_black_root_from_lt_rt_plus_1 v l r).",
+        "  intuition.",
+        "- destruct H15 as [r Hr]. intuition.",
+        "  destruct H18 as [rt Hrt]. intuition.",
+        "  apply (no_red_red_given_lt_rt_black_root v l r).",
+        "  intuition.",
+        "- destruct H17 as [r Hr]. intuition.",
+        "  destruct H20 as [rt Hrt]. intuition.",
+        "  apply (root_color_single v). intuition."
+    ]
+}
