@@ -1,12 +1,12 @@
 {
     "axioms": [
-        "Axiom num_black_root_from_lt_rt_plus_1 : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z) (h : Z), (num_black lt h /\\ num_black rt h /\\ rb_rch v rt /\\ rb_lch v lt /\\ rb_root_color v False) -> (num_black v (h + 1)).",
-        "Axiom root_color_single : forall (v : rbtree Z), ~(rb_root_color v False /\\ rb_root_color v True).",
-        "Axiom no_red_red_given_lt_rt_black_root : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z), (no_red_red lt /\\ no_red_red rt /\\ rb_lch v lt /\\ rb_rch v rt /\\ rb_root_color v False) -> (no_red_red v)."
+        "Axiom num_black_root_from_lt_rt_plus_1 : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z) (h : Z), (num_black lt h /\\ num_black rt h /\\ rb_rch v rt /\\ rb_lch v lt /\\ rb_root_color v false) -> (num_black v (h + 1)).",
+        "Axiom root_color_single : forall (v : rbtree Z), ~(rb_root_color v false /\\ rb_root_color v true).",
+        "Axiom no_red_red_given_lt_rt_black_root : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z), (no_red_red lt /\\ no_red_red rt /\\ rb_lch v lt /\\ rb_rch v rt /\\ rb_root_color v false) -> (no_red_red v)."
     ],
     "axiom_proofs": [[
         "Lemma num_black_root_from_lt_rt_plus_1 : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z) (h : Z),",
-        "  (num_black lt h /\\ num_black rt h /\\ rb_rch v rt /\\ rb_lch v lt /\\ rb_root_color v False) -> (num_black v (h + 1)).",
+        "  (num_black lt h /\\ num_black rt h /\\ rb_rch v rt /\\ rb_lch v lt /\\ rb_root_color v false) -> (num_black v (h + 1)).",
         "Proof.",
         "  intros [] lt rt h H; intuition; try contradiction.",
         "  simpl in *. intuition. subst.",
@@ -14,7 +14,7 @@
         "  intuition.",
         "Qed."
     ], [
-        "Lemma root_color_single : forall (v : rbtree Z), ~(rb_root_color v False /\\ rb_root_color v True).",
+        "Lemma root_color_single : forall (v : rbtree Z), ~(rb_root_color v false /\\ rb_root_color v true).",
         "Proof.",
         "  intros [] [Hcf Hct].",
         "  - contradiction.",
@@ -22,7 +22,7 @@
         "Qed."
     ], [
         "Lemma no_red_red_given_lt_rt_black_root : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z),",
-        "  (no_red_red lt /\\ no_red_red rt /\\ rb_lch v lt /\\ rb_rch v rt /\\ rb_root_color v False) -> (no_red_red v).",
+        "  (no_red_red lt /\\ no_red_red rt /\\ rb_lch v lt /\\ rb_rch v rt /\\ rb_root_color v false) -> (no_red_red v).",
         "Proof.",
         "  intros [] lt rt H; intuition; try contradiction.",
         "  simpl in *. intuition. subst.",

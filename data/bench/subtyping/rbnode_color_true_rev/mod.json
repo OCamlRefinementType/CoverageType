@@ -1,0 +1,80 @@
+{
+    "axioms": [
+        "Axiom rbtree_positive_num_black_is_not_rb_leaf : forall (l : rbtree Z) (n : Z), (num_black l n /\\ n > 0) -> ~(rb_leaf l).",
+        "Axiom rbtree_no_rb_leaf_exists_rb_root : forall (l : rbtree Z), exists (x : Z), ~(rb_leaf l) -> (rb_root l x).",
+        "Axiom no_red_red_lt : forall (v : rbtree Z) (lt : rbtree Z), (no_red_red v /\\ rb_lch v lt) -> (no_red_red lt).",
+        "Axiom no_red_red_rt : forall (v : rbtree Z) (rt : rbtree Z), (no_red_red v /\\ rb_rch v rt) -> (no_red_red rt).",
+        "Axiom num_black_root_black_lt_minus_1 : forall (v : rbtree Z) (lt : rbtree Z) (h : Z), (rb_root_color v false /\\ num_black v h /\\ rb_lch v lt) -> (num_black lt (h - 1)).",
+        "Axiom num_black_root_black_rt_minus_1 : forall (v : rbtree Z) (rt : rbtree Z) (h : Z), (rb_root_color v false /\\ num_black v h /\\ rb_rch v rt) -> (num_black rt (h - 1))."
+    ],
+    "axiom_proofs": [[
+        "Lemma rbtree_positive_num_black_is_not_rb_leaf : forall (l : rbtree Z) (n : Z), (num_black l n /\\ n > 0) -> ~(rb_leaf l).",
+        "Proof.",
+        "  intros [] n [Hnb Hn].",
+        "  - simpl in Hnb. lia.",
+        "  - auto.",
+        "Qed."
+    ], [
+        "Lemma rbtree_no_rb_leaf_exists_rb_root : forall (l : rbtree Z), exists (x : Z), ~(rb_leaf l) -> (rb_root l x).",
+        "Proof.",
+        "  intros [].",
+        "  - exists 0. intros []. reflexivity.",
+        "  - exists z. intros Hl. reflexivity.",
+        "Qed."
+    ], [
+        "Lemma no_red_red_lt : forall (v : rbtree Z) (lt : rbtree Z), (no_red_red v /\\ rb_lch v lt) -> (no_red_red lt).",
+        "Proof.",
+        "  intros [] [] [Hr Hl]; try contradiction.",
+        "  - reflexivity.",
+        "  - destruct b; simpl in Hr; simpl in Hl; subst.",
+        "    * destruct r0; decompose [and] Hr; assumption.",
+        "    * destruct Hr. assumption.",
+        "Qed."
+    ], [
+        "Lemma no_red_red_rt : forall (v : rbtree Z) (rt : rbtree Z), (no_red_red v /\\ rb_rch v rt) -> (no_red_red rt).",
+        "Proof.",
+        "  intros [] [] [Hr Hrch]; try contradiction.",
+        "  - reflexivity.",
+        "  - destruct b; simpl in Hr; simpl in Hrch; subst.",
+        "    * destruct r; decompose [and] Hr; assumption.",
+        "    * destruct Hr. assumption.",
+        "Qed."
+    ], [
+        "Lemma num_black_root_black_lt_minus_1 : forall (v : rbtree Z) (lt : rbtree Z) (h : Z),",
+        "  (rb_root_color v false /\\ num_black v h /\\ rb_lch v lt) -> (num_black lt (h - 1)).",
+        "Proof.",
+        "  intros [] lt h [Hrc [Hnb Hl]]; try contradiction.",
+        "  simpl in Hnb. simpl in Hrc. simpl in Hl.",
+        "  subst. destruct Hnb. assumption.",
+        "Qed."
+    ], [
+        "Lemma num_black_root_black_rt_minus_1 : forall (v : rbtree Z) (rt : rbtree Z) (h : Z),",
+        "  (rb_root_color v false /\\ num_black v h /\\ rb_rch v rt) -> (num_black rt (h - 1)).",
+        "Proof.",
+        "  intros [] rt h [Hrc [Hnb Hr]]; try contradiction.",
+        "  simpl in Hnb. simpl in Hrc. simpl in Hr.",
+        "  subst. destruct Hnb. assumption.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros inv Hinv. intuition.",
+        "assert (~rb_leaf v) by (apply (rbtree_positive_num_black_is_not_rb_leaf _ h); intuition).",
+        "destruct (rbtree_no_rb_leaf_exists_ch v) as [l [r Hch]].",
+        "destruct (rbtree_no_rb_leaf_exists_rb_root v) as [x Hrt].",
+        "destruct (rbtree_no_rb_leaf_exists_rb_root_color v) as [b Hb].",
+        "exists x. intuition.",
+        "destruct b; try contradiction.",
+        "assert (num_black l (h - 1)) by (apply (num_black_root_black_lt_minus_1 v l h); intuition).",
+        "assert (num_black r (h - 1)) by (apply (num_black_root_black_rt_minus_1 v r h); intuition).",
+        "exists l. intuition.",
+        "- apply (no_red_red_lt v l). intuition.",
+        "- assert (h = 1) by lia.",
+        "  assert (h > 1) by (apply (black_lt_black_num_black_gt_1 v l); intuition).",
+        "  lia.",
+        "- exists r. intuition.",
+        "  * apply (no_red_red_rt v r). intuition.",
+        "  * assert (h = 1) by lia.",
+        "    assert (h > 1) by (apply (black_rt_black_num_black_gt_1 v r); intuition).",
+        "    lia."
+    ]
+}

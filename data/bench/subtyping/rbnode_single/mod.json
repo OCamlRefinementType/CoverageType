@@ -1,11 +1,11 @@
 {
     "axioms": [
-        "Axiom num_black_root_from_lt_rt : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z) (h : Z), (num_black lt h /\\ num_black rt h /\\ rb_rch v rt /\\ rb_lch v lt /\\ rb_root_color v True) -> (num_black v h).",
-        "Axiom no_red_red_given_lt_rt_red_root : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z), (no_red_red lt /\\ no_red_red rt /\\ rb_lch v lt /\\ rb_rch v rt /\\ ~(rb_root_color lt True) /\\ ~(rb_root_color rt True) /\\ rb_root_color v True) -> (no_red_red v)."
+        "Axiom num_black_root_from_lt_rt : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z) (h : Z), (num_black lt h /\\ num_black rt h /\\ rb_rch v rt /\\ rb_lch v lt /\\ rb_root_color v true) -> (num_black v h).",
+        "Axiom no_red_red_given_lt_rt_red_root : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z), (no_red_red lt /\\ no_red_red rt /\\ rb_lch v lt /\\ rb_rch v rt /\\ ~(rb_root_color lt true) /\\ ~(rb_root_color rt true) /\\ rb_root_color v true) -> (no_red_red v)."
     ],
     "axiom_proofs": [[
         "Lemma num_black_root_from_lt_rt : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z) (h : Z),",
-        "  (num_black lt h /\\ num_black rt h /\\ rb_rch v rt /\\ rb_lch v lt /\\ rb_root_color v True)",
+        "  (num_black lt h /\\ num_black rt h /\\ rb_rch v rt /\\ rb_lch v lt /\\ rb_root_color v true)",
         "  -> (num_black v h).",
         "Proof.",
         "  intros [] lt rt h [Hnbl [Hnbr [Hrch [Hlch Hrc]]]].",
@@ -15,9 +15,9 @@
     ], [
         "Lemma no_red_red_given_lt_rt_red_root : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z),",
         "  (no_red_red lt /\\ no_red_red rt /\\ rb_lch v lt /\\ rb_rch v rt",
-        "  /\\ ~(rb_root_color lt True)",
-        "  /\\ ~(rb_root_color rt True)",
-        "  /\\ rb_root_color v True)",
+        "  /\\ ~(rb_root_color lt true)",
+        "  /\\ ~(rb_root_color rt true)",
+        "  /\\ rb_root_color v true)",
         "  -> (no_red_red v).",
         "Proof.",
         "  intros [] [] [] H; intuition; try contradiction;",

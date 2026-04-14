@@ -12,14 +12,14 @@ Module Type Signatures.
   Parameter num_black : forall {a : Type}, rbtree a -> Z -> Prop.
   Parameter rb_leaf : forall {a : Type}, rbtree a -> Prop.
   Parameter rb_root : forall {a : Type}, rbtree a -> a -> Prop.
-  Parameter rb_root_color : forall {a : Type}, rbtree a -> Prop -> Prop.
+  Parameter rb_root_color : forall {a : Type}, rbtree a -> bool -> Prop.
   Parameter rb_lch : forall {a : Type}, rbtree a -> rbtree a -> Prop.
   Parameter rb_rch : forall {a : Type}, rbtree a -> rbtree a -> Prop.
   Parameter no_red_red : forall {a : Type}, rbtree a -> Prop.
 
 
   Axiom rbtree_num_black_geq_0 : forall (l : rbtree Z) (n : Z), (num_black l n) -> (n >= 0).
-  Axiom rbtree_num_black_0_rb_leaf : forall (l : rbtree Z), (num_black l 0 /\ ~(rb_root_color l True)) -> (rb_leaf l).
+  Axiom rbtree_num_black_0_rb_leaf : forall (l : rbtree Z), (num_black l 0 /\ ~(rb_root_color l true)) -> (rb_leaf l).
 End Signatures.
 
 Module Axioms : Signatures.
@@ -49,10 +49,10 @@ Module Axioms : Signatures.
     | Rbtleaf _ => False
     | Rbtnode _ _ _ y _ => x = y
     end.
-  Definition rb_root_color {a : Type} (t : rbtree a) (c : Prop) : Prop :=
+  Definition rb_root_color {a : Type} (t : rbtree a) (c : bool) : Prop :=
     match t with
     | Rbtleaf _ => False
-    | Rbtnode _ c1 _ _ _ => (c /\ c1 = true) \/ (~c /\ c1 = false)
+    | Rbtnode _ c1 _ _ _ => c = c1
     end.
   Definition rb_lch {a : Type} (t : rbtree a) (l : rbtree a) : Prop :=
     match t with
@@ -87,7 +87,7 @@ Module Axioms : Signatures.
     - destruct b; intuition. apply IHl1 in H. lia.
   Qed.
 
-  Lemma rbtree_num_black_0_rb_leaf : forall (l : rbtree Z), (num_black l 0 /\ ~(rb_root_color l True)) -> (rb_leaf l).
+  Lemma rbtree_num_black_0_rb_leaf : forall (l : rbtree Z), (num_black l 0 /\ ~(rb_root_color l true)) -> (rb_leaf l).
   Proof.
     intros [] [Hnb Hrr].
     - reflexivity.
@@ -100,7 +100,7 @@ End Axioms.
 Module Goal.
   Import Axioms.
 
-  Theorem goal : forall (inv : Z), inv >= 0 -> ((forall (h : Z), (h >= 0 /\ (True -> (h + h) = inv) /\ (False -> ((h + h) + 1) = inv)) -> (forall (v : rbtree Z), True)) /\ (forall (h_0 : Z), (h_0 >= 0 /\ (False -> (h_0 + h_0) = inv) /\ (True -> ((h_0 + h_0) + 1) = inv)) -> (forall (v_0 : rbtree Z), (h_0 = 0 /\ ~rb_root_color v_0 False /\ ~rb_root_color v_0 True /\ num_black v_0 h_0 /\ no_red_red v_0 /\ (False -> ~rb_root_color v_0 True) /\ (True -> (h_0 = 0 -> ~rb_root_color v_0 False))) -> (h_0 = 0 /\ rb_leaf v_0 /\ (False -> ~rb_root_color v_0 True) /\ (True -> (h_0 = 0 -> ~rb_root_color v_0 False)))))).
+  Theorem goal : forall (inv : Z), inv >= 0 -> ((forall (h : Z), (h >= 0 /\ (True -> (h + h) = inv) /\ (False -> ((h + h) + 1) = inv)) -> (forall (v : rbtree Z), True)) /\ (forall (h_0 : Z), (h_0 >= 0 /\ (False -> (h_0 + h_0) = inv) /\ (True -> ((h_0 + h_0) + 1) = inv)) -> (forall (v_0 : rbtree Z), (h_0 = 0 /\ ~rb_root_color v_0 false /\ ~rb_root_color v_0 true /\ num_black v_0 h_0 /\ no_red_red v_0 /\ (False -> ~rb_root_color v_0 true) /\ (True -> (h_0 = 0 -> ~rb_root_color v_0 false))) -> (h_0 = 0 /\ rb_leaf v_0 /\ (False -> ~rb_root_color v_0 true) /\ (True -> (h_0 = 0 -> ~rb_root_color v_0 false)))))).
   Proof.
     intros inv Hinv. intuition. subst.
     apply rbtree_num_black_0_rb_leaf. intuition.

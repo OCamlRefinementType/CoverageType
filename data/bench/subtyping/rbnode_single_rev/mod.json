@@ -1,13 +1,13 @@
 {
     "axioms": [
-        "Axiom rbtree_rb_root_color_no_rb_leaf : forall (l : rbtree Z) (x : Prop), (rb_root_color l x) -> ~(rb_leaf l).",
+        "Axiom rbtree_rb_root_color_no_rb_leaf : forall (l : rbtree Z) (x : bool), (rb_root_color l x) -> ~(rb_leaf l).",
         "Axiom rbtree_no_rb_leaf_exists_ch : forall (l : rbtree Z), exists (l1 : rbtree Z) (l2 : rbtree Z), ~(rb_leaf l) -> (rb_lch l l1 /\\ rb_rch l l2).",
         "Axiom rbtree_leaf_is_leaf : forall (l : rbtree Z) (l2 : rbtree Z), (rb_leaf l /\\ rb_leaf l2) -> (l = l2).",
         "Axiom num_black_root_black_0_lt_leaf : forall (v : rbtree Z) (lt : rbtree Z), (no_red_red v /\\ num_black v 0 /\\ rb_lch v lt) -> (rb_leaf lt).",
         "Axiom num_black_root_black_0_rt_leaf : forall (v : rbtree Z) (rt : rbtree Z), (no_red_red v /\\ num_black v 0 /\\ rb_rch v rt) -> (rb_leaf rt)."
     ],
     "axiom_proofs": [[
-        "Lemma rbtree_rb_root_color_no_rb_leaf : forall (l : rbtree Z) (x : Prop), (rb_root_color l x) -> ~(rb_leaf l).",
+        "Lemma rbtree_rb_root_color_no_rb_leaf : forall (l : rbtree Z) (x : bool), (rb_root_color l x) -> ~(rb_leaf l).",
         "Proof.",
         "  intros [] x Hc.",
         "  - contradiction.",

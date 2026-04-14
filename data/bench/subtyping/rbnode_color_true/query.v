@@ -12,15 +12,15 @@ Module Type Signatures.
   Parameter num_black : forall {a : Type}, rbtree a -> Z -> Prop.
   Parameter rb_leaf : forall {a : Type}, rbtree a -> Prop.
   Parameter rb_root : forall {a : Type}, rbtree a -> a -> Prop.
-  Parameter rb_root_color : forall {a : Type}, rbtree a -> Prop -> Prop.
+  Parameter rb_root_color : forall {a : Type}, rbtree a -> bool -> Prop.
   Parameter rb_lch : forall {a : Type}, rbtree a -> rbtree a -> Prop.
   Parameter rb_rch : forall {a : Type}, rbtree a -> rbtree a -> Prop.
   Parameter no_red_red : forall {a : Type}, rbtree a -> Prop.
 
 
-  Axiom num_black_root_from_lt_rt_plus_1 : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z) (h : Z), (num_black lt h /\ num_black rt h /\ rb_rch v rt /\ rb_lch v lt /\ rb_root_color v False) -> (num_black v (h + 1)).
-  Axiom root_color_single : forall (v : rbtree Z), ~(rb_root_color v False /\ rb_root_color v True).
-  Axiom no_red_red_given_lt_rt_black_root : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z), (no_red_red lt /\ no_red_red rt /\ rb_lch v lt /\ rb_rch v rt /\ rb_root_color v False) -> (no_red_red v).
+  Axiom num_black_root_from_lt_rt_plus_1 : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z) (h : Z), (num_black lt h /\ num_black rt h /\ rb_rch v rt /\ rb_lch v lt /\ rb_root_color v false) -> (num_black v (h + 1)).
+  Axiom root_color_single : forall (v : rbtree Z), ~(rb_root_color v false /\ rb_root_color v true).
+  Axiom no_red_red_given_lt_rt_black_root : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z), (no_red_red lt /\ no_red_red rt /\ rb_lch v lt /\ rb_rch v rt /\ rb_root_color v false) -> (no_red_red v).
 End Signatures.
 
 Module Axioms : Signatures.
@@ -50,10 +50,10 @@ Module Axioms : Signatures.
     | Rbtleaf _ => False
     | Rbtnode _ _ _ y _ => x = y
     end.
-  Definition rb_root_color {a : Type} (t : rbtree a) (c : Prop) : Prop :=
+  Definition rb_root_color {a : Type} (t : rbtree a) (c : bool) : Prop :=
     match t with
     | Rbtleaf _ => False
-    | Rbtnode _ c1 _ _ _ => (c /\ c1 = true) \/ (~c /\ c1 = false)
+    | Rbtnode _ c1 _ _ _ => c = c1
     end.
   Definition rb_lch {a : Type} (t : rbtree a) (l : rbtree a) : Prop :=
     match t with
@@ -82,7 +82,7 @@ Module Axioms : Signatures.
 
 
   Lemma num_black_root_from_lt_rt_plus_1 : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z) (h : Z),
-    (num_black lt h /\ num_black rt h /\ rb_rch v rt /\ rb_lch v lt /\ rb_root_color v False) -> (num_black v (h + 1)).
+    (num_black lt h /\ num_black rt h /\ rb_rch v rt /\ rb_lch v lt /\ rb_root_color v false) -> (num_black v (h + 1)).
   Proof.
     intros [] lt rt h H; intuition; try contradiction.
     simpl in *. intuition. subst.
@@ -90,7 +90,7 @@ Module Axioms : Signatures.
     intuition.
   Qed.
 
-  Lemma root_color_single : forall (v : rbtree Z), ~(rb_root_color v False /\ rb_root_color v True).
+  Lemma root_color_single : forall (v : rbtree Z), ~(rb_root_color v false /\ rb_root_color v true).
   Proof.
     intros [] [Hcf Hct].
     - contradiction.
@@ -98,7 +98,7 @@ Module Axioms : Signatures.
   Qed.
 
   Lemma no_red_red_given_lt_rt_black_root : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z),
-    (no_red_red lt /\ no_red_red rt /\ rb_lch v lt /\ rb_rch v rt /\ rb_root_color v False) -> (no_red_red v).
+    (no_red_red lt /\ no_red_red rt /\ rb_lch v lt /\ rb_rch v rt /\ rb_root_color v false) -> (no_red_red v).
   Proof.
     intros [] lt rt H; intuition; try contradiction.
     simpl in *. intuition. subst.
@@ -109,7 +109,7 @@ End Axioms.
 Module Goal.
   Import Axioms.
 
-  Theorem goal : forall (inv : Z), inv >= 0 -> ((forall (h : Z), (h >= 0 /\ (True -> (h + h) = inv) /\ (False -> ((h + h) + 1) = inv)) -> (forall (v : rbtree Z), (h > 0 /\ (inv - 1) >= 0 /\ (inv - 1) < inv /\ (h - 1) >= 0 /\ (((h - 1) + (h - 1)) + 1) = (inv - 1) /\ (exists (lt2 : rbtree Z), num_black lt2 (h - 1) /\ no_red_red lt2 /\ ((h - 1) = 0 -> ~rb_root_color lt2 False) /\ (inv - 1) >= 0 /\ (inv - 1) < inv /\ (h - 1) >= 0 /\ (((h - 1) + (h - 1)) + 1) = (inv - 1) /\ (exists (rt2 : rbtree Z), num_black rt2 (h - 1) /\ no_red_red rt2 /\ ((h - 1) = 0 -> ~rb_root_color rt2 False) /\ (exists (x_13 : Z), rb_root_color v False /\ rb_root v x_13 /\ rb_lch v lt2 /\ rb_rch v rt2)))) -> (h > 0 /\ num_black v h /\ no_red_red v /\ (True -> ~rb_root_color v True)))) /\ (forall (h_0 : Z), (h_0 >= 0 /\ (False -> (h_0 + h_0) = inv) /\ (True -> ((h_0 + h_0) + 1) = inv)) -> (forall (v_0 : rbtree Z), True))).
+  Theorem goal : forall (inv : Z), inv >= 0 -> ((forall (h : Z), (h >= 0 /\ (True -> (h + h) = inv) /\ (False -> ((h + h) + 1) = inv)) -> (forall (v : rbtree Z), (h > 0 /\ (inv - 1) >= 0 /\ (inv - 1) < inv /\ (h - 1) >= 0 /\ (((h - 1) + (h - 1)) + 1) = (inv - 1) /\ (exists (lt2 : rbtree Z), num_black lt2 (h - 1) /\ no_red_red lt2 /\ ((h - 1) = 0 -> ~rb_root_color lt2 false) /\ (inv - 1) >= 0 /\ (inv - 1) < inv /\ (h - 1) >= 0 /\ (((h - 1) + (h - 1)) + 1) = (inv - 1) /\ (exists (rt2 : rbtree Z), num_black rt2 (h - 1) /\ no_red_red rt2 /\ ((h - 1) = 0 -> ~rb_root_color rt2 false) /\ (exists (x_13 : Z), rb_root_color v false /\ rb_root v x_13 /\ rb_lch v lt2 /\ rb_rch v rt2)))) -> (h > 0 /\ num_black v h /\ no_red_red v /\ (True -> ~rb_root_color v true)))) /\ (forall (h_0 : Z), (h_0 >= 0 /\ (False -> (h_0 + h_0) = inv) /\ (True -> ((h_0 + h_0) + 1) = inv)) -> (forall (v_0 : rbtree Z), True))).
   Proof.
     intros inv Hinv. intuition;
     destruct H8 as [l Hl]; intuition.

@@ -1,11 +1,11 @@
 {
     "axioms": [
-        "Axiom rbtree_rb_leaf_no_rb_root_color : forall (l : rbtree Z) (x : Prop), (rb_leaf l) -> ~(rb_root_color l x).",
+        "Axiom rbtree_rb_leaf_no_rb_root_color : forall (l : rbtree Z) (x : bool), (rb_leaf l) -> ~(rb_root_color l x).",
         "Axiom rbtree_rb_leaf_no_red_red : forall (l : rbtree Z), (rb_leaf l) -> (no_red_red l).",
         "Axiom rbtree_rb_leaf_num_black_0_second : forall (l : rbtree Z), (rb_leaf l) -> (num_black l 0)."
     ],
     "axiom_proofs": [[
-        "Lemma rbtree_rb_leaf_no_rb_root_color : forall (l : rbtree Z) (x : Prop), (rb_leaf l) -> ~(rb_root_color l x).",
+        "Lemma rbtree_rb_leaf_no_rb_root_color : forall (l : rbtree Z) (x : bool), (rb_leaf l) -> ~(rb_root_color l x).",
         "Proof.",
         "  intros [] x Hl.",
         "  - intros [].",
