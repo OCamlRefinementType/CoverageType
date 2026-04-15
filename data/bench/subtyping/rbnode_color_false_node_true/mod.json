@@ -1,0 +1,26 @@
+{
+    "axioms": [
+        "Axiom num_black_root_from_lt_rt : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z) (h : Z), (num_black lt h /\\ num_black rt h /\\ rb_rch v rt /\\ rb_lch v lt /\\ rb_root_color v true) -> (num_black v h)."
+    ],
+    "axiom_proofs": [[
+        "Lemma num_black_root_from_lt_rt : forall (v : rbtree Z) (lt : rbtree Z) (rt : rbtree Z) (h : Z),",
+        "  (num_black lt h /\\ num_black rt h /\\ rb_rch v rt /\\ rb_lch v lt /\\ rb_root_color v true)",
+        "  -> (num_black v h).",
+        "Proof.",
+        "  intros [] lt rt h [Hnbl [Hnbr [Hrch [Hlch Hrc]]]].",
+        "  - contradiction.",
+        "  - simpl in *. intuition. subst. intuition.",
+        "Qed."
+    ]],
+    "proof": [
+        "intros inv Hinv. split.",
+        "- intros.",
+        "  destruct H0 as [[_ [_ [_ [_ [_ [_ []]]]]]] | [_ [_ [_ [_ [_ [_ []]]]]]]];",
+        "  contradiction.",
+        "- intros h1 [Hh1 [Hf Ht]] v0 [[l [r [inv1 [inv2 [h2 [h3 [x H]]]]]]] | [_ [_ [_ [_ [_ [_ []]]]]]]];",
+        "  try contradiction.",
+        "  intuition; subst.",
+        "  * apply (num_black_root_from_lt_rt v0 l r). intuition.",
+        "  * apply (no_red_red_given_lt_rt_red_root v0 l r). intuition."
+    ]
+}
