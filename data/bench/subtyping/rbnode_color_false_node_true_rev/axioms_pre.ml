@@ -1,0 +1,8 @@
+let[@axiom] rbtree_positive_num_black_is_not_rb_leaf = fun (l : (int rbtree)) -> fun (n : int) -> (((num_black l n) && (n > 0)) #==> (not (rb_leaf l)))
+let[@axiom] rbtree_no_rb_leaf_exists_ch = fun (l : (int rbtree)) -> fun ((l1 [@ex]) : (int rbtree)) -> fun ((l2 [@ex]) : (int rbtree)) -> ((not (rb_leaf l)) #==> ((rb_lch l l1) && (rb_rch l l2)))
+let[@axiom] rbtree_no_rb_leaf_exists_rb_root = fun (l : (int rbtree)) -> fun ((x [@ex]) : int) -> ((not (rb_leaf l)) #==> (rb_root l x))
+let[@axiom] no_red_red_lt = fun (v : (int rbtree)) -> fun (lt : (int rbtree)) -> (((no_red_red v) && (rb_lch v lt)) #==> (no_red_red lt))
+let[@axiom] no_red_red_rt = fun (v : (int rbtree)) -> fun (rt : (int rbtree)) -> (((no_red_red v) && (rb_rch v rt)) #==> (no_red_red rt))
+let[@axiom] num_black_root_red_lt_same = fun (v : (int rbtree)) (lt : (int rbtree)) (h : int) -> (((rb_root_color v true) && ((num_black v h) && (rb_lch v lt))) #==> (num_black lt h))
+let[@axiom] num_black_root_red_rt_same = fun (v : (int rbtree)) (rt : (int rbtree)) (h : int) -> (((rb_root_color v true) && ((num_black v h) && (rb_rch v rt))) #==> (num_black rt h))
+let[@axiom] root_color_single = fun (v : (int rbtree)) -> (not ((rb_root_color v false) && (rb_root_color v true)))
