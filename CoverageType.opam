@@ -42,5 +42,5 @@ build: [
 ]
 dev-repo: "git+https://github.com/username/reponame.git"
 pin-depends: [
-  ["zutils.dev" "git+https://github.com/Pat-Lafon/zutils.git"]
+  ["zutils.dev" "git+https://github.com/fishy15/zutils.git#eqv-changes"]
 ]
