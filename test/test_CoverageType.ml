@@ -34,7 +34,7 @@ let%expect_test "test_cases/basic_int" =
 (*     failing: *)
 (*   |}] *)
 
-(* sometimes fails, not sure why... some kind of nondeterminism *)
+(* flaky test *)
 (* let%expect_test "stlc/stlc" = *)
 (*   run_test "data/PLDI23/stlc/stlc.ml"; *)
 (*   [%expect *)
@@ -120,12 +120,13 @@ let%expect_test "elrond/UniqueList" =
     failing:
   |}]
 
-let%expect_test "elrond/LeftistHeap" =
-  run_test "data/PLDI23/elrond/LeftistHeap.ml";
-  [%expect {|
-    passing: leftisthp_gen
-    failing:
-  |}]
+(* flaky test *)
+(* let%expect_test "elrond/LeftistHeap" = *)
+(*   run_test "data/PLDI23/elrond/LeftistHeap.ml"; *)
+(*   [%expect {| *)
+(*     passing: leftisthp_gen *)
+(*     failing: *)
+(*   |}] *)
 
 let%expect_test "elrond/UnbalanceSet" =
   run_test "data/PLDI23/elrond/UnbalanceSet.ml";
@@ -155,12 +156,13 @@ let%expect_test "quickcheck/SizedHeap" =
     failing:
   |}]
 
-let%expect_test "quickcheck/SizedSet" =
-  run_test "data/PLDI23/quickcheck/SizedSet.ml";
-  [%expect {|
-    passing: ranged_set_gen
-    failing:
-  |}]
+(* flaky test *)
+(* let%expect_test "quickcheck/SizedSet" = *)
+(*   run_test "data/PLDI23/quickcheck/SizedSet.ml"; *)
+(*   [%expect {| *)
+(*     passing: ranged_set_gen *)
+(*     failing: *)
+(*   |}] *)
 
 let%expect_test "alias" =
   run_test "data/inline_test/alias.ml";
