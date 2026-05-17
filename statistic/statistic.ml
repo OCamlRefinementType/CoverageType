@@ -98,4 +98,29 @@ let create_stat function_name (imp : (Nt.t, Nt.t term) typed) =
   | None -> Hashtbl.add _stat_tab function_name stat
   | Some _ -> _die [%here]
 
+let create_subtyping_stat () =
+  let function_name = "subtyping" in
+  let mp = 0 in
+  let stat =
+    {
+      function_name;
+      branchs = 0;
+      if_rec = false;
+      lvar = 0;
+      num_qt = 0;
+      num_qpred = 0;
+      method_prdicates = [];
+      mp;
+      query_times = [];
+      num_query = 0;
+      max_forall = 0;
+      max_exists = 0;
+      total_time = 0.0;
+      avg_time = 0.0;
+    }
+  in
+  match Hashtbl.find_opt _stat_tab function_name with
+  | None -> Hashtbl.add _stat_tab function_name stat
+  | Some _ -> _die [%here]
+
 let clear () = Hashtbl.clear _stat_tab
