@@ -124,7 +124,7 @@ let sub_cty ou rctx cty1 cty2 =
           (overctx @ [ (default_v, mk_top_cty cty2.nty) ])
           prop
   in
-  let () = try Statistic.stat_query_formula (rctx.task_name, query) with _ -> () in
+  let () = Statistic.stat_query_formula (rctx.task_name, query) in
   let time, res =
     clock (fun () ->
         let () =
@@ -132,7 +132,7 @@ let sub_cty ou rctx cty1 cty2 =
           Printf.printf "before simp:\n%s\n\n" (layout_prop query)
         in
         let query = SimplProp.simpl_query query in
-        let () = try Statistic.stat_query_formula (rctx.task_name, query) with _ -> () in
+        let () = Statistic.stat_query_formula (rctx.task_name, query) in
         let () =
           _log_auxtyping @@ fun _ ->
           Printf.printf "check valid:\n%s\n\n" (layout_prop query)
@@ -143,7 +143,7 @@ let sub_cty ou rctx cty1 cty2 =
         in
         check_valid (Some rctx.task_name, query))
   in
-  let () = try Statistic.stat_query_time (rctx.task_name, time) with _ -> () in
+  let () = Statistic.stat_query_time (rctx.task_name, time) in
   (* let () = if not res then _die [%here] in *)
   res
 

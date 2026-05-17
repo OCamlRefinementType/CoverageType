@@ -25,7 +25,7 @@ let subtype_check source_file () =
       (rty1, rty2) ()
   in
   let _ = Preprocess.load_bctx () in
-  (* let () = Statistic.create_stat "subtyping" imp in *)
+  let () = Statistic.create_subtyping_stat () in
   let res =
     Auxtyping.sub_rty (Typing.Rctx.emp "subtyping" [] []) (rty1, rty2)
   in
