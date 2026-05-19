@@ -60,7 +60,7 @@
             false
         ]
     ],
-    "prover_timeout_bound": 1999,
+    "prover_timeout_bound": 10000,
     "prim_path": {
         "predefined_path": "../../../../../data/predefined",
         "axioms_path": "",
