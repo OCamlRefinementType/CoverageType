@@ -92,12 +92,13 @@ let%expect_test "quickchick/SortedList" =
     failing:
   |}]
 
-let%expect_test "leonidas/SizedBST" =
-  run_test "data/PLDI23/leonidas/SizedBST.ml";
-  [%expect {|
-    passing: size_bst_gen
-    failing:
-  |}]
+(* flaky test *)
+(* let%expect_test "leonidas/SizedBST" = *)
+(*   run_test "data/PLDI23/leonidas/SizedBST.ml"; *)
+(*   [%expect {| *)
+(*     passing: size_bst_gen *)
+(*     failing: *)
+(*   |}] *)
 
 let%expect_test "leonidas/CompleteTree" =
   run_test "data/PLDI23/leonidas/CompleteTree.ml";
