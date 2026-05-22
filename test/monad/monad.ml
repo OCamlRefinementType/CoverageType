@@ -1,11 +1,4 @@
-open Zdatatype
-
-let%expect_test "quickchick/SortedList" =
-  run_test "data/PLDI23/quickchick/SortedList.ml";
-  [%expect {|
-    passing: sorted_list_gen
-    failing:
-  |}]
+open Auxtest
 
 let%expect_test "coverage_monad_library" =
   run_test "data/monad/coverage_monad_library.ml";
@@ -22,7 +15,6 @@ let%expect_test "case1" =
     failing:
   |}]
 
-(*
 let%expect_test "tezos" =
   run_test "data/monad/tezos.ml";
   [%expect
@@ -81,4 +73,3 @@ let%expect_test "tezos_test" =
     passing: operation_proto_gen, q_in_0_1, priority_gen
     failing:
   |}]
-*)
