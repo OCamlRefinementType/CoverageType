@@ -62,7 +62,7 @@
     ],
     "prover_timeout_bound": 10000,
     "prim_path": {
-        "predefined_path": "../../../../../data/predefined",
+        "predefined_path": "data/predefined",
         "axioms_path": "",
         "templates_path": "",
         "p_header_template_path": "synRuntime/plang/header_template.funcp",
