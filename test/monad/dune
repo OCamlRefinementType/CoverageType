@@ -1,0 +1,6 @@
+(library
+  (name monad)
+  (inline_tests)
+  (libraries preprocess typing zutils auxtest)
+  (modules monad)
+  (preprocess (pps ppx_expect)))
