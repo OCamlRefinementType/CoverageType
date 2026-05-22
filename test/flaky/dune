@@ -1,0 +1,6 @@
+(library
+  (name flaky)
+  (inline_tests)
+  (libraries preprocess typing zutils auxtest)
+  (modules flaky)
+  (preprocess (pps ppx_expect)))

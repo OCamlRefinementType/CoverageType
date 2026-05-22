@@ -1,58 +1,5 @@
 open Zdatatype
 
-let run_test source_file =
-  Statistic.clear ();
-  let root = Filename.concat (Sys.getcwd ()) "../../../../.." in
-  let _ =
-    Myconfig.meta_config_path := Filename.concat root "test/meta-config.json"
-  in
-  let source_file = Filename.concat root source_file in
-  let code = Preprocess.preprocess [ source_file ] in
-  let _, passed, failed = Typing.struc_check (Preprocess.load_bctx ()) code in
-  Printf.printf "passing: %s\n" (List.split_by_comma Fun.id passed);
-  Printf.printf "failing: %s\n" (List.split_by_comma Fun.id failed)
-
-(* TODO: fix the test, need definitions for num_arr? *)
-(* let%expect_test "stlc/gen_term_size" = *)
-(*   run_test "data/PLDI23/stlc/gen_term_size.ml"; *)
-(*   [%expect {| *)
-(*     passing:  gen_term_size  *)
-(*     failing: *)
-(*   |}] *)
-
-(* flaky test *)
-(* let%expect_test "stlc/stlc" = *)
-(*   run_test "data/PLDI23/stlc/stlc.ml"; *)
-(*   [%expect *)
-(*     {| *)
-(*     passing: type_eq, gen_const, gen_type_size, gen_type, vars_with_type_rev_index, vars_with_type, gen_term_no_app, gen_term_size *)
-(*     failing: *)
-(*   |}] *)
-
-(* flaky test *)
-(* let%expect_test "leonidas/SizedBST" = *)
-(*   run_test "data/PLDI23/leonidas/SizedBST.ml"; *)
-(*   [%expect {| *)
-(*     passing: size_bst_gen *)
-(*     failing: *)
-(*   |}] *)
-
-(* flaky test *)
-(* let%expect_test "elrond/LeftistHeap" = *)
-(*   run_test "data/PLDI23/elrond/LeftistHeap.ml"; *)
-(*   [%expect {| *)
-(*     passing: leftisthp_gen *)
-(*     failing: *)
-(*   |}] *)
-
-(* flaky test *)
-(* let%expect_test "quickcheck/SizedSet" = *)
-(*   run_test "data/PLDI23/quickcheck/SizedSet.ml"; *)
-(*   [%expect {| *)
-(*     passing: ranged_set_gen *)
-(*     failing: *)
-(*   |}] *)
-
 let%expect_test "quickchick/SortedList" =
   run_test "data/PLDI23/quickchick/SortedList.ml";
   [%expect {|

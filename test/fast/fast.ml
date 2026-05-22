@@ -35,6 +35,14 @@ let%expect_test "basic/boundlist" =
     failing:
   |}]
 
+(* TODO: fix the test, need definitions for num_arr? *)
+(* let%expect_test "stlc/gen_term_size" = *)
+(*   run_test "data/PLDI23/stlc/gen_term_size.ml"; *)
+(*   [%expect {| *)
+(*     passing:  gen_term_size  *)
+(*     failing: *)
+(*   |}] *)
+
 let%expect_test "quickchick/SizedTree" =
   run_test "data/PLDI23/quickchick/SizedTree.ml";
   [%expect {|
