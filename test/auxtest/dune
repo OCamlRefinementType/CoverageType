@@ -1,0 +1,12 @@
+; (rule
+;   (targets paths.ml)
+;   (action
+;     (with-stdout-to %{targets}
+;       (echo "let workspace_root = %{workspace_root}"))))
+
+(library
+ (public_name CoverageType.test.auxtest)
+ (name auxtest)
+ (wrapped true)
+ (libraries preprocess statistic typing zutils)
+ (modules auxtest definitions))
