@@ -1,0 +1,6 @@
+(library
+  (name fast)
+  (inline_tests)
+  (libraries preprocess typing zutils auxtest)
+  (modules fast)
+  (preprocess (pps ppx_expect)))
