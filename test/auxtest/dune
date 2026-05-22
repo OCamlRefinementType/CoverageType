@@ -2,5 +2,5 @@
  (public_name CoverageType.test.auxtest)
  (name auxtest)
  (wrapped true)
- (libraries preprocess statistic typing zutils)
+ (libraries preprocess typing)
  (modules auxtest definitions))

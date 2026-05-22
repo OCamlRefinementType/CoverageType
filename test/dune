@@ -1,8 +1,2 @@
 (library
-  (name test_CoverageType)
-  (inline_tests
-    (deps (glob_files_rec ../data/**)
-          (file meta-config.json)))
-  (libraries preprocess statistic typing zutils auxtest)
-  (modules)
-  (preprocess (pps ppx_expect)))
+  (name test_CoverageType))
