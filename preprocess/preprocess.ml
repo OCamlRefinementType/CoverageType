@@ -8,6 +8,7 @@ let parse file =
   @@ OcamlParser.Oparse.parse_imp_from_file ~sourcefile:file
 
 let multi_parse files = List.concat_map parse files
+
 let _ctxs = ref None
 
 let resolve_files (prim_path : TypecheckerConfig.prim_path) : string list =
@@ -49,17 +50,10 @@ let preprocess source_files =
   let items' = Type_alias.item_inline (load_alias ()) items in
   let alias = Type_alias.item_mk_type_alias_ctx items' in
   let items' = Type_alias.item_inline alias items' in
-  (* let () = Pp.printf "@{<bold>result:@}\n%s\n" (layout_structure items) in *)
-  (* let () = Pp.printf "@{<bold>result:@}\n%s\n" (layout_structure items') in *)
   let _, code = struct_check (load_basic_ctx ()) items' in
-  let code = Type_alias.item_inline alias code in
-  let code = Type_alias.item_inline (load_alias ()) code in
+  let code = Type_alias.item_inline (load_alias () @ alias) code in
   let () =
     TypecheckerLog.preprocess (fun _ ->
         Pp.printf "@{<bold>result:@}\n%s\n" (layout_structure code))
   in
-  (* let () = *)
-  (*   Pp.printf "@{<bold>alias:@}\n%s\n" (Type_alias.layout_alias (load_alias ())) *)
-  (* in *)
-  (* let () = _die [%here] in *)
   normalize_structure code
