@@ -29,14 +29,17 @@ let subtype_check source_file () =
   let res =
     Auxtyping.sub_rty (Typing.Rctx.emp "subtyping" [] []) (rty1, rty2)
   in
-  Pp.printf "@{<bold>result: %b:@}\n" res
+  Pp.printf "@{<bold>Result: %b@}\n" res;
+  Stdlib.exit (if res then 0 else 1)
 
 let type_check source_file () =
   let code = Preprocess.preprocess [ source_file ] in
   let () = Pp.printf "@{<bold>result:@} %s\n" (layout_structure code) in
   (* let () = _die [%here] in *)
-  let _ = Typing.struc_check (Preprocess.load_bctx ()) code in
-  ()
+  let _, _, failed = Typing.struc_check (Preprocess.load_bctx ()) code in
+  let ok = List.is_empty failed in
+  Pp.printf "@{<bold>Result: %b@}\n" ok;
+  Stdlib.exit (if ok then 0 else 1)
 
 let one_param_file message f =
   let cmd =

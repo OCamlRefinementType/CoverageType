@@ -39,6 +39,7 @@
   ppx_here
   ppx_deriving_yojson
   zutils
+  (z3 (= 4.15.2))
   spectrum)
  (tags
   (topics "to describe" your project)))
