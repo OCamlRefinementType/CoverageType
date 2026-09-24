@@ -20,8 +20,6 @@ let smart_dependent_forall (x, { nty; phi }) query =
 
 let smart_dependent_exists (x, { nty; phi }) query =
   let phi = subst_prop_instance default_v (AVar x#:nty) phi in
-  (* let query = fresh_name_prop query in *)
-  (* Exists { qv = x#:nty; body = smart_add_to phi query } *)
   smart_exists_phi (x#:nty, phi) query
 
 let report_unclosed loc query =

@@ -1,7 +1,6 @@
 open Language
 open Zutils
 open Subcty
-(* open Myconfig *)
 
 let rec sub_rty rctx (rty1, rty2) =
   ( TypecheckerLog.typing @@ fun _ ->
