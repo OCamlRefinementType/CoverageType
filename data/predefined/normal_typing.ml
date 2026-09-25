@@ -1,7 +1,5 @@
 (** Premitive type *)
 
-type unit = TT
-type bool = True | False
 type 'a option = None | Some of 'a
 
 type 'a tezosTree =

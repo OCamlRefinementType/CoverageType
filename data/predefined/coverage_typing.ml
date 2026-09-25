@@ -1,8 +1,5 @@
 (** Premitive type *)
 
-let[@library] TT = (true : [%v: unit]) [@under]
-let[@library] True = (v : [%v: bool]) [@under]
-let[@library] False = (not v : [%v: bool]) [@under]
 let[@library] None = fun (a : baseType) -> (v == None : [%v: 'a option])
 
 let[@library] Some =

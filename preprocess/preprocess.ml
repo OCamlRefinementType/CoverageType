@@ -8,6 +8,20 @@ let parse file =
   @@ OcamlParser.Oparse.parse_imp_from_file ~sourcefile:file
 
 let multi_parse files = List.concat_map parse files
+
+let builtin_basic_ctx =
+  Typectx.ctx_from_list
+    [ "True"#:Nt.bool_ty; "False"#:Nt.bool_ty; "TT"#:Nt.unit_ty ]
+
+let builtin_rty_ctx =
+  let under nty phi = RtyBase { ou = Under; cty = { nty; phi } } in
+  let v_holds = Prop.lit_to_prop (Prop.AVar default_v#:Nt.bool_ty) in
+  [
+    "TT"#:(under Nt.unit_ty Prop.mk_true);
+    "True"#:(under Nt.bool_ty v_holds);
+    "False"#:(under Nt.bool_ty (Prop.Not v_holds));
+  ]
+
 let _ctxs = ref None
 
 let resolve_files (prim_path : TypecheckerConfig.prim_path) : string list =
@@ -23,8 +37,10 @@ let load_ctxs () =
       let items = multi_parse files in
       let alias = Type_alias.item_mk_type_alias_ctx items in
       let items = Type_alias.item_inline alias items in
-      let basic_ctx, items = struct_check Typectx.emp items in
-      let builtin_ctx = struct_mk_rty_ctx items in
+      let basic_ctx, items = struct_check builtin_basic_ctx items in
+      let builtin_ctx =
+        Typectx.add_to_rights (struct_mk_rty_ctx items) builtin_rty_ctx
+      in
       let axioms = struct_mk_axiom_ctx items in
       let bctx = { builtin_ctx; cur_axiom_names = [] } in
       let bctx = axiom_add_to_rights bctx axioms in
