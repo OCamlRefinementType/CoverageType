@@ -247,7 +247,8 @@ let raw_term_type_check ctx polyvars term =
       in
       res
 
-let constructor_declaration_mk_ (retty, { constr_name; argsty }) =
+let constructor_declaration_mk_ (retty, { constr_name; args }) =
+  let argsty = constructor_args_types args in
   constr_name#:(Nt.close_poly_nt [%here] @@ Nt.construct_arr_tp (argsty, retty))
 
 let item_mk_ctx (e : t item) =

@@ -68,10 +68,14 @@ let item_inline decls items =
   let f e =
     match e with
     | MTyDecl { type_name; type_params; type_decl = Decl_constructors decls } ->
+        let inline_args = function
+          | CtorTuple ts -> CtorTuple (List.map inline ts)
+          | CtorRecord xs -> CtorRecord (List.map (fun x -> x#=>inline) xs)
+        in
         let decls =
           List.map
-            (fun { constr_name; argsty } ->
-              { constr_name; argsty = List.map inline argsty })
+            (fun { constr_name; args } ->
+              { constr_name; args = inline_args args })
             decls
         in
         let res =
