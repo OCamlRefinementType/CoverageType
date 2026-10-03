@@ -173,7 +173,14 @@ let rec constraint_term_type_infer (ctx : t ctx) (bc : BC.bc) (e : t raw_term) =
               List.fold_right
                 (fun x (bc, args) ->
                   let bc, t = BC.fresh bc in
-                  (bc, (x.x#:t) :: args))
+                  (* Each [_] gets its own name, so two in one pattern neither
+                     collide in the ctx nor share a binder downstream. The
+                     leading [_] keeps it unused wherever it is rendered. *)
+                  let x =
+                    if String.equal x.x "_" then "_" ^ Rename.fresh_var ()
+                    else x.x
+                  in
+                  (bc, (x#:t) :: args))
                 args (bc, [])
             in
             let bc, op =
