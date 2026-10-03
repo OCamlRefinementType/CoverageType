@@ -413,26 +413,23 @@ open Typectx
 let rty_add_to_right { builtin_ctx; cur_axiom_names } x =
   { builtin_ctx = add_to_right builtin_ctx x; cur_axiom_names }
 
-let axiom_add_to_right { builtin_ctx; cur_axiom_names } (x, tasks, prop) =
+let axiom_add_to_right { builtin_ctx; cur_axiom_names } (x, prop) =
   if List.exists (String.equal x) cur_axiom_names then _die [%here]
   else
-    let () = Prop.Prover.update_axioms [ (x, tasks, prop) ] in
+    let () = Prop.Prover.update_axioms [ (x, prop) ] in
     { builtin_ctx; cur_axiom_names = cur_axiom_names @ [ x ] }
 
 let rty_add_to_rights { builtin_ctx; cur_axiom_names } x =
   { builtin_ctx = add_to_rights builtin_ctx x; cur_axiom_names }
 
 let axiom_add_to_rights { builtin_ctx; cur_axiom_names } xs =
-  if
-    List.exists
-      (fun (x, _, _) -> List.exists (String.equal x) cur_axiom_names)
-      xs
+  if List.exists (fun (x, _) -> List.exists (String.equal x) cur_axiom_names) xs
   then _die [%here]
   else
     let () = Prop.Prover.update_axioms xs in
     {
       builtin_ctx;
-      cur_axiom_names = cur_axiom_names @ List.map (fun (x, _, _) -> x) xs;
+      cur_axiom_names = cur_axiom_names @ List.map (fun (x, _) -> x) xs;
     }
 
 (** Monad *)

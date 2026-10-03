@@ -293,8 +293,8 @@ let item_check (checked : t item list) ctx (e : t item) : t ctx * t item =
       let x = Nt.__force_typed [%here] x in
       let res = MMethodPred x in
       (add_to_right ctx x, res)
-  | MAxiom { name; tasks; prop } ->
-      (ctx, MAxiom { name; tasks; prop = prop_type_check ctx [ "a" ] prop })
+  | MAxiom { name; prop } ->
+      (ctx, MAxiom { name; prop = prop_type_check ctx [ "a" ] prop })
   | MLocalRty { host_name; name; rty; captured } ->
       let host_rty =
         List.filter_map
@@ -348,7 +348,7 @@ let struct_mk_rty_ctx l =
 
 let struct_mk_axiom_ctx l =
   let aux res = function
-    | MAxiom { name; tasks; prop } -> res @ [ (name, tasks, prop) ]
+    | MAxiom { name; prop } -> res @ [ (name, prop) ]
     | _ -> res
   in
   List.fold_left aux [] l

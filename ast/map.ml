@@ -156,8 +156,7 @@ let rec map_item (f : 't -> 's) (item_e : 't item) =
       MTyDecl { type_name; type_params; type_decl }
   | MValDecl _t_stringtyped0 -> MValDecl _t_stringtyped0#=>f
   | MMethodPred _t_stringtyped0 -> MMethodPred _t_stringtyped0#=>f
-  | MAxiom { name; tasks; prop } ->
-      MAxiom { name; tasks; prop = map_prop f prop }
+  | MAxiom { name; prop } -> MAxiom { name; prop = map_prop f prop }
   | MFuncImpRaw { name; if_rec; body } ->
       MFuncImpRaw { name = name#=>f; if_rec; body = typed_map_raw_term f body }
   | MFuncImp { name; if_rec; body } ->
