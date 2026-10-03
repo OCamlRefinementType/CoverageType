@@ -211,7 +211,23 @@ let type_check_group (bctx : built_in_ctx) =
     in
     match argrty with
     | RtyArr _ ->
-        if not (subtyping rctx (apparg.ty, argrty)) then (
+        (* Subsumption applies only to closed terms. [sub_cty] quantifies an
+           under-typed binder existentially inside [∀v], so a closure capturing
+           one would be checked against a fresh witness per result value while
+           the program fixes a single value when it creates the closure. *)
+        let _, underctx = build_wf_ctx (Typectx.ctx_to_list rctx.rty_ctx) in
+        let captured =
+          List.filter (fun (x, _) -> is_free_rty x apparg.ty) underctx
+        in
+        if captured <> [] then (
+          ( TypecheckerLog.typing @@ fun _ ->
+            Pp.printf
+              "@{<bold>Type Error at %s:@} arrow-typed argument captures \
+               under-typed binders [%s]\n"
+              (pos_to_string [%here])
+              (String.concat ", " (List.map fst captured)) );
+          None)
+        else if not (subtyping rctx (apparg.ty, argrty)) then (
           _warinning_subtyping_error [%here] (apparg.ty, argrty);
           _warinning_typing_error [%here]
             (layout_typed_value @@ (apparg#=>erase_rty), argrty);

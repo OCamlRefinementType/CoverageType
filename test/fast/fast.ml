@@ -21,8 +21,8 @@ let%expect_test "test_cases/closure_capture" =
     {|
     passing:
     failing: diagonal
-    passing: f, diagonal_via_closure
-    failing:
+    passing: f
+    failing: diagonal_via_closure
     |}]
 
 let%expect_test "basic/duplicate_list" =
