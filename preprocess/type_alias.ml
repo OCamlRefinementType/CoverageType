@@ -89,8 +89,8 @@ let item_inline decls items =
         Some res
     | MValDecl x -> Some (MValDecl x#=>inline)
     | MMethodPred x -> Some (MMethodPred x#=>inline)
-    | MAxiom { name; tasks; prop } ->
-        Some (MAxiom { name; tasks; prop = map_prop inline prop })
+    | MAxiom { name; prop } ->
+        Some (MAxiom { name; prop = map_prop inline prop })
     | MLocalRty { host_name; name; rty; captured } ->
         let rty = map_rty inline rty in
         Some (MLocalRty { host_name; name; rty; captured })

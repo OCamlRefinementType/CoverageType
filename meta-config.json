@@ -1,7 +1,7 @@
 {
     "zutils": {
         "log_tags": [],
-        "pred_extension_rules": [["hd", ["list_mem"]]]
+        "pred_extension_rules": [[["hd"], ["list_mem"]]]
     },
     "typechecker": {
         "log_tags": ["auxtyping", "preprocess", "typing", "result"],
