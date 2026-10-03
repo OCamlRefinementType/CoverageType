@@ -437,10 +437,6 @@ let axiom_add_to_rights { builtin_ctx; cur_axiom_names } xs =
 
 (** Monad *)
 
-let mk_return_rty retty =
-  RtyArr
-    { retty; arg = Rename.dummy_var (); argrty = mk_top_overrty Nt.unit_ty }
-
 let ret_ty loc = function RtyArr { retty; _ } -> retty | _ -> _die loc
 
 let mk_nfv_arr argrty retty =
