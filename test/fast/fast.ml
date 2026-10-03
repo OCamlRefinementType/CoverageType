@@ -14,6 +14,13 @@ let%expect_test "test_cases/basic_int" =
     failing: test3 
   |}]
 
+let%expect_test "test_cases/rec_arg_nondecreasing" =
+  run_test "data/test_cases/rec_arg_nondecreasing.ml";
+  [%expect {|
+    passing:
+    failing: nondec_gen
+  |}]
+
 let%expect_test "test_cases/closure_capture" =
   run_test "data/test_cases/pair_diagonal.ml";
   run_test "data/test_cases/closure_capture_pair.ml";

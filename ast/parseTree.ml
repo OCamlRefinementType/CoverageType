@@ -156,4 +156,7 @@ type rctx = {
   pred_ctx : Nt.t ctx;
   rty_ctx : Nt.t rty ctx;
   inv_ctx : Nt.nt rty ctx;
+  (* A recursive function's name and the bound its recursive calls must
+     decrease under, set while checking its body. *)
+  rec_bound : (string * Nt.t cty) option;
 }
