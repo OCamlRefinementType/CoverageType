@@ -116,20 +116,16 @@ let sub_cty ou rctx cty1 cty2 =
       _die [%here])
   in
   let nty = if Nt.equal_nt cty1.nty cty2.nty then cty1.nty else _die [%here] in
-  let overctx = (default_v, mk_top_cty nty) :: overctx in
+  let overctx_with_v = (default_v, mk_top_cty nty) :: overctx in
   let query =
     match ou with
     | Over ->
         let prop = smart_implies cty1.phi cty2.phi in
-        List.fold_right smart_dependent_forall
-          (overctx @ [ (default_v, mk_top_cty cty1.nty) ])
-          prop
+        List.fold_right smart_dependent_forall overctx_with_v prop
     | Under ->
         let rhs = List.fold_right smart_dependent_exists underctx cty1.phi in
         let prop = smart_implies cty2.phi rhs in
-        List.fold_right smart_dependent_forall
-          (overctx @ [ (default_v, mk_top_cty cty2.nty) ])
-          prop
+        List.fold_right smart_dependent_forall overctx_with_v prop
   in
   let () = Statistic.stat_query_formula (rctx.task_name, query) in
   let time, res =
@@ -181,7 +177,6 @@ let non_emptiness_cty rctx cty =
         "left-hand-side type should be closed under over + under ctx"
         (is_close_cty (List.map fst (overctx @ underctx)) cty)
     in
-    let overctx = (default_v, mk_top_cty cty.nty) :: overctx in
     let query =
       List.fold_right smart_dependent_exists (overctx @ underctx) cty.phi
     in
