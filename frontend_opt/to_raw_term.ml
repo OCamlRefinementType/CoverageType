@@ -159,6 +159,9 @@ let typed_id_of_pattern pattern =
 (* let monadic_operator = [ _bind; _fmap; _return ] *)
 (* let monadic_operator = [] *)
 
+(* Only [==]/[!=] are builtin; an unnormalized [=]/[<>] head misses lookup. *)
+let normalize_eq_op = function "=" -> "==" | "<>" -> "!=" | op -> op
+
 let typed_raw_term_of_expr expr =
   let rec aux expr =
     match expr.pexp_desc with
@@ -205,15 +208,14 @@ let typed_raw_term_of_expr expr =
     | Pexp_apply (func, args) ->
         let args = List.map (fun x -> aux @@ snd x) args in
         let func = aux func in
-        (* let res = *)
-        (*   match func.x with *)
-        (*   | Var f -> ( *)
-        (*       match string_to_op_opt f.x with *)
-        (*       | Some op -> AppOp (op#:f.ty, args) *)
-        (*       | None -> App (func, args)) *)
-        (*   | _ -> App (func, args) *)
-        (* in *)
-        let res = App (func, args) in
+        let res =
+          match func.x with
+          | Var f -> (
+              match string_to_op_opt (normalize_eq_op f.x) with
+              | Some op -> AppOp (op#:f.ty, args)
+              | None -> App (func, args))
+          | _ -> App (func, args)
+        in
         res#:Nt.Ty_unknown
     | Pexp_ifthenelse (e1, e2, Some e3) ->
         (Ifte (aux e1, aux e2, aux e3))#:Nt.Ty_unknown

@@ -25,6 +25,13 @@ let%expect_test "test_cases/closure_capture" =
     failing:
     |}]
 
+let%expect_test "test_cases/op_head" =
+  run_test "data/test_cases/op_head.ml";
+  [%expect {|
+    passing: op_head_gen
+    failing:
+    |}]
+
 let%expect_test "basic/duplicate_list" =
   run_test "data/PLDI23/basic/duplicate_list.ml";
   [%expect {|
