@@ -22,34 +22,6 @@ let smart_dependent_exists (x, { nty; phi }) query =
   let phi = subst_prop_instance default_v (AVar x#:nty) phi in
   smart_exists_phi (x#:nty, phi) query
 
-let report_unclosed loc query =
-  let fvs = fv_prop query in
-  _assert loc
-    (spf "the cty query has free variables %s"
-       (List.split_by_comma
-          (function { x; ty } -> spf "%s:%s" x (Nt.layout ty))
-          fvs))
-    (0 == List.length fvs)
-
-let record_nondecisive ~reason ~coerced_to =
-  Printf.eprintf
-    "[non-decisive Z3 verdict] q%i: timeout/unknown coerced to %s; %s.\n"
-    !Prover.query_counter coerced_to
-    (Prover.coercion_hint reason)
-
-let check_valid query =
-  let () =
-    ZUtilsLog.debug @@ fun _ ->
-    Printf.printf "check valid: %s\n" (layout_prop_ query)
-  in
-  let () = report_unclosed [%here] query in
-  match Prover.check_sat (smart_not query) with
-  | SmtUnsat -> true
-  | SmtSat -> false
-  | Unknown reason ->
-      record_nondecisive ~reason ~coerced_to:"invalid";
-      false
-
 let simplify_sub_typectx ctx (rty1, rty2) =
   let ctx = Typectx.ctx_to_list ctx in
   let rec aux (prefix, rest) (rty1, rty2) =
@@ -144,10 +116,10 @@ let sub_cty ou rctx cty1 cty2 =
           TypecheckerLog.auxtyping @@ fun _ ->
           Printf.printf "let[@valid] tmp = %s\n" (layout_prop_source query)
         in
-        check_valid query)
+        Prover.check_valid_bool [%here] query ~coerce_to:false
+          ~coerce_desc:"invalid")
   in
   let () = Statistic.stat_query_time (rctx.task_name, time) in
-  (* let () = if not res then _die [%here] in *)
   res
 
 (* NOTE: after exists the constraints into the return type, the emptiness can be checked final stage;
@@ -191,17 +163,8 @@ let non_emptiness_cty rctx cty =
             TypecheckerLog.auxtyping @@ fun _ ->
             Printf.printf "let[@valid] tmp = %s\n" (layout_prop_source query)
           in
-          Prover.check_sat query)
+          Prover.check_sat_bool [%here] query ~coerce_to:true
+            ~coerce_desc:"inhabited")
     in
     let () = Statistic.stat_query_time (rctx.task_name, time) in
-    let res =
-      match res with
-      | SmtUnsat -> false
-      | SmtSat -> true
-      | Unknown reason ->
-          record_nondecisive ~reason ~coerced_to:"inhabited";
-          true
-    in
-    (* let () = if List.length underctx > 1 then _die [%here] in *)
-    (* let () = if not res then _die [%here] in *)
     res
