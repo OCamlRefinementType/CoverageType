@@ -124,6 +124,11 @@ let rec typed_raw_term_of_pattern pattern =
   match pattern.ppat_desc with
   | Ppat_tuple ps ->
       (Tuple (List.map typed_raw_term_of_pattern ps))#:Nt.Ty_unknown
+  | Ppat_record (fields, Closed) ->
+      (* The enclosing constructor de-tuples these by position, so fields bind
+         in the order written: all of them, in declaration order. *)
+      let ps = List.map snd fields in
+      (Tuple (List.map typed_raw_term_of_pattern ps))#:Nt.Ty_unknown
   | Ppat_var ident -> (Var ident.txt#:Nt.Ty_unknown)#:Nt.Ty_unknown
   | Ppat_constraint (ident, tp) ->
       let term = typed_raw_term_of_pattern ident in
