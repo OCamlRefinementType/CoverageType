@@ -116,8 +116,7 @@ let sub_cty ou rctx cty1 cty2 =
           TypecheckerLog.auxtyping @@ fun _ ->
           Printf.printf "let[@valid] tmp = %s\n" (layout_prop_source query)
         in
-        Prover.check_valid_bool [%here] query ~coerce_to:false
-          ~coerce_desc:"invalid")
+        Prover.check_valid_bool [%here] query ~coerce_to:false)
   in
   let () = Statistic.stat_query_time (rctx.task_name, time) in
   res
@@ -161,10 +160,9 @@ let non_emptiness_cty rctx cty =
           in
           let () =
             TypecheckerLog.auxtyping @@ fun _ ->
-            Printf.printf "let[@valid] tmp = %s\n" (layout_prop_source query)
+            Printf.printf "let[@sat] tmp = %s\n" (layout_prop_source query)
           in
-          Prover.check_sat_bool [%here] query ~coerce_to:true
-            ~coerce_desc:"inhabited")
+          Prover.check_sat_bool [%here] query ~coerce_to:true)
     in
     let () = Statistic.stat_query_time (rctx.task_name, time) in
     res

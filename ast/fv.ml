@@ -133,5 +133,7 @@ let rec fv_item (item_e : 't item) =
       List.filter
         (fun x -> not (List.exists (String.equal x.x) captured.captured_vars))
         fvs
+  | MCheckValid { prop; _ } -> [] @ fv_prop prop
+  | MCheckSat { prop; _ } -> [] @ fv_prop prop
 
 and typed_fv_item (item_e : ('t, 't item) typed) = fv_item item_e.x

@@ -141,6 +141,8 @@ type 't item =
       name : string;
       rty : 't rty;
     }
+  | MCheckValid of { name : string; prop : 't prop }
+  | MCheckSat of { name : string; prop : 't prop }
 [@@deriving eq, ord, show, sexp]
 
 open Typectx
