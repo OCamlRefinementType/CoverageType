@@ -11,7 +11,7 @@
  (package
   (name zutils))
  (url
-  "git+https://github.com/OCamlRefinementType/zutils.git#b00108225b1a2e70c1ee858a1f547b7ace6cd7a5"))
+  "git+https://github.com/OCamlRefinementType/zutils.git#05b25386e1587f9afec94762521acb2c191b1b38"))
 
 (authors "Author Name")
 
