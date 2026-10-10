@@ -160,7 +160,7 @@ let non_emptiness_cty rctx cty =
           in
           let () =
             TypecheckerLog.auxtyping @@ fun _ ->
-            Printf.printf "let[@valid] tmp = %s\n" (layout_prop_source query)
+            Printf.printf "let[@sat] tmp = %s\n" (layout_prop_source query)
           in
           Prover.check_sat_bool [%here] query ~coerce_to:true)
     in
