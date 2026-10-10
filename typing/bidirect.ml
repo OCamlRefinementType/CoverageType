@@ -177,6 +177,13 @@ let type_check_group (bctx : built_in_ctx) =
         (* let () = Printf.printf "fix rty' %s\n" (layout_rty rty') in *)
         let retty = subst_rty_instance arg (AVar fixarg) retty in
         let rctx' = Rctx.add_vars rctx [ fixarg.x#:argrty; fixname.x#:rty' ] in
+        let rctx' =
+          {
+            rctx' with
+            rec_bound =
+              Some (fixname.x, { nty = fixarg.ty; phi = mk_self_wf_dec fixarg });
+          }
+        in
         let* body = term_type_check rctx' body retty in
         Some
           (VFix { fixname = fixname.x#:rty; fixarg = fixarg.x#:argrty; body })#:rty
@@ -295,13 +302,25 @@ let type_check_group (bctx : built_in_ctx) =
               let poly_preds, appf_ty, apparg_rty =
                 instantiate_poly_pred_rty rctx.pred_ctx appf.ty apparg'.ty
               in
-              let rctx' = Rctx.add_preds rctx poly_preds in
+              let rctx = Rctx.add_preds rctx poly_preds in
+              (* Termination: a recursive call's argument must decrease. *)
+              let () =
+                match (rctx.rec_bound, appf.x) with
+                | Some (recname, bound_cty), VVar id
+                  when String.equal id.x recname ->
+                    let bound_rty = cty_to_overrty bound_cty in
+                    pprint_typing_subtyping rctx (apparg_rty, bound_rty);
+                    if not (sub_rty_as_over rctx (apparg_rty, bound_rty)) then (
+                      _warinning_subtyping_error [%here] (apparg_rty, bound_rty);
+                      raise RecArgCheckFailure)
+                | _ -> ()
+              in
               (* let () = Printf.printf "appf_ty : %s\n" (layout_rty appf_ty) in *)
               let* retty =
                 if is_over_arr_rty appf_ty then
-                  over_arrow_type_apply rctx' appf_ty apparg.x#:apparg_rty
+                  over_arrow_type_apply rctx appf_ty apparg.x#:apparg_rty
                 else if is_arr_arr_rty appf_ty then
-                  arrow_arrow_type_apply rctx' appf_ty apparg.x#:apparg_rty
+                  arrow_arrow_type_apply rctx appf_ty apparg.x#:apparg_rty
                 else
                   _die_with [%here]
                     (spf "cannot handle function type: %s\n"
@@ -451,8 +470,11 @@ let type_check_group (bctx : built_in_ctx) =
   in
   (value_type_check, term_type_check)
 
+(* A recursive call whose argument does not decrease fails the whole function. *)
+let or_rec_arg_failure f = try f () with RecArgCheckFailure -> None
+
 let value_type_check bctx ctx (value, rty) =
-  (fst @@ type_check_group bctx) ctx value rty
+  or_rec_arg_failure (fun () -> (fst @@ type_check_group bctx) ctx value rty)
 
 let term_type_check bctx ctx (value, rty) =
-  (snd @@ type_check_group bctx) ctx value rty
+  or_rec_arg_failure (fun () -> (snd @@ type_check_group bctx) ctx value rty)

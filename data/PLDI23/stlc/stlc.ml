@@ -22,7 +22,8 @@ let gen_const (a : unit) : stlc_term =
 let[@assert] gen_const = M (is_const v : [%v: stlc_term])
 
 let rec gen_type_size (size : int) : stlc_ty =
-  if bool_gen () then Stlc_ty_nat
+  if size == 0 then Stlc_ty_nat
+  else if bool_gen () then Stlc_ty_nat
   else
     let (tau1 : stlc_ty) = gen_type_size (size - 1) in
     let (tau2 : stlc_ty) = gen_type_size (size - 1) in

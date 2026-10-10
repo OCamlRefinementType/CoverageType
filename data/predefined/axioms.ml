@@ -538,6 +538,10 @@ let[@axiom] stlc_meaure_num_geq_0 =
  fun (num : int) (tau : stlc_ty) (v : int) ->
   (stlc_measure tau num v)#==>(num >= 0)
 
+let[@axiom] stlc_meaure_geq_0 =
+ fun (num : int) (tau : stlc_ty) (v : int) ->
+  (stlc_measure tau num v)#==>(v >= 0)
+
 let[@axiom] stlc_meaure_num_decr =
  fun (num : int) (tau : stlc_ty) (v : int) (num1 : int) (tau1 : stlc_ty)
      (v1 : int) ->
