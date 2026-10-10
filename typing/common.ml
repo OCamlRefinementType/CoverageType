@@ -6,11 +6,17 @@ open Auxtyping
 
 let _decreasing = "decreasing"
 
+(* [CMatch] reads [None] as "unreachable arm" and drops it, so a failed decrease
+   check can't report [None] — it has to fail the whole function. *)
+exception RecArgCheckFailure
+
+(* On [int], [<] alone is not well-founded, so the bound also floors [v] at 0. *)
 let mk_self_wf_dec x =
   let open Prop in
-  let lt = if Nt.equal_nt x.ty Nt.int_ty then "<" else _decreasing in
-  let lt = lt#:Nt.(construct_arr_tp ([ x.ty; x.ty ], bool_ty)) in
-  lit_to_prop (AAppOp (lt, List.map tvar_to_lit [ default_v#:x.ty; x ]))
+  if Nt.equal_nt x.ty Nt.int_ty then make_order_constraint x default_v#:x.ty
+  else
+    let lt = _decreasing#:Nt.(construct_arr_tp ([ x.ty; x.ty ], bool_ty)) in
+    lit_to_prop (AAppOp (lt, List.map tvar_to_lit [ default_v#:x.ty; x ]))
 
 module Rctx = struct
   let emp task_name tyvar_ctx invs =
@@ -20,6 +26,7 @@ module Rctx = struct
       pred_ctx = emp;
       rty_ctx = emp;
       inv_ctx = ctx_from_list invs;
+      rec_bound = None;
     }
 
   (* let to_ctx_g_v_pair ctx = *)
@@ -81,7 +88,8 @@ module Rctx = struct
     | None -> _die loc
     | Some rty -> rty
 
-  let pprint { task_name; tyvar_ctx; pred_ctx; rty_ctx; inv_ctx } () =
+  let pprint { task_name; tyvar_ctx; pred_ctx; rty_ctx; inv_ctx; rec_bound = _ }
+      () =
     Pp.printf "@{<bold>Task:@} %s " task_name;
     Pp.printf "@{<bold>Poly Vars:@} %s; " (split_by ", " (fun x -> x) tyvar_ctx);
     Pp.printf "@{<bold>Poly Preds:@} %s; "

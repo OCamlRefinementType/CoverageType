@@ -37,6 +37,16 @@ let rec sub_rty rctx (rty1, rty2) =
   let () = Statistic.stat_count_query rctx.task_name in
   aux rctx (rty1, rty2)
 
+(* Retags every under-typed binder, path conditions included, as over-typed. *)
+let sub_rty_as_over rctx (rty1, rty2) =
+  let to_over = function
+    | RtyBase { cty; _ } -> RtyBase { ou = Over; cty }
+    | rty -> rty
+  in
+  sub_rty
+    { rctx with rty_ctx = Typectx.map_ctx to_over rctx.rty_ctx }
+    (to_over rty1, to_over rty2)
+
 let non_emptiness_rty rctx rty =
   let () = Statistic.stat_count_query rctx.task_name in
   match rty with
