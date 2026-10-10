@@ -156,21 +156,28 @@ let result_name = function
   | ValidResult (name, _, _) -> name
   | SatResult (name, _, _) -> name
 
+let result_bctx = function
+  | TypeCheckResult (_, Success bctx) -> Some bctx
+  | _ -> None
+
+let no_duplicate_names tasks =
+  let task_name = function
+    | TypeCheck (name, _) | ValidCheck (name, _) | SatCheck (name, _) -> name
+  in
+  let names = List.map task_name tasks in
+  List.length names = List.length (List.slow_rm_dup String.equal names)
+
 let struc_check bctx items =
   let bctx, imp_m = mk_imp_m bctx items in
   let inv_m = mk_invs items in
   let tasks = mk_tasks items in
+  _assert [%here] "duplicate task names" (no_duplicate_names tasks);
   let _, passed, failed =
     List.fold_left
       (fun (bctx, passed, failed) task ->
         let result = check_task bctx inv_m imp_m task in
-        if is_success result then
-          let bctx =
-            match result with
-            | TypeCheckResult (_, Success bctx) -> bctx
-            | _ -> bctx
-          in
-          (bctx, passed @ [ result ], failed)
+        let bctx = Option.value ~default:bctx (result_bctx result) in
+        if is_success result then (bctx, passed @ [ result ], failed)
         else (bctx, passed, failed @ [ result ]))
       (bctx, [], []) tasks
   in
