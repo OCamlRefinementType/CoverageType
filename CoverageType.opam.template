@@ -1,3 +1,3 @@
 pin-depends: [
-  ["zutils.dev" "git+https://github.com/OCamlRefinementType/zutils.git#1c8136fcf6895f014a7a30af73e4d21048bf44c9"]
+  ["zutils.dev" "git+https://github.com/OCamlRefinementType/zutils.git#05b25386e1587f9afec94762521acb2c191b1b38"]
 ]
