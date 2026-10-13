@@ -1,6 +1,7 @@
 open Zutils
 open OcamlParser
 open Oparse
+open Mutils
 open Prop
 open Parsetree
 open Zdatatype
@@ -35,6 +36,14 @@ let get_ou expr =
 let base_type_name = Nt._constructor_ty_0 "baseType"
 let _monad = "M"
 
+(* Parsing leaves constants untyped for inference to fill in, so an rty
+   holding [mk_top_overrty]'s typed [true] would not equal itself after
+   printing and reparsing. *)
+let parsed_top_overrty nty =
+  if Nt.is_base_tp nty then
+    cty_to_overrty { nty; phi = Lit (AC (B true))#:Nt.Ty_unknown }
+  else _die [%here]
+
 let rec rty_of_expr expr =
   match expr.pexp_desc with
   | Pexp_constraint _ -> RtyBase { ou = get_ou expr; cty = cty_of_expr expr }
@@ -46,7 +55,7 @@ let rec rty_of_expr expr =
   | Pexp_fun (Asttypes.Optional _, None, pattern, body) ->
       let param = To_raw_term.typed_id_of_pattern pattern in
       let retty = rty_of_expr body in
-      let argrty = mk_top_overrty param.ty in
+      let argrty = parsed_top_overrty param.ty in
       RtyArr { argrty; arg = param.x; retty }
   | Pexp_fun (_, Some rtyexpr, pattern, body) ->
       let retty = rty_of_expr body in
@@ -61,7 +70,12 @@ let rec rty_of_expr expr =
       let argrty = rty_of_expr vb.pvb_expr in
       RtyArr { argrty; arg; retty }
   | Pexp_construct (c, Some expr) when String.equal _monad (longid_to_id c) ->
-      mk_return_rty (rty_of_expr expr)
+      RtyArr
+        {
+          retty = rty_of_expr expr;
+          arg = Rename.dummy_var ();
+          argrty = parsed_top_overrty Nt.unit_ty;
+        }
   | _ ->
       _failatwith [%here]
         (spf "wrong refinement type: %s" (string_of_expression expr))
@@ -70,3 +84,32 @@ let rty_of_expr expr =
   let rty = rty_of_expr expr in
   check_syntactically_wf_rty rty;
   rty
+
+(* Inverse of [rty_of_expr]; [layout_rty] renders the display form. *)
+let rec rty_to_expr = function
+  | RtyBase { ou; cty } ->
+      let e = cty_to_expr cty in
+      let attr =
+        Ast_helper.Attr.mk
+          (Location.mknoloc (match ou with Over -> "over" | Under -> "under"))
+          (PStr [])
+      in
+      { e with pexp_attributes = attr :: e.pexp_attributes }
+  | RtyArr { argrty; arg; retty } ->
+      desc_to_ocamlexpr
+      @@ Pexp_let
+           ( Asttypes.Nonrecursive,
+             [ mk_vb (string_to_pattern arg, rty_to_expr argrty) ],
+             rty_to_expr retty )
+  | RtyPolyType { pt; rty } ->
+      mklam
+        (typed_to_pattern
+           (string_to_pattern pt, Nt.t_to_core_type base_type_name))
+        (rty_to_expr rty)
+  | RtyPolyPred { pred; rty } ->
+      mklam
+        (typed_to_pattern (string_to_pattern pred.x, Nt.t_to_core_type pred.ty))
+        (rty_to_expr rty)
+
+let layout_rty_source rty = string_of_expression (rty_to_expr rty)
+let rty_of_source str = rty_of_expr (parse_expression str)

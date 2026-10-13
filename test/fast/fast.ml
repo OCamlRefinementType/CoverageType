@@ -179,3 +179,52 @@ let%expect_test "simple/ReturnError" =
     passing:
     failing: sized_list_gen
   |}]
+
+module Rty_source = struct
+  open Zutils
+  open Sugar
+  open Language
+
+  (* The renderers read the global zutils config. *)
+  let () = ZUtilsConfig.set (Result.get_ok (ZUtilsConfig.of_yojson (`Assoc [])))
+
+  let round_trips r =
+    equal_rty Nt.equal_nt r (rty_of_source (layout_rty_source r))
+
+  let int_over = rty_of_source "(true : [%v: int]) [@over]"
+  let int_under = rty_of_source "(v >= 0 : [%v: int]) [@under]"
+
+  let%test "rty source: existential base coverage type" =
+    round_trips
+      (rty_of_source
+         "(((is_nil v) && (fun (((n)[@exists]) : int) -> (len v n) && (n <= \
+          s))) : [%v : ilist]) [@under]")
+
+  let%test "rty source: arrow" =
+    round_trips (RtyArr { argrty = int_over; arg = "a"; retty = int_under })
+
+  let%test "rty source: nested arrows" =
+    round_trips
+      (RtyArr
+         {
+           argrty = int_over;
+           arg = "a";
+           retty = RtyArr { argrty = int_over; arg = "b"; retty = int_under };
+         })
+
+  (* [M e] has no inverse: it parses to the [RtyArr] the renderer emits. *)
+  let%test "rty source: monadic return" =
+    round_trips (rty_of_source "M ((v >= 0 : [%v: int]) [@under])")
+
+  let%test "rty source: optional-label argument" =
+    round_trips
+      (rty_of_source "fun ?(a : int) -> (v >= 0 : [%v: int]) [@under]")
+
+  let%test "rty source: poly type" =
+    round_trips (RtyPolyType { pt = "a"; rty = int_under })
+
+  let%test "rty source: poly pred" =
+    round_trips
+      (RtyPolyPred
+         { pred = "p"#:(Nt.mk_arr Nt.int_ty Nt.bool_ty); rty = int_under })
+end
