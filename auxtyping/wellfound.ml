@@ -1,15 +1,16 @@
 open Language
 open Zutils
 
-let make_order_constraint a x =
-  let a = (AVar a)#:a.ty in
-  let x = (AVar x)#:x.ty in
-  let lt = "<"#:Nt.(construct_arr_tp ([ int_ty; int_ty ], bool_ty)) in
-  let geq = ">="#:Nt.(construct_arr_tp ([ int_ty; int_ty ], bool_ty)) in
-  if Nt.equal_nt Nt.int_ty a.ty then
+let mk_self_wf_dec x =
+  let open Prop in
+  let v = tvar_to_lit default_v#:x.ty in
+  if Nt.equal_nt x.ty Nt.int_ty then
+    let cmp op = op#:Nt.(construct_arr_tp ([ int_ty; int_ty ], bool_ty)) in
     And
       [
-        Lit (AAppOp (lt, [ x; a ]))#:Nt.bool_ty;
-        Lit (AAppOp (geq, [ x; (AC (I 0))#:Nt.int_ty ]))#:Nt.bool_ty;
+        lit_to_prop (AAppOp (cmp "<", [ v; tvar_to_lit x ]));
+        lit_to_prop (AAppOp (cmp ">=", [ v; (AC (I 0))#:Nt.int_ty ]));
       ]
-  else _failatwith [%here] "unimp"
+  else
+    let lt = "decreasing"#:Nt.(construct_arr_tp ([ x.ty; x.ty ], bool_ty)) in
+    lit_to_prop (AAppOp (lt, [ v; tvar_to_lit x ]))
