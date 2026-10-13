@@ -250,23 +250,6 @@ let raw_term_type_check ctx polyvars term =
 let constructor_declaration_mk_ (retty, { constr_name; argsty }) =
   constr_name#:(Nt.close_poly_nt [%here] @@ Nt.construct_arr_tp (argsty, retty))
 
-let item_mk_ctx (e : t item) =
-  match e with
-  | MTyDecl { type_name; type_params; type_decl = Decl_constructors l } ->
-      let retty =
-        Nt.Ty_constructor
-          (type_name, List.map (fun x -> Nt.Ty_var x) type_params)
-      in
-      let xs = List.map (fun c -> constructor_declaration_mk_ (retty, c)) l in
-      xs
-  | MTyDecl { type_decl = Decl_record _; _ } -> []
-  | MValDecl x -> [ Nt.__force_typed [%here] x ]
-  | MMethodPred mp -> [ Nt.__force_typed [%here] mp ]
-  | MAxiom _ -> []
-  | MRty _ -> []
-  | MLocalRty _ -> []
-  | MFuncImpRaw _ | MFuncImp _ -> _failatwith [%here] "not predefine"
-
 let item_erase (e : 'a item) =
   match e with
   | MRty { name; rty; _ } -> MValDecl name#:(Some (erase_rty rty))
@@ -334,9 +317,6 @@ let item_check (checked : t item list) ctx (e : t item) : t ctx * t item =
       let body = body.x#:(Nt.construct_poly_nt (pt, t)) in
       (ctx', MFuncImpRaw { name; if_rec = true; body })
   | MFuncImp _ -> _failatwith [%here] "die"
-
-let struct_mk_basic_ctx ctx l =
-  add_to_rights ctx @@ List.concat @@ List.map item_mk_ctx l
 
 let struct_mk_rty_ctx l =
   let aux res = function
