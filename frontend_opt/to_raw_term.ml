@@ -120,13 +120,40 @@ let term_force_var e =
   | Var x -> x
   | _ -> _failatwith [%here] "fail to convert a term to a variable"
 
-let rec typed_raw_term_of_pattern pattern =
+(* The result is positional, one term per field of [c] in declaration order,
+   so a field the pattern leaves out becomes an explicit [_]. *)
+let record_pattern_args record_fields of_pattern c fields =
+  let declared =
+    match List.assoc_opt c record_fields with
+    | Some declared -> declared
+    | None ->
+        _failatwith [%here]
+          (spf
+             "record pattern on %s, which no record type in this file declares"
+             c)
+  in
+  let written = List.map (fun (l, p) -> (longid_to_id l, p)) fields in
+  List.iter
+    (fun (f, _) ->
+      if not (List.mem f declared) then
+        _failatwith [%here]
+          (spf "record pattern on %s binds %s; its declaration has {%s}" c f
+             (List.split_by_comma Fun.id declared)))
+    written;
+  List.map
+    (fun f ->
+      match List.assoc_opt f written with
+      | Some p -> of_pattern p
+      | None -> (Var "_"#:Nt.Ty_unknown)#:Nt.Ty_unknown)
+    declared
+
+let rec typed_raw_term_of_pattern ?(record_fields = []) pattern =
+  let aux = typed_raw_term_of_pattern ~record_fields in
   match pattern.ppat_desc with
-  | Ppat_tuple ps ->
-      (Tuple (List.map typed_raw_term_of_pattern ps))#:Nt.Ty_unknown
+  | Ppat_tuple ps -> (Tuple (List.map aux ps))#:Nt.Ty_unknown
   | Ppat_var ident -> (Var ident.txt#:Nt.Ty_unknown)#:Nt.Ty_unknown
   | Ppat_constraint (ident, tp) ->
-      let term = typed_raw_term_of_pattern ident in
+      let term = aux ident in
       term.x#:(core_type_to_t tp)
   | Ppat_construct (c, args) -> (
       let c = longid_to_id c in
@@ -136,8 +163,9 @@ let rec typed_raw_term_of_pattern pattern =
           let args =
             match args with
             | None -> []
-            | Some args ->
-                de_tuple_term @@ typed_raw_term_of_pattern @@ snd args
+            | Some (_, { ppat_desc = Ppat_record (fields, _); _ }) ->
+                record_pattern_args record_fields aux c fields
+            | Some args -> de_tuple_term @@ aux @@ snd args
           in
           (AppOp (op, args))#:Nt.Ty_unknown)
   | Ppat_any -> (Var "_"#:Nt.Ty_unknown)#:Nt.Ty_unknown
@@ -162,7 +190,7 @@ let typed_id_of_pattern pattern =
 (* Only [==]/[!=] are builtin; an unnormalized [=]/[<>] head misses lookup. *)
 let normalize_eq_op = function "=" -> "==" | "<>" -> "!=" | op -> op
 
-let typed_raw_term_of_expr expr =
+let typed_raw_term_of_expr ?(record_fields = []) expr =
   let rec aux expr =
     match expr.pexp_desc with
     | Pexp_tuple es -> (Tuple (List.map aux es))#:Nt.Ty_unknown
@@ -225,7 +253,9 @@ let typed_raw_term_of_expr expr =
         let match_cases =
           List.map
             (fun case ->
-              match (typed_raw_term_of_pattern case.pc_lhs).x with
+              match
+                (typed_raw_term_of_pattern ~record_fields case.pc_lhs).x
+              with
               | AppOp ({ x = DtConstructor op; ty }, args) ->
                   Matchcase
                     {
@@ -241,7 +271,7 @@ let typed_raw_term_of_expr expr =
         in
         (Match { matched = aux matched; match_cases })#:Nt.Ty_unknown
     | Pexp_fun (_, _, arg0, expr) ->
-        let arg = typed_raw_term_of_pattern arg0 in
+        let arg = typed_raw_term_of_pattern ~record_fields arg0 in
         (* fun () -> is equal to fun (dummy_unit: unit) -> *)
         let arg =
           match arg.x with

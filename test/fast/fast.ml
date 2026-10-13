@@ -32,6 +32,41 @@ let%expect_test "test_cases/op_head" =
     failing:
     |}]
 
+let%expect_test "test_cases/record_pattern" =
+  let layout_source str =
+    match
+      Language.ocaml_structure_to_items
+        (Zutils.OcamlParser.Oparse.parse_imp str)
+    with
+    | items -> print_endline (Language.layout_item (List.nth items 1))
+    | exception Failure msg ->
+        (* Drop the "[file … line …]: " prefix, which moves on every edit. *)
+        let i = String.index msg ']' + 3 in
+        print_endline (String.sub msg i (String.length msg - i))
+  in
+  (* Fields written out of declaration order would bind to the wrong
+     constructor arguments if matched by position. *)
+  List.iter
+    (fun case ->
+      layout_source
+        ("type rnode = RLeaf | RNode of { flag : bool; n : int }\n"
+       ^ "let f (t : rnode) : bool = match t with " ^ case ^ " -> b"))
+    [
+      "RNode { flag = b; n = k }";
+      "RNode { n = k; flag = b }";
+      "RNode { flag = b }";
+      "RNode { flag = b; _ }";
+      "RNode { flag = b; m = k }";
+    ];
+  [%expect
+    {|
+    let f : rnode -> bool ? rnode -> bool = fun (t : rnode) -> (match t with | RNode (b, k) -> b : bool)
+    let f : rnode -> bool ? rnode -> bool = fun (t : rnode) -> (match t with | RNode (b, k) -> b : bool)
+    let f : rnode -> bool ? rnode -> bool = fun (t : rnode) -> (match t with | RNode (b, _) -> b : bool)
+    let f : rnode -> bool ? rnode -> bool = fun (t : rnode) -> (match t with | RNode (b, _) -> b : bool)
+    record pattern on RNode binds m; its declaration has {flag, n}
+    |}]
+
 let%expect_test "basic/duplicate_list" =
   run_test "data/PLDI23/basic/duplicate_list.ml";
   [%expect {|

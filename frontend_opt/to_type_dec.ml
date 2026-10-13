@@ -8,12 +8,16 @@ open Sugar
 open Common
 
 let constructor_declaration_of_ocaml { pcd_name; pcd_args; _ } =
-  let argsty =
+  let args =
     match pcd_args with
-    | Pcstr_tuple cts -> List.map core_type_to_t cts
-    | _ -> failwith "unimp complex type decl"
+    | Pcstr_tuple cts -> CtorTuple (List.map core_type_to_t cts)
+    | Pcstr_record lds ->
+        CtorRecord
+          (List.map
+             (fun ld -> ld.pld_name.txt#:(core_type_to_t ld.pld_type))
+             lds)
   in
-  { constr_name = pcd_name.txt; argsty }
+  { constr_name = pcd_name.txt; args }
 
 let of_ocamltypedec { ptype_name; ptype_params; ptype_kind; ptype_manifest; _ }
     =
@@ -47,11 +51,27 @@ let of_ocamltypedec { ptype_name; ptype_params; ptype_kind; ptype_manifest; _ }
         Some (mk_decl (Decl_record lds))
     | _ -> failwith "unimp complex type decl"
 
-let constructor_declaration_to_ocaml { constr_name; argsty } =
+let constructor_declaration_to_ocaml { constr_name; args } =
+  let pcd_args =
+    match args with
+    | CtorTuple ts -> Pcstr_tuple (List.map Nt.t_to_core_type ts)
+    | CtorRecord xs ->
+        Pcstr_record
+          (List.map
+             (fun x ->
+               {
+                 pld_name = Location.mknoloc x.x;
+                 pld_mutable = Asttypes.Immutable;
+                 pld_type = Nt.t_to_core_type x.ty;
+                 pld_loc = Location.none;
+                 pld_attributes = [];
+               })
+             xs)
+  in
   {
     pcd_name = Location.mknoloc constr_name;
     pcd_vars = [];
-    pcd_args = Pcstr_tuple (List.map Nt.t_to_core_type argsty);
+    pcd_args;
     pcd_res = None;
     pcd_loc = Location.none;
     pcd_attributes = [];

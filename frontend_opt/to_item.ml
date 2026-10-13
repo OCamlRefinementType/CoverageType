@@ -12,7 +12,7 @@ open To_raw_term
 open Common
 
 (* NOTE: The top level normal type need to be closed by Nt.close_poly_nt *)
-let ocaml_structure_item_to_item structure =
+let ocaml_structure_item_to_item ~record_fields structure =
   match structure.pstr_desc with
   | Pstr_primitive { pval_name; pval_type; pval_prim; pval_attributes; _ } ->
       let t = Nt.close_poly_nt [%here] (core_type_to_t pval_type) in
@@ -44,7 +44,7 @@ let ocaml_structure_item_to_item structure =
                  | PStr [] -> MRty { is_assumption = false; name; rty }
                  | PPat (pat, Some e) ->
                      let host_name = id_of_pattern pat in
-                     let e = typed_raw_term_of_expr e in
+                     let e = typed_raw_term_of_expr ~record_fields e in
                      let captured =
                        match raw_term_to_tuple raw_term_to_str_list e with
                        | [] -> mk_capture [] [] []
@@ -66,7 +66,9 @@ let ocaml_structure_item_to_item structure =
                    "syntax error: non known rty kind, not axiom | assert | \
                     library")
          | [] ->
-             let body = typed_raw_term_of_expr value_binding.pvb_expr in
+             let body =
+               typed_raw_term_of_expr ~record_fields value_binding.pvb_expr
+             in
              (* let () = Printf.printf "if_rec: %b\n" (get_if_rec flag) in *)
              (* let () = failwith "end" in *)
              let ty =
@@ -82,8 +84,25 @@ let ocaml_structure_item_to_item structure =
       let () = Printf.printf "%s\n" (string_of_structure [ structure ]) in
       _failatwith [%here] "translate not a func_decl"
 
+let record_fields_of_structure structure =
+  let of_ctor = function
+    | { pcd_name; pcd_args = Pcstr_record lds; _ } ->
+        Some (pcd_name.txt, List.map (fun ld -> ld.pld_name.txt) lds)
+    | _ -> None
+  in
+  let of_decl = function
+    | { ptype_kind = Ptype_variant cds; _ } -> List.filter_map of_ctor cds
+    | _ -> []
+  in
+  List.concat_map
+    (function
+      | { pstr_desc = Pstr_type (_, decls); _ } -> List.concat_map of_decl decls
+      | _ -> [])
+    structure
+
 let ocaml_structure_to_items structure =
-  List.filter_map ocaml_structure_item_to_item structure
+  let record_fields = record_fields_of_structure structure in
+  List.filter_map (ocaml_structure_item_to_item ~record_fields) structure
 
 let layout_item = function
   | MTyDecl _ as item -> To_type_dec.layout_type_dec item
