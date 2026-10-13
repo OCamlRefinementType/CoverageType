@@ -5,6 +5,17 @@ open Auxtyping
 open Common
 open HandlePred
 
+(* Equality up to renaming of arrow parameters. *)
+let rec alpha_equal_rty r1 r2 =
+  match (r1, r2) with
+  | RtyArr a1, RtyArr a2 ->
+      alpha_equal_rty a1.argrty a2.argrty
+      && alpha_equal_rty a1.retty
+           (subst_rty_instance a2.arg
+              (AVar a1.arg#:(erase_rty a2.argrty))
+              a2.retty)
+  | _ -> equal_rty Nt.equal_nt r1 r2
+
 type value_infer_mode = TopParam | PolyPredParam
 
 let value_infer_mode = PolyPredParam
@@ -211,7 +222,26 @@ let type_check_group (bctx : built_in_ctx) =
     in
     match argrty with
     | RtyArr _ ->
-        if not (subtyping rctx (apparg.ty, argrty)) then (
+        (* An argument that captures a context variable must have the
+           parameter's type exactly, up to renaming. Checking it by subtyping
+           instead would let that variable take a different value for each
+           result: in [let x = int_gen () in (x, f (fun _ -> x))], the pair
+           would type as covering every pair of ints, though it is always
+           [(x, x)]. *)
+        let captured =
+          List.filter
+            (fun x -> List.mem x (fv_value_id apparg.x))
+            (Typectx.ctx_to_list rctx.rty_ctx |> List.map _get_x)
+        in
+        if captured <> [] && not (alpha_equal_rty apparg.ty argrty) then (
+          ( TypecheckerLog.typing @@ fun _ ->
+            Pp.printf
+              "@{<bold>Type Error at %s:@} arrow-typed argument is not closed: \
+               it mentions [%s]\n"
+              (pos_to_string [%here])
+              (String.concat ", " captured) );
+          None)
+        else if not (subtyping rctx (apparg.ty, argrty)) then (
           _warinning_subtyping_error [%here] (apparg.ty, argrty);
           _warinning_typing_error [%here]
             (layout_typed_value @@ (apparg#=>erase_rty), argrty);
