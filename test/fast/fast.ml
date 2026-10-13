@@ -7,6 +7,13 @@ let%expect_test "inline_test/alias" =
     failing:
   |}]
 
+let%expect_test "test_cases/wildcard_match" =
+  run_test "data/test_cases/wildcard_match.ml";
+  [%expect {|
+    passing: wildcard_match_gen
+    failing:
+  |}]
+
 let%expect_test "test_cases/basic_int" =
   run_test "data/test_cases/basic_int.ml";
   [%expect {|
