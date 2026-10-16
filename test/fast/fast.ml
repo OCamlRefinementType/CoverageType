@@ -88,6 +88,14 @@ let%expect_test "test_cases/record_pattern" =
     record pattern on RNode binds m; its declaration has {flag, n}
     |}]
 
+let%expect_test "test_cases/valid_sat" =
+  run_test "data/test_cases/valid_sat.ml";
+  [%expect
+    {|
+    passing: refl_valid, refl_sat, all_eq_sat
+    failing: all_eq_invalid, not_refl_invalid, not_refl_unsat
+  |}]
+
 let%expect_test "basic/duplicate_list" =
   run_test "data/PLDI23/basic/duplicate_list.ml";
   [%expect {|
