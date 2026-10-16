@@ -62,7 +62,11 @@ The tail of the output tells you whether it typechecks:
 Task unique_list_gen, type check succeeded
 Summary (total 1 tasks):
 All tasks succeeded
+Result: true
 ```
+
+`type-check` exits with status 0 if every task succeeds and 1
+otherwise, so it can be used directly in scripts.
 
 Poirot also provides two additional commands, for answering more
 tailored questions:
@@ -88,32 +92,39 @@ dune test test/fast -w          # watch mode: re-runs on every file change
 
 ## Debugging a failing typecheck
 
-`meta-config.json` (or `test/meta-config.json` for the test suite)
-controls what the checker prints, via `log_tags`. The most useful tag
-when a benchmark won't typecheck is `"auxtyping"`: it prints every
-subtyping/non-emptiness query the checker sends to the SMT solver, in
-both a human-readable and a `let[@axiom]`-formatted form you can paste
-into a scratch file to explore further.
+The output of the type checker is controlled by `meta-config.json` (or
+`test/meta-config.json` for the test suite).  The file has two
+relevant sections: `"zutils"` (the solver library) and `"typechecker"`
+(Poirot itself), each with its own list of `log_tags`:
 
-```jsonc
-"log_tags": [
-    // ...
-    "auxtyping",   // <- uncomment this
-    // ...
-],
+```json
+{
+    "zutils": {
+        "log_tags": [],
+        ...
+    },
+    "typechecker": {
+        "log_tags": ["auxtyping", "preprocess", "typing", "result"],
+        ...
+    }
+}
 ```
 
-Two things to note about this configuration file:
+The most useful tag when a benchmark won't typecheck is `"auxtyping"`
+(shown above): it prints every subtyping/non-emptiness query the
+checker sends to the SMT solver, in both a human-readable form and as
+a `let[@valid] tmp = ...` declaration. You can paste the latter into a
+scratch file to futher explore the failing query.
 
-- This file is 'JSON plus `//`-style comments', with the comments
-  being stripped before parsing. If you uncomment a tag, make sure to
-  remove its trailing comma if it'What s the last one; otherwise the config
-  will fail to parse.
+Other tags for the `"typechecker"` section include:
 
-- Other useful tags:
-  + `"typing"` (the bidirectional typing derivation),
-  + `"preprocess"` (desugaring),
-  + `"result"` (pass/fail summary only)
+- `"typing"`: the bidirectional typing derivation
+- `"preprocess"`: desugaring and normalization
+- `"result"`: per-task results and the final summary
+
+The full list is in `typechecker_config/typecheckerLog.ml`. To quiet
+the output, remove tags from the list; with an empty list you'll only
+see the final `Result:` line.
 
 ## The type annotation syntax
 
@@ -122,9 +133,10 @@ bindings:
 
 | Attribute | Meaning |
 |---|---|
-| `[@assert]` | Declares the coverage type to check a generator against |
-| `[@library]` | Declares an assumed, _unchecked_ coverage type for a generator named by the `let`-bound identifier. This is typically used for library or primitive function |
-| `[@axiom]` | Declares a fact that is assumed to hold when type checking. The associated `let`-bound identifier is simply a name for the axiom |
+| `[@assert]` | Asks the type checker to check the identified generator against the given coverage type |
+| `[@assume]` / `[@library]` | Declares an assumed, _unchecked_ coverage type for a generator named by the `let`-bound identifier. This is typically used for library or primitive function |
+| `[@axiom]` | Declares a fact that is assumed to hold when type checking. The associated `let`-bound identifier is simply a name for the axiom  |
+| `[@valid]` / `[@sat]` | Asks the type checker whether a proposition is valid / satisfiable. The associated `let`-bound identifier is just a name, similiar to axioms. See `data/test_cases/valid_sat.ml` for examples |
 | `[@over]` | Marks a qualifier as a standard ("may") refinement |
 | `[@under]` | Marks a qualifier as a coverage ("must") type. This is the default when unmarked |
 | `[%v: ty]` | Ascribes base type `ty` to the preceding qualifier, binding `v` |
@@ -148,6 +160,7 @@ paper's `{v:b | φ}` notation.
 | `script/` | Python scripts that run various benchmarks and collate the results |
 | `statistic/` | Collects per-function metrics during type checking |
 | `test/` | Expect-tests, split into `fast`/`slow`/`flaky`/`monad` |
+| `typechecker_config/` | Reads the `"typechecker"` section of `meta-config.json` and defines the log tags (see `typecheckerLog.ml`)|
 | `typing/` | The bidirectional typing algorithm (`bidirect.ml`) |
 
 ## Formalization
