@@ -22,10 +22,9 @@ and `data/inline_test`.
 
 ## Quick start
 
-You'll need an opam switch with OCaml 5.2.0 and dune >= 3.16 (CI
-builds with dune 3.23). `zutils`, the one dependency not on the public
-opam repo, is pinned automatically from `CoverageType.opam`'s
-`pin-depends`:
+You'll need an opam switch with OCaml 5.2.0 and dune >=
+3.16. `zutils`, the one dependency not on the public opam repo, is
+pinned automatically from `CoverageType.opam`'s `pin-depends`:
 
 ```bash
 opam switch create coverage-type 5.2.0
@@ -108,7 +107,7 @@ Two things to note about this configuration file:
 
 - This file is 'JSON plus `//`-style comments', with the comments
   being stripped before parsing. If you uncomment a tag, make sure to
-  remove its trailing comma if its the last one; otherwise the config
+  remove its trailing comma if it'What s the last one; otherwise the config
   will fail to parse.
 
 - Other useful tags:
@@ -138,16 +137,18 @@ paper's `{v:b | φ}` notation.
 | Path | Contents |
 |---|---|
 | `ast/` | AST definitions, substitution, pretty-printing |
-| `frontend_opt/` | Parses the OCaml-attribute surface syntax into refinement types |
-| `preprocess/` | ANF/monadic-normal-form normalization, alias/type-context loading |
-| `language/` | Shared language-level helpers (well-formedness of typing contexts, etc.) |
-| `typing/` | The bidirectional typing algorithm (`bidirect.ml`) |
 | `auxtyping/` | Subtyping, non-emptiness, and well-foundedness checking |
 | `bin/` | CLI entry point (`main.ml`) |
 | `data/` | Benchmarks: `PLDI23/`, `monad/`, `simple/`, `test_cases/`, `inline_test/`, and `predefined/` (shared axioms & library signatures every benchmark depends on) |
-| `test/` | Expect-tests, split into `fast`/`slow`/`flaky`/`monad` |
 | `formalization/` | Rocq mechanization of the calculus and metatheory — see its own [README](formalization/README.md) |
-| `script/`, `statistic/` | Benchmark-running and result-aggregation utilities |
+| `frontend_opt/` | Parses the OCaml-attribute surface syntax into refinement types |
+| `language/` | Shared language-level helpers (well-formedness of typing contexts, etc.) |
+| `lib/` | Top-level `CoverageType` library stanza (dune only, no source files) |
+| `preprocess/` | ANF/monadic-normal-form normalization, alias/type-context loading |
+| `script/` | Python scripts that run various benchmarks and collate the results |
+| `statistic/` | Collects per-function metrics during type checking |
+| `test/` | Expect-tests, split into `fast`/`slow`/`flaky`/`monad` |
+| `typing/` | The bidirectional typing algorithm (`bidirect.ml`) |
 
 ## Formalization
 
