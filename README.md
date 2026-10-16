@@ -46,9 +46,9 @@ let[@assert] unique_list_gen ?r:(s = ((v >= 0 : [%v: int]) [@over])) =
   (list_len v == s && uniq v : [%v: int list]) [@under]
 ```
 
-This type annotation says that when applied to any non-zero argument
-`s`, `unique_list_gen` will produce every list with exactly `s`
-elements containing unique elements.
+This type annotation says that when applied to any non-negative
+argument `s`, `unique_list_gen` will produce every list with exactly
+`s` elements containing unique elements.
 
 We can check that `unique_list_gen` satisfies this specification via
 the following command:
@@ -70,7 +70,7 @@ tailored questions:
 
 ```bash
 dune exec bin/main.exe -- print-source-code <file>   # show the parsed/desugared program
-dune exec bin/main.exe -- subtype-check <file>        # check a `rty1 <: rty2` declared in <file>
+dune exec bin/main.exe -- subtype-check <file>       # check a `rty1 <: rty2` declared in <file>
 ```
 
 ## Running the test suite
@@ -124,8 +124,8 @@ bindings:
 | Attribute | Meaning |
 |---|---|
 | `[@assert]` | Declares the coverage type to check a generator against |
-| `[@library]` | Declares the (assumed, unchecked) type of a primitive/constructor |
-| `[@axiom]` | Declares a fact about an uninterpreted predicate that is assumed to be true |
+| `[@library]` | Declares an assumed, _unchecked_ coverage type for a generator named by the `let`-bound identifier. This is typically used for library or primitive function |
+| `[@axiom]` | Declares a fact that is assumed to hold when type checking. The associated `let`-bound identifier is simply a name for the axiom |
 | `[@over]` | Marks a qualifier as a standard ("may") refinement |
 | `[@under]` | Marks a qualifier as a coverage ("must") type. This is the default when unmarked |
 | `[%v: ty]` | Ascribes base type `ty` to the preceding qualifier, binding `v` |
@@ -148,14 +148,6 @@ paper's `{v:b | φ}` notation.
 | `test/` | Expect-tests, split into `fast`/`slow`/`flaky`/`monad` |
 | `formalization/` | Rocq mechanization of the calculus and metatheory — see its own [README](formalization/README.md) |
 | `script/`, `statistic/` | Benchmark-running and result-aggregation utilities |
-
-## Active development
-
-Besides `main`, the repo currently has three other branches: `jfp`,
-`poly`, and `noGarr`. If you're picking up work on a specific
-extension, check with a maintainer for which branch has the code you
-want. `main` isn't necessarily where the latest work on any given
-feature lives.
 
 ## Formalization
 
