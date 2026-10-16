@@ -77,6 +77,42 @@ let item_check bctx inv_m imp_m (name, rty) =
       (* let () = _die [%here] in *)
       Fai name
 
+let check_prop_valid name prop =
+  let res = Prover.check_valid [%here] prop in
+  match res with
+  | SmtValid ->
+      Pp.printf "@{<bold>@{<green>Query %s (%s) is valid.@}@}\n" name
+        (layout_prop prop)
+  | SmtInvalid ->
+      Pp.printf "@{<bold>@{<red>Query %s (%s) is invalid.@}@}\n" name
+        (layout_prop prop)
+  | Unknown reason ->
+      let reason = Option.value ~default:"unknown" reason in
+      Pp.printf "@{<bold>@{<yellow>Query %s (%s) is unknown: %s.@}@}\n" name
+        (layout_prop prop) reason
+
+let check_prop_sat name prop =
+  let res = Prover.check_sat [%here] prop in
+  match res with
+  | SmtSat ->
+      Pp.printf "@{<bold>@{<green>Query %s (%s) is sat.@}@}\n" name
+        (layout_prop prop)
+  | SmtUnsat ->
+      Pp.printf "@{<bold>@{<red>Query %s (%s) is unsat.@}@}\n" name
+        (layout_prop prop)
+  | Unknown reason ->
+      let reason = Option.value ~default:"unknown" reason in
+      Pp.printf "@{<bold>@{<yellow>Query %s (%s) is unknown: %s.@}@}\n" name
+        (layout_prop prop) reason
+
+let check_queries _bctx items =
+  let check = function
+    | MCheckValid { name; prop } -> check_prop_valid name prop
+    | MCheckSat { name; prop } -> check_prop_sat name prop
+    | _ -> ()
+  in
+  List.iter check items
+
 let struc_check bctx items =
   let bctx, imp_m = mk_imp_m bctx items in
   let inv_m = mk_invs items in
@@ -100,4 +136,5 @@ let struc_check bctx items =
         Pp.printf "@{<bold>@{<yellow>All tasks succeeded@}@}\n"
     | _ -> TypecheckerLog.result @@ fun _ -> List.iter _task_fail failed
   in
+  check_queries bctx items;
   (Some bctx, passed, failed)

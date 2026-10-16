@@ -324,6 +324,10 @@ let item_check (checked : t item list) ctx (e : t item) : t ctx * t item =
       let body = body.x#:(Nt.construct_poly_nt (pt, t)) in
       (ctx', MFuncImpRaw { name; if_rec = true; body })
   | MFuncImp _ -> _failatwith [%here] "die"
+  | MCheckValid { name; prop } ->
+      (ctx, MCheckValid { name; prop = prop_type_check ctx [] prop })
+  | MCheckSat { name; prop } ->
+      (ctx, MCheckSat { name; prop = prop_type_check ctx [] prop })
 
 let struct_mk_rty_ctx l =
   let aux res = function
