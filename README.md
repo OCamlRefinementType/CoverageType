@@ -20,11 +20,9 @@ where `let unique_list_gen ...` defines the generator impementation and `let[@as
 
 # Testing
 
-Currently, the testing suite is split into four groups:
-  - `test/fast`, which are non-flaky tests that run relatively fast
-  - `test/slow`, which are non-flaky tests that run a bit slow (>1s locally for me)
-  - `test/flaky`, which are flaky tests which may or may not pass,
-    depending on the exact local configuration
+Currently, the testing suite is split into three groups:
+  - `test/fast`, which are tests that run relatively fast
+  - `test/slow`, which are tests that run a bit slow (>1s locally for me)
   - `test/monad`, which are the tests using some of the parametric and monadic features.
     Currently, they are not working, so they have been kept in a separate file for now.
 
