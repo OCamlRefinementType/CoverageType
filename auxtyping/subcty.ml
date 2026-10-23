@@ -46,6 +46,8 @@ let simplify_sub_typectx ctx (rty1, rty2) =
   aux ([], ctx) (rty1, rty2)
 
 let sub_cty ou rctx cty1 cty2 =
+  let cty1 = { cty1 with phi = fresh_name_prop cty1.phi } in
+  let cty2 = { cty2 with phi = fresh_name_prop cty2.phi } in
   let ctx_list, cty1, cty2 = simplify_sub_typectx rctx.rty_ctx (cty1, cty2) in
   let () =
     TypecheckerLog.auxtyping @@ fun _ ->
