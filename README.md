@@ -81,8 +81,7 @@ dune exec bin/main.exe -- subtype-check <file>       # check a `rty1 <: rty2` de
 Tests are split into four categories under `test/`:
 
 - `test/fast` — non-flaky tests that run quickly; use this while developing
-- `test/slow` — non-flaky tests that take longer (CI runs both fast and slow)
-- `test/flaky` — may or may not pass depending on local configuration
+- `test/slow` — non-flaky tests that take longer (>1s on a typical laptop); CI runs both fast and slow
 - `test/monad` — monadic/parametric feature tests (currently not all passing)
 
 ```bash
@@ -114,7 +113,7 @@ The most useful tag when a benchmark won't typecheck is `"auxtyping"`
 (shown above): it prints every subtyping/non-emptiness query the
 checker sends to the SMT solver, in both a human-readable form and as
 a `let[@valid] tmp = ...` declaration. You can paste the latter into a
-scratch file to futher explore the failing query.
+scratch file to further explore the failing query.
 
 Other tags for the `"typechecker"` section include:
 
@@ -136,7 +135,7 @@ bindings:
 | `[@assert]` | Asks the type checker to check the identified generator against the given coverage type |
 | `[@assume]` / `[@library]` | Declares an assumed, _unchecked_ coverage type for a generator named by the `let`-bound identifier. This is typically used for library or primitive functions |
 | `[@axiom]` | Declares a fact that is assumed to hold when type checking. The associated `let`-bound identifier is simply a name for the axiom  |
-| `[@valid]` / `[@sat]` | Asks the type checker whether a proposition is valid / satisfiable. The associated `let`-bound identifier is just a name, similiar to axioms. See `data/test_cases/valid_sat.ml` for examples |
+| `[@valid]` / `[@sat]` | Asks the type checker whether a proposition is valid / satisfiable. The associated `let`-bound identifier is just a name, similar to axioms. See `data/test_cases/valid_sat.ml` for examples |
 | `[@over]` | Marks a qualifier as a standard ("may") refinement |
 | `[@under]` | Marks a qualifier as a coverage ("must") type. This is the default when unmarked |
 | `[%v: ty]` | Ascribes base type `ty` to the preceding qualifier, binding `v` |
@@ -159,18 +158,11 @@ paper's `{v:b | φ}` notation.
 | `preprocess/` | ANF/monadic-normal-form normalization, alias/type-context loading |
 | `script/` | Python scripts that run various benchmarks and collate the results |
 | `statistic/` | Collects per-function metrics during type checking |
-| `test/` | Expect-tests, split into `fast`/`slow`/ `monad` (see below for more details) |
+| `test/` | Expect-tests, split into `fast`/`slow`/`monad` (see *Running the test suite* above) |
 | `typechecker_config/` | Reads the `"typechecker"` section of `meta-config.json` and defines the log tags (see `typecheckerLog.ml`)|
 | `typing/` | The bidirectional typing algorithm (`bidirect.ml`) |
 
-### Tests
-Currently, the testing suite is split into three groups:
-  - `test/fast`, which are tests that run relatively fast
-  - `test/slow`, which are tests that run a bit slow (>1s on a non-beefy laptop)
-  - `test/monad`, which are the tests using some of the parametric and monadic features.
-    Currently, they are not working, so they have been kept in a separate file for now.
-
-### Formalization
+## Formalization
 `formalization/` contains a Rocq mechanization of the core calculus, its
 type system, and the soundness metatheory referenced in the paper. See
 [`formalization/README.md`](formalization/README.md) for the file-by-file
