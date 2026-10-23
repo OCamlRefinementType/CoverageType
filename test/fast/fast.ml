@@ -28,6 +28,13 @@ let%expect_test "test_cases/rec_arg_nondecreasing" =
     failing: nondec_gen
   |}]
 
+let%expect_test "test_cases/rec_arg_concat_decreasing" =
+  run_test "data/test_cases/rec_arg_concat_decreasing.ml";
+  [%expect {|
+    passing:
+    failing: loop
+  |}]
+
 let%expect_test "test_cases/rec_arg_below_zero" =
   run_test "data/test_cases/rec_arg_below_zero.ml";
   [%expect {|
