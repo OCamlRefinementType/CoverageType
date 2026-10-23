@@ -60,6 +60,13 @@ let%expect_test "test_cases/op_head" =
     failing:
     |}]
 
+let%expect_test "test_cases/repeated_list" =
+  run_test "data/test_cases/repeated_list.ml";
+  [%expect {|
+    passing: repeated_list
+    failing:
+  |}]
+
 let%expect_test "test_cases/record_pattern" =
   let layout_source str =
     match
