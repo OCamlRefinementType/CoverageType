@@ -9,7 +9,8 @@ let[@axiom] tl_wf_decreasing =
 
 let[@axiom] list_concat_wf_decreasing =
  fun (l : 'a list) (l1 : 'a list) (l2 : 'a list) ->
-  (list_concat l1 l2 l)#==>(decreasing l1 l && decreasing l2 l)
+  (list_concat l1 l2 l)#==>(((list_len l2 > 0)#==>(decreasing l1 l))
+                           && ((list_len l1 > 0)#==>(decreasing l2 l)))
 
 let[@axiom] tezos =
  fun (blocks : 'a list) ->

@@ -1,8 +1,9 @@
 open Auxtest
 
-let%expect_test "quickchick/SortedList" =
-  run_test "data/PLDI23/quickchick/SortedList.ml";
-  [%expect {|
-    passing: sorted_list_gen
+let%expect_test "stlc/stlc" =
+  run_test "data/PLDI23/stlc/stlc.ml";
+  [%expect
+    {|
+    passing: type_eq, gen_const, gen_type_size, gen_type, vars_with_type_rev_index, vars_with_type, gen_term_no_app, gen_term_size
     failing:
   |}]

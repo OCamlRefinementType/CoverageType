@@ -28,6 +28,13 @@ let%expect_test "test_cases/rec_arg_nondecreasing" =
     failing: nondec_gen
   |}]
 
+let%expect_test "test_cases/rec_arg_concat_decreasing" =
+  run_test "data/test_cases/rec_arg_concat_decreasing.ml";
+  [%expect {|
+    passing:
+    failing: loop
+  |}]
+
 let%expect_test "test_cases/rec_arg_below_zero" =
   run_test "data/test_cases/rec_arg_below_zero.ml";
   [%expect {|
@@ -153,6 +160,13 @@ let%expect_test "leonidas/CompleteTree" =
     failing:
   |}]
 
+let%expect_test "leonidas/SizedBST" =
+  run_test "data/PLDI23/leonidas/SizedBST.ml";
+  [%expect {|
+    passing: size_bst_gen
+    failing:
+  |}]
+
 let%expect_test "elrond/UniqueList" =
   run_test "data/PLDI23/elrond/UniqueList.ml";
   [%expect {|
@@ -188,10 +202,31 @@ let%expect_test "elrond/BankersQueue" =
     failing:
   |}]
 
+let%expect_test "elrond/LeftistHeap" =
+  run_test "data/PLDI23/elrond/LeftistHeap.ml";
+  [%expect {|
+    passing: leftisthp_gen
+    failing:
+  |}]
+
+let%expect_test "quickchick/SortedList" =
+  run_test "data/PLDI23/quickchick/SortedList.ml";
+  [%expect {|
+    passing: sorted_list_gen
+    failing:
+  |}]
+
 let%expect_test "quickcheck/SizedHeap" =
   run_test "data/PLDI23/quickcheck/SizedHeap.ml";
   [%expect {|
     passing: depth_heap_gen
+    failing:
+  |}]
+
+let%expect_test "quickcheck/SizedSet" =
+  run_test "data/PLDI23/quickcheck/SizedSet.ml";
+  [%expect {|
+    passing: ranged_set_gen
     failing:
   |}]
 

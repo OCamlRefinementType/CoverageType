@@ -163,8 +163,14 @@ paper's `{v:b | φ}` notation.
 | `typechecker_config/` | Reads the `"typechecker"` section of `meta-config.json` and defines the log tags (see `typecheckerLog.ml`)|
 | `typing/` | The bidirectional typing algorithm (`bidirect.ml`) |
 
-## Formalization
+### Tests 
+Currently, the testing suite is split into three groups:
+  - `test/fast`, which are tests that run relatively fast
+  - `test/slow`, which are tests that run a bit slow (>1s locally for me)
+  - `test/monad`, which are the tests using some of the parametric and monadic features.
+    Currently, they are not working, so they have been kept in a separate file for now.
 
+### Formalization
 `formalization/` contains a Rocq mechanization of the core calculus, its
 type system, and the soundness metatheory referenced in the paper. See
 [`formalization/README.md`](formalization/README.md) for the file-by-file
