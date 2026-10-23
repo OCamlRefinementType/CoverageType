@@ -58,7 +58,7 @@ let ocaml_structure_item_to_item ~record_fields structure =
                  | PSig _ -> _die_with [%here] "Psig"
                  | PTyp _ -> _die_with [%here] "PTyp"
                  | PPat _ -> _die_with [%here] "PPat")
-             | "library" | "assume" ->
+             | "assume" ->
                  let rty = rty_of_expr value_binding.pvb_expr in
                  MRty { is_assumption = true; name; rty }
              | "valid" ->
@@ -70,7 +70,7 @@ let ocaml_structure_item_to_item ~record_fields structure =
              | _ ->
                  _failatwith [%here]
                    "syntax error: non known rty kind, not axiom | assert | \
-                    library")
+                    assume")
          | [] ->
              let body =
                typed_raw_term_of_expr ~record_fields value_binding.pvb_expr
@@ -128,7 +128,7 @@ let layout_item = function
   | MRty { is_assumption = false; name; rty } ->
       spf "let[@assert] %s = %s" name (layout_rty rty)
   | MRty { is_assumption = true; name; rty } ->
-      spf "let[@library] %s = %s" name (layout_rty rty)
+      spf "let[@assume] %s = %s" name (layout_rty rty)
   | MLocalRty { name; rty; _ } ->
       spf "let[@assert] %s = %s" name (layout_rty rty)
   | MCheckValid { name; prop } ->
