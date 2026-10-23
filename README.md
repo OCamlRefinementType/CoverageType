@@ -134,7 +134,7 @@ bindings:
 | Attribute | Meaning |
 |---|---|
 | `[@assert]` | Asks the type checker to check the identified generator against the given coverage type |
-| `[@assume]` / `[@library]` | Declares an assumed, _unchecked_ coverage type for a generator named by the `let`-bound identifier. This is typically used for library or primitive function |
+| `[@assume]` / `[@library]` | Declares an assumed, _unchecked_ coverage type for a generator named by the `let`-bound identifier. This is typically used for library or primitive functions |
 | `[@axiom]` | Declares a fact that is assumed to hold when type checking. The associated `let`-bound identifier is simply a name for the axiom  |
 | `[@valid]` / `[@sat]` | Asks the type checker whether a proposition is valid / satisfiable. The associated `let`-bound identifier is just a name, similiar to axioms. See `data/test_cases/valid_sat.ml` for examples |
 | `[@over]` | Marks a qualifier as a standard ("may") refinement |
@@ -148,7 +148,7 @@ paper's `{v:b | φ}` notation.
 
 | Path | Contents |
 |---|---|
-| `ast/` | AST definitions, substitution, pretty-printing |
+| `ast/` | AST definitions, substitution |
 | `auxtyping/` | Subtyping, non-emptiness, and well-foundedness checking |
 | `bin/` | CLI entry point (`main.ml`) |
 | `data/` | Benchmarks: `PLDI23/`, `monad/`, `simple/`, `test_cases/`, `inline_test/`, and `predefined/` (shared axioms & library signatures every benchmark depends on) |
@@ -159,14 +159,14 @@ paper's `{v:b | φ}` notation.
 | `preprocess/` | ANF/monadic-normal-form normalization, alias/type-context loading |
 | `script/` | Python scripts that run various benchmarks and collate the results |
 | `statistic/` | Collects per-function metrics during type checking |
-| `test/` | Expect-tests, split into `fast`/`slow`/`flaky`/`monad` |
+| `test/` | Expect-tests, split into `fast`/`slow`/ `monad` (see below for more details) |
 | `typechecker_config/` | Reads the `"typechecker"` section of `meta-config.json` and defines the log tags (see `typecheckerLog.ml`)|
 | `typing/` | The bidirectional typing algorithm (`bidirect.ml`) |
 
-### Tests 
+### Tests
 Currently, the testing suite is split into three groups:
   - `test/fast`, which are tests that run relatively fast
-  - `test/slow`, which are tests that run a bit slow (>1s locally for me)
+  - `test/slow`, which are tests that run a bit slow (>1s on a non-beefy laptop)
   - `test/monad`, which are the tests using some of the parametric and monadic features.
     Currently, they are not working, so they have been kept in a separate file for now.
 
