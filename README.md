@@ -78,7 +78,7 @@ dune exec bin/main.exe -- subtype-check <file>       # check a `rty1 <: rty2` de
 
 ## Running the test suite
 
-Tests are split into four categories under `test/`:
+Tests are split into three categories under `test/`:
 
 - `test/fast` — non-flaky tests that run quickly; use this while developing
 - `test/slow` — non-flaky tests that take longer (>1s on a typical laptop); CI runs both fast and slow
