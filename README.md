@@ -5,7 +5,7 @@ generators** cover the input space they're supposed to. It implements the
 *coverage type* system from:
 
 > **Polymorphic Coverage Types**, Zhe Zhou, Ashish Mishra, Benjamin Delaware,
-> Suresh Jagannathan. (JFP; extends the PLDI 2023 paper *Covering All the
+> Suresh Jagannathan. (JFP 2026; extends the PLDI 2023 paper *Covering All the
 > Bases: Type-Based Verification of Test Input Generators*.)
 > https://jfp.episciences.org/en/articles/17755
 
