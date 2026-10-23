@@ -1,27 +1,27 @@
-let[@library] return (b1 : baseType) ?r:(x : 'b1) = M (v == x : [%v: 'b1])
+let[@assume] return (b1 : baseType) ?r:(x : 'b1) = M (v == x : [%v: 'b1])
 
-let[@library] ( >|= ) (b1 : baseType) (b2 : baseType) (p1 : 'b1 -> bool)
+let[@assume] ( >|= ) (b1 : baseType) (b2 : baseType) (p1 : 'b1 -> bool)
     (p2 : 'b1 -> 'b2 -> bool) ?r:(_ = M (p1 v : [%v: 'b1]))
     ?r:(_ = fun ?r:(x = ((p1 v : [%v: 'b1]) [@over])) -> (p2 x v : [%v: 'b2])) =
   M (fun ((x [@ex]) : 'b1) -> p1 x && p2 x v : [%v: 'b2])
 
-let[@library] ( >>= ) (b1 : baseType) (b2 : baseType) (p1 : 'b1 -> bool)
+let[@assume] ( >>= ) (b1 : baseType) (b2 : baseType) (p1 : 'b1 -> bool)
     (p2 : 'b1 -> 'b2 -> bool) ?r:(_ = M (p1 v : [%v: 'b1]))
     ?r:(_ = fun ?r:(x = ((p1 v : [%v: 'b1]) [@over])) -> M (p2 x v : [%v: 'b2]))
     =
   M (fun ((x [@ex]) : 'b1) -> p1 x && p2 x v : [%v: 'b2])
 
-let[@library] int_bound ?r:(n = ((0 <= v : [%v: int]) [@over])) =
+let[@assume] int_bound ?r:(n = ((0 <= v : [%v: int]) [@over])) =
   M (0 <= v && v <= n : [%v: int])
 
-let[@library] oneofl (b1 : baseType) (p1 : 'b1 list -> bool)
+let[@assume] oneofl (b1 : baseType) (p1 : 'b1 list -> bool)
     ?r:(l = ((p1 v : [%v: 'b1 list]) [@over])) =
   M (list_mem l v : [%v: 'b1])
 
-let[@library] int_range ?r:(a : int) ?r:(b = ((a <= v : [%v: int]) [@over])) =
+let[@assume] int_range ?r:(a : int) ?r:(b = ((a <= v : [%v: int]) [@over])) =
   M (a <= v && v <= b : [%v: int])
 
-let[@library] list_size (b1 : baseType) (p1 : int -> bool) (p2 : 'b1 -> bool)
+let[@assume] list_size (b1 : baseType) (p1 : int -> bool) (p2 : 'b1 -> bool)
     ?r:(_ = M (p1 v : [%v: int])) ?r:(_ = M (p2 v : [%v: 'b1])) =
   M
     (p1 (list_len v) && fun ((x [@fa]) : 'b1) -> (list_mem v x)#==>(p2 x)
