@@ -1,34 +1,34 @@
-let[@library] return (b1 : baseType) ?r:(x : 'b1) = M (v == x : [%v: 'b1])
+let[@assume] return (b1 : baseType) ?r:(x : 'b1) = M (v == x : [%v: 'b1])
 
-let[@library] ( >|= ) (b1 : baseType) (b2 : baseType) (p1 : 'b1 -> bool)
+let[@assume] ( >|= ) (b1 : baseType) (b2 : baseType) (p1 : 'b1 -> bool)
     (p2 : 'b1 -> 'b2 -> bool) ?r:(_ = M (p1 v : [%v: 'b1]))
     ?r:(_ = fun ?r:(x = ((p1 v : [%v: 'b1]) [@over])) -> (p2 x v : [%v: 'b2])) =
   M (fun ((x [@ex]) : 'b1) -> p1 x && p2 x v : [%v: 'b2])
 
-let[@library] ( >>= ) (b1 : baseType) (b2 : baseType) (p1 : 'b1 -> bool)
+let[@assume] ( >>= ) (b1 : baseType) (b2 : baseType) (p1 : 'b1 -> bool)
     (p2 : 'b1 -> 'b2 -> bool) ?r:(_ = M (p1 v : [%v: 'b1]))
     ?r:(_ = fun ?r:(x = ((p1 v : [%v: 'b1]) [@over])) -> M (p2 x v : [%v: 'b2]))
     =
   M (fun ((x [@ex]) : 'b1) -> p1 x && p2 x v : [%v: 'b2])
 
-let[@library] float_gen = M (true : [%v: float])
-let[@library] bitvector_gen = M (true : [%v: Bitvector.t])
-let[@library] string_gen = M (true : [%v: string])
-let[@library] printable_gen = M (is_printable v : [%v: string])
-let[@library] binop_gen = M (is_binop v : [%v: string])
-let[@library] unop_gen = M (is_unop v : [%v: string])
+let[@assume] float_gen = M (true : [%v: float])
+let[@assume] bitvector_gen = M (true : [%v: Bitvector.t])
+let[@assume] string_gen = M (true : [%v: string])
+let[@assume] printable_gen = M (is_printable v : [%v: string])
+let[@assume] binop_gen = M (is_binop v : [%v: string])
+let[@assume] unop_gen = M (is_unop v : [%v: string])
 
-let[@library] oneofl (b1 : baseType) ?r:(l : 'b1 list) =
+let[@assume] oneofl (b1 : baseType) ?r:(l : 'b1 list) =
   M (list_mem l v : [%v: 'b1])
 
-let[@library] ( >+ ) (b1 : baseType) (p1 : 'b1 -> bool) (p2 : 'b1 -> bool)
+let[@assume] ( >+ ) (b1 : baseType) (p1 : 'b1 -> bool) (p2 : 'b1 -> bool)
     ?r:(_ = M (p1 v : [%v: 'b1])) ?r:(_ = M (p2 v : [%v: 'b1])) =
   M (p1 v || p2 v : [%v: 'b1])
 
-let[@library] split2 ?r:(n = ((1 <= v : [%v: int]) [@over])) =
+let[@assume] split2 ?r:(n = ((1 <= v : [%v: int]) [@over])) =
   M (fst v + snd v == n && 0 <= fst v && 0 <= snd v : [%v: int * int])
 
-let[@library] split3 ?r:(n = ((1 <= v : [%v: int]) [@over])) =
+let[@assume] split3 ?r:(n = ((1 <= v : [%v: int]) [@over])) =
   M
     (fst (fst v) + snd (fst v) + snd v == n
      && 0 <= fst (fst v)
@@ -36,13 +36,13 @@ let[@library] split3 ?r:(n = ((1 <= v : [%v: int]) [@over])) =
      && 0 <= snd v
       : [%v: (int * int) * int])
 
-let[@library] list_size (b1 : baseType) (p1 : int -> bool) (p2 : 'b1 -> bool)
+let[@assume] list_size (b1 : baseType) (p1 : int -> bool) (p2 : 'b1 -> bool)
     ?r:(_ = M (p1 v : [%v: int])) ?r:(_ = M (p2 v : [%v: 'b1])) =
   M
     (p1 (list_len v) && fun ((x [@fa]) : 'b1) -> (list_mem v x)#==>(p2 x)
       : [%v: 'b1 list])
 
-let[@library] int_bound ?r:(x : int) ?r:(n = ((x <= v : [%v: int]) [@over])) =
+let[@assume] int_bound ?r:(x : int) ?r:(n = ((x <= v : [%v: int]) [@over])) =
   M (x <= v && v <= n : [%v: 'b1])
 
 let literal : literal gen =
