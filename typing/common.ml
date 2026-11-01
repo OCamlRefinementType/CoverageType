@@ -1,12 +1,26 @@
 open Language
 open Zutils
-open Sugar
 open Typectx
 open Auxtyping
 
 (* [CMatch] reads [None] as "unreachable arm" and drops it, so a failed decrease
    check can't report [None] — it has to fail the whole function. *)
-exception RecArgCheckFailure
+type typecheck_error = EmptyBranch | SubtypingFailure | RecArgCheckFailure
+type 'a type_result = ('a, typecheck_error) result
+
+(* empty branches should be filtered out instead of propagated *)
+let should_filter_error = function EmptyBranch -> true | _ -> false
+
+let rec result_list_to_list_result = function
+  | [] -> Ok []
+  | x :: xs -> (
+      match result_list_to_list_result xs with
+      | Ok rest -> (
+          match x with
+          | Ok v -> Ok (v :: rest)
+          | Error e when should_filter_error e -> Ok rest
+          | Error e -> Error e)
+      | e -> e)
 
 module Rctx = struct
   let emp task_name tyvar_ctx invs =
@@ -118,12 +132,13 @@ let pprint_typing_infer_term_before rctx e =
     @@ pprint_typing_infer (pprint rctx) (layout_typed_term e, "??")
   else ()
 
-let layout_rty_opt res =
-  match res with Some res -> layout_rty res | None -> "None"
+let layout_rty_result res =
+  match res with Ok res -> layout_rty res | Error _ -> "None"
 
 let pprint_typing_infer_term_after rctx (e, ty) =
   TypecheckerLog.typing
-  @@ pprint_typing_infer (pprint rctx) (layout_typed_term e, layout_rty_opt ty)
+  @@ pprint_typing_infer (pprint rctx)
+       (layout_typed_term e, layout_rty_result ty)
 
 let pprint_typing_check_value rctx (e, ty) =
   TypecheckerLog.typing
@@ -137,7 +152,7 @@ let pprint_typing_infer_value_after rctx (e, res) =
   TypecheckerLog.typing
   @@ pprint_typing_infer (pprint rctx)
        ( layout_typed_value e,
-         match res with Some res -> layout_rty res.ty | None -> "None" )
+         match res with Ok res -> layout_rty res.ty | Error _ -> "None" )
 
 let pprint_typing_subtyping rctx (rty1, rty2) =
   TypecheckerLog.typing @@ pprint_subtyping (pprint rctx) (rty1, rty2)
