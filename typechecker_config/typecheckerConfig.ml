@@ -6,10 +6,7 @@ type prim_path = {
 }
 [@@deriving of_yojson { strict = true }]
 
-type t = {
-  prim_path : prim_path;
-  log_tags : string list; [@default []]
-}
+type t = { prim_path : prim_path; log_tags : string list [@default []] }
 [@@deriving of_yojson { strict = true }]
 
 include ConfigSection.Make (struct

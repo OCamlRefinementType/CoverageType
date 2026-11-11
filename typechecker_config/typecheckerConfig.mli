@@ -5,10 +5,7 @@ type prim_path = {
   axioms : string;
 }
 
-type t = {
-  prim_path : prim_path;
-  log_tags : string list;
-}
+type t = { prim_path : prim_path; log_tags : string list }
 
 (* Populates the zutils + typechecker sections. *)
 val bootstrap : Yojson.Safe.t -> unit
