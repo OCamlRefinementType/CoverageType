@@ -255,16 +255,24 @@ let is_arr_arr_rty = function
 let ou_to_qt = function Over -> Nt.Fa | Under -> Nt.Ex
 let qt_to_ou = function Nt.Fa -> Over | Nt.Ex -> Under
 
-let get_rty_by_name (item_e : 't item list) (x : string) =
+let get_rty_by_name (item_e : 't item list) (rty_name : string) =
   let res =
     List.filter_map
       (function
-        | MRty { is_assumption; name; rty } when String.equal name x ->
+        | MRty { is_assumption; name; rty } when String.equal name rty_name ->
             Some (is_assumption, rty)
         | _ -> None)
       item_e
   in
-  match res with [] -> _die [%here] | [ x ] -> x | _ -> _die [%here]
+  match res with
+  | [] ->
+      _die_with [%here]
+        (spf "no rty in the source with name %s, expected one" rty_name)
+  | [ x ] -> x
+  | _ ->
+      _die_with [%here]
+        (spf "more than one rty in the source with name %s, expected one"
+           rty_name)
 
 let mk_top_cty nty = { nty; phi = Prop.mk_true }
 let mk_bot_cty nty = { nty; phi = Prop.mk_false }

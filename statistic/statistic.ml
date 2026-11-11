@@ -28,7 +28,7 @@ let _stat_tab = Hashtbl.create 20
 let update_stat name f =
   match Hashtbl.find_opt _stat_tab name with
   | Some stat -> Hashtbl.replace _stat_tab name (f stat)
-  | None -> _die [%here]
+  | None -> _die_with [%here] (spf "no statistic entry for %s found" name)
 
 let stat_update_rty (name, (num_qt, num_qpred)) =
   update_stat name (fun stat -> { stat with num_qt; num_qpred })
@@ -96,7 +96,9 @@ let create_stat function_name (imp : (Nt.t, Nt.t term) typed) =
   in
   match Hashtbl.find_opt _stat_tab function_name with
   | None -> Hashtbl.add _stat_tab function_name stat
-  | Some _ -> _die [%here]
+  | Some _ ->
+      _die_with [%here]
+        (spf "statistic entry for %s already exists" function_name)
 
 let create_subtyping_stat () =
   let function_name = "subtyping" in
@@ -121,6 +123,8 @@ let create_subtyping_stat () =
   in
   match Hashtbl.find_opt _stat_tab function_name with
   | None -> Hashtbl.add _stat_tab function_name stat
-  | Some _ -> _die [%here]
+  | Some _ ->
+      _die_with [%here]
+        (spf "statistic entry for %s already exists" function_name)
 
 let clear () = Hashtbl.clear _stat_tab
