@@ -9,6 +9,9 @@ type prim_path = {
 type t = {
   prim_path : prim_path;
   log_tags : string list; [@default []]
+  (* NOTE: after exists the constraints into the return type, the emptiness can be checked final stage;
+   It may cause the more branch analysis. *)
+  lazy_emptiness_check : bool; [@default false]
 }
 [@@deriving of_yojson { strict = true }]
 
@@ -25,3 +28,4 @@ let bootstrap root =
   set (of_meta_config root)
 
 let get_log_tags () = (get ()).log_tags
+let lazy_emptiness_check () = (get ()).lazy_emptiness_check
