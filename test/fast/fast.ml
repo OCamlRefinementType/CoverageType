@@ -49,9 +49,28 @@ let%expect_test "test_cases/closure_capture" =
     {|
     passing:
     failing: diagonal
-    passing: f, diagonal_via_closure
-    failing:
+    passing: f
+    failing: diagonal_via_closure
     |}]
+
+module Alpha_equal = struct
+  open Zutils
+  open Language
+
+  (* [a:{int} → b:{int} → [v:bool | v == (l == r)]] *)
+  let rty a b l r =
+    let arr arg retty =
+      RtyArr { argrty = mk_top_overrty Nt.int_ty; arg; retty }
+    in
+    let eq = mk_int_l1_eq_l2 (AVar l#:Nt.int_ty) (AVar r#:Nt.int_ty) in
+    arr a (arr b (mk_eq_lit_underrty eq#:Nt.bool_ty))
+
+  let%test "alpha_equal_rty: renamed binders" =
+    Typing.alpha_equal_rty (rty "x" "y" "x" "y") (rty "a" "b" "a" "b")
+
+  let%test "alpha_equal_rty: same body, swapped binder names" =
+    not (Typing.alpha_equal_rty (rty "x" "y" "x" "y") (rty "y" "x" "x" "x"))
+end
 
 let%expect_test "test_cases/op_head" =
   run_test "data/test_cases/op_head.ml";
