@@ -9,6 +9,27 @@ type value_infer_mode = TopParam | PolyPredParam
 let value_infer_mode = PolyPredParam
 let ( let* ) x f = match x with Ok v -> f v | Error e -> Error e
 
+type checkers = {
+  value_type_check :
+    rctx ->
+    (Nt.t, Nt.t value) typed ->
+    Nt.t rty ->
+    (Nt.t rty, Nt.t rty value) typed type_result;
+  term_type_check :
+    rctx ->
+    (Nt.t, Nt.t term) typed ->
+    Nt.t rty ->
+    (Nt.t rty, Nt.t rty term) typed type_result;
+  value_type_infer :
+    rctx ->
+    (Nt.t, Nt.t value) typed ->
+    (Nt.t rty, Nt.t rty value) typed type_result;
+  term_type_infer :
+    rctx ->
+    (Nt.t, Nt.t term) typed ->
+    (Nt.t rty, Nt.t rty term) typed type_result;
+}
+
 let type_check_group (bctx : built_in_ctx) =
   let _find_in_ctx loc (rctx : rctx) (id : (Nt.t, string) typed) =
     let res = lookup_ctxs [ rctx.rty_ctx; bctx.builtin_ctx ] id.x in
@@ -470,13 +491,20 @@ let type_check_group (bctx : built_in_ctx) =
           (CMatchcase
              { constructor = constructor.x#:constructor_rty; args; exp = exp' })
   in
-  (value_type_check, term_type_check)
+  { value_type_check; term_type_check; value_type_infer; term_type_infer }
 
 (* A recursive call whose argument does not decrease fails the whole function. *)
 let or_typecheck_failure = function Ok e -> Some e | Error _ -> None
 
 let value_type_check bctx ctx (value, rty) =
-  or_typecheck_failure @@ (fst @@ type_check_group bctx) ctx value rty
+  or_typecheck_failure
+  @@ (type_check_group bctx).value_type_check ctx value rty
 
 let term_type_check bctx ctx (value, rty) =
-  or_typecheck_failure @@ (snd @@ type_check_group bctx) ctx value rty
+  or_typecheck_failure @@ (type_check_group bctx).term_type_check ctx value rty
+
+let value_type_infer bctx ctx v =
+  or_typecheck_failure @@ (type_check_group bctx).value_type_infer ctx v
+
+let term_type_infer bctx ctx e =
+  or_typecheck_failure @@ (type_check_group bctx).term_type_infer ctx e
