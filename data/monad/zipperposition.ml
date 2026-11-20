@@ -1,31 +1,31 @@
-let[@library] return (b1 : baseType) ?r:(x : 'b1) = M (v == x : [%v: 'b1])
+let[@assume] return (b1 : baseType) ?r:(x : 'b1) = M (v == x : [%v: 'b1])
 
-let[@library] ( >|= ) (b1 : baseType) (b2 : baseType) (p1 : 'b1 -> bool)
+let[@assume] ( >|= ) (b1 : baseType) (b2 : baseType) (p1 : 'b1 -> bool)
     (p2 : 'b1 -> 'b2 -> bool) ?r:(_ = M (p1 v : [%v: 'b1]))
     ?r:(_ = fun ?r:(x = ((p1 v : [%v: 'b1]) [@over])) -> (p2 x v : [%v: 'b2])) =
   M (fun ((x [@ex]) : 'b1) -> p1 x && p2 x v : [%v: 'b2])
 
-let[@library] ( >>= ) (b1 : baseType) (b2 : baseType) (p1 : 'b1 -> bool)
+let[@assume] ( >>= ) (b1 : baseType) (b2 : baseType) (p1 : 'b1 -> bool)
     (p2 : 'b1 -> 'b2 -> bool) ?r:(_ = M (p1 v : [%v: 'b1]))
     ?r:(_ = fun ?r:(x = ((p1 v : [%v: 'b1]) [@over])) -> M (p2 x v : [%v: 'b2]))
     =
   M (fun ((x [@ex]) : 'b1) -> p1 x && p2 x v : [%v: 'b2])
 
-let[@library] oneofl (b1 : baseType) (p1 : 'b1 list -> bool)
+let[@assume] oneofl (b1 : baseType) (p1 : 'b1 list -> bool)
     ?r:(l = ((p1 v : [%v: 'b1 list]) [@over])) =
   M (list_mem l v : [%v: 'b1])
 
-let[@library] frequencyl (b1 : baseType)
+let[@assume] frequencyl (b1 : baseType)
     ?r:(l = ((true : [%v: (int * 'b1) list]) [@over])) =
   M (list_snd_mem l v : [%v: 'b1])
 
-let[@library] frequency (b1 : baseType) (p1 : int -> 'b1 -> bool)
+let[@assume] frequency (b1 : baseType) (p1 : int -> 'b1 -> bool)
     ?r:(fq : int list)
     ?r:(_ =
         fun ?r:(x = ((0 <= v : [%v: int]) [@over])) -> M (p1 x v : [%v: 'b1])) =
   M (fun ((x [@ex]) : int) -> 0 <= x && x < list_len fq && p1 x v : [%v: 'b1])
 
-let[@library] fix (b1 : baseType) (p1 : int -> 'b1 -> bool)
+let[@assume] fix (b1 : baseType) (p1 : int -> 'b1 -> bool)
     ?r:(_ =
         fun ?r:(m = ((0 <= v : [%v: int]) [@over]))
           ?r:(_ =
@@ -34,7 +34,7 @@ let[@library] fix (b1 : baseType) (p1 : int -> 'b1 -> bool)
         -> M (p1 m v : [%v: 'b1])) =
  fun ?r:(x = ((0 <= v : [%v: int]) [@over])) -> M (p1 x v : [%v: 'b1])
 
-let[@library] int_bound ?r:(x : int) ?r:(n = ((x <= v : [%v: int]) [@over])) =
+let[@assume] int_bound ?r:(x : int) ?r:(n = ((x <= v : [%v: int]) [@over])) =
   M (x <= v && v <= n : [%v: 'b1])
 
 let rec default_fuel (n : int) : pt_term gen =

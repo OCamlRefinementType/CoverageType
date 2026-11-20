@@ -1,6 +1,6 @@
 val list_gen : int -> int list
 
-let[@library] list_gen =
+let[@assume] list_gen =
   let a = ((true : [%v: int]) [@over]) in
   ((list_len v == a : [%v: int list]) [@under])
 

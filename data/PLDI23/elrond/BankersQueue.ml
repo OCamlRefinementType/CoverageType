@@ -1,6 +1,6 @@
 val stream_gen : int -> int stream
 
-let[@library] stream_gen =
+let[@assume] stream_gen =
   let s = ((0 <= v : [%v: int]) [@over]) in
   ((stream_len v == s : [%v: int stream]) [@under])
 

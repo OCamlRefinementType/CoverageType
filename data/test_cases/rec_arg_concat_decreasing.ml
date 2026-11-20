@@ -1,4 +1,4 @@
-let[@library] prefix ?l:(xs = ((true : [%v: int list]) [@over])) =
+let[@assume] prefix ?l:(xs = ((true : [%v: int list]) [@over])) =
   (fun ((rest [@ex]) : int list) -> list_concat v rest xs
     : [%v: int list])
     [@under]

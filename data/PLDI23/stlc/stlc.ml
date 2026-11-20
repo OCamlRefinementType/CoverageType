@@ -13,7 +13,7 @@ let rec type_eq (tau_a : stlc_ty) (tau_b : stlc_ty) : bool =
 let[@assert] type_eq ?r:(t1 : stlc_ty) ?r:(t2 : stlc_ty) =
   (v == (t1 == t2) : [%v: bool])
 
-let[@library] stlc_ty_num_arr ?r:(t1 : stlc_ty) = (num_arr t1 == v : [%v: int])
+let[@assume] stlc_ty_num_arr ?r:(t1 : stlc_ty) = (num_arr t1 == v : [%v: int])
 
 let gen_const (a : unit) : stlc_term =
   let (n2 : int) = nat_gen () in
@@ -65,7 +65,7 @@ let rec gen_term_no_app (tau : stlc_ty) (gamma : stlc_ty list) : stlc_term =
 let[@assert] gen_term_no_app ?r:(tau : stlc_ty) ?r:(gamma : stlc_ty list) =
   (typing gamma v tau && num_app v == 0 : [%v: stlc_term])
 
-let[@library] calculate_measure ?r:(num : int) ?r:(tau : stlc_ty) =
+let[@assume] calculate_measure ?r:(num : int) ?r:(tau : stlc_ty) =
   (stlc_measure tau num v : [%v: int])
 
 let rec gen_term_size (measure : int) (num : int) (tau : stlc_ty)

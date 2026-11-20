@@ -1,4 +1,4 @@
-let[@library] int_range ?r:(a = ((true : [%v: int]) [@over]))
+let[@assume] int_range ?r:(a = ((true : [%v: int]) [@over]))
     ?r:(b = ((a <= v : [%v: int]) [@over])) =
   M (a <= v && v <= b : [%v: int])
 
